@@ -1,3 +1,5 @@
+const yesterday = Date.now() - 1000 * 60 * 60 * 24
+
 export const homeMeals = [
   {
     id: 'meal-1',
@@ -6,9 +8,10 @@ export const homeMeals = [
     tag: 'HOME',
     amountSpent: null,
     note: 'Quick homemade dinner',
-    occurredAt: Date.now() - 1000 * 60 * 60 * 3,
-    createdAt: Date.now() - 1000 * 60 * 60 * 4,
-    updatedAt: Date.now() - 1000 * 60 * 60 * 4,
+    date: new Date(yesterday - 1000 * 60 * 60 * 3).toISOString(),
+    occurredAt: yesterday - 1000 * 60 * 60 * 3,
+    createdAt: yesterday - 1000 * 60 * 60 * 4,
+    updatedAt: yesterday - 1000 * 60 * 60 * 4,
   },
   {
     id: 'meal-2',
@@ -17,9 +20,10 @@ export const homeMeals = [
     tag: 'OUTSIDE',
     amountSpent: 320,
     note: 'Lunch at the cafe',
-    occurredAt: Date.now() - 1000 * 60 * 60 * 7,
-    createdAt: Date.now() - 1000 * 60 * 60 * 7,
-    updatedAt: Date.now() - 1000 * 60 * 60 * 7,
+    date: new Date(yesterday - 1000 * 60 * 60 * 7).toISOString(),
+    occurredAt: yesterday - 1000 * 60 * 60 * 7,
+    createdAt: yesterday - 1000 * 60 * 60 * 7,
+    updatedAt: yesterday - 1000 * 60 * 60 * 7,
   },
   {
     id: 'meal-3',
@@ -28,8 +32,9 @@ export const homeMeals = [
     tag: 'HOME',
     amountSpent: null,
     note: 'Breakfast smoothie',
-    occurredAt: Date.now() - 1000 * 60 * 60 * 11,
-    createdAt: Date.now() - 1000 * 60 * 60 * 11,
-    updatedAt: Date.now() - 1000 * 60 * 60 * 11,
+    date: new Date(yesterday - 1000 * 60 * 60 * 11).toISOString(),
+    occurredAt: yesterday - 1000 * 60 * 60 * 11,
+    createdAt: yesterday - 1000 * 60 * 60 * 11,
+    updatedAt: yesterday - 1000 * 60 * 60 * 11,
   },
 ]

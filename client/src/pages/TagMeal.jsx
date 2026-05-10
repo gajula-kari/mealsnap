@@ -33,6 +33,7 @@ export default function TagMeal() {
       tag,
       amountSpent: null,
       note: null,
+      date: new Date(now).toISOString(),
       occurredAt: now,
       createdAt: now,
       updatedAt: now,

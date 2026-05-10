@@ -3,19 +3,43 @@ import { Link } from 'react-router-dom'
 import MealCard from '../components/MealCard.jsx'
 import { MealContext } from '../context/MealContext.jsx'
 
-function isToday(timestamp) {
-  const date = new Date(timestamp)
-  const now = new Date()
-  return (
-    date.getFullYear() === now.getFullYear() &&
-    date.getMonth() === now.getMonth() &&
-    date.getDate() === now.getDate()
+function isToday(dateValue) {
+  const mealDate = new Date(dateValue)
+  return mealDate.toDateString() === new Date().toDateString()
+}
+
+function calculateStreak(meals) {
+  const uniqueDays = Array.from(
+    new Set(meals.map((meal) => new Date(meal.date).toDateString())),
   )
+
+  uniqueDays.sort((a, b) => new Date(b) - new Date(a))
+
+  const todayString = new Date().toDateString()
+  if (!uniqueDays.includes(todayString)) {
+    return 0
+  }
+
+  let streak = 1
+  let current = new Date(todayString)
+  const datesSet = new Set(uniqueDays)
+
+  while (true) {
+    current.setDate(current.getDate() - 1)
+    const previousDay = current.toDateString()
+    if (!datesSet.has(previousDay)) {
+      break
+    }
+    streak += 1
+  }
+
+  return streak
 }
 
 export default function Home() {
   const { meals } = useContext(MealContext)
-  const todayMeals = meals.filter((meal) => isToday(meal.occurredAt))
+  const todayMeals = meals.filter((meal) => isToday(meal.date))
+  const streak = calculateStreak(meals)
 
   return (
     <div className="pb-24">
@@ -29,8 +53,8 @@ export default function Home() {
         </div>
 
         <div className="mt-6 rounded-3xl bg-slate-50 p-4">
-          <p className="text-sm text-slate-500">Streak</p>
-          <p className="mt-2 text-3xl font-semibold text-slate-900">5</p>
+          <p className="text-sm text-slate-500">🔥 Streak</p>
+          <p className="mt-2 text-3xl font-semibold text-slate-900">{streak} day{streak === 1 ? '' : 's'}</p>
         </div>
       </section>
 
