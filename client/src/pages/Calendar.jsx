@@ -66,13 +66,15 @@ export default function Calendar() {
         <div className="mt-6 grid grid-cols-7 gap-2">
           {days.map((day) => {
             const date = new Date(year, month, day)
-            const colorClass = getMealColorClass(meals, date)
+            const isFuture = date > today
+            const colorClass = isFuture ? 'bg-slate-100 text-slate-300' : getMealColorClass(meals, date)
             return (
               <button
                 key={day}
                 type="button"
+                disabled={isFuture}
                 onClick={() => navigate(`/day/${formatLocalDate(date)}`)}
-                className={`${colorClass} aspect-square rounded-2xl border border-slate-200 p-2 text-xs font-semibold shadow-sm transition hover:shadow-md`}
+                className={`${colorClass} aspect-square rounded-2xl border border-slate-200 p-2 text-xs font-semibold shadow-sm transition ${isFuture ? 'cursor-not-allowed opacity-50' : 'hover:shadow-md'}`}
               >
                 <span>{day}</span>
               </button>
