@@ -1,27 +1,37 @@
 import { Link } from 'react-router-dom'
+import MealCard from '../components/MealCard.jsx'
+import { homeMeals } from '../mocks/homeMeals.js'
 
 export default function Home() {
   return (
     <div className="pb-24">
-      <div className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h1 className="text-4xl font-bold text-slate-900">Welcome to MealSnap</h1>
-        <p className="text-slate-600">Temporary navigation test screen. Use the buttons below to verify routing.</p>
-
-        <div className="space-y-3">
-          <Link
-            to="/camera"
-            className="block rounded-2xl bg-slate-900 px-4 py-3 text-center text-white shadow-sm transition hover:bg-slate-700"
-          >
-            Camera
-          </Link>
-          <Link
-            to="/calendar"
-            className="block rounded-2xl border border-slate-900 px-4 py-3 text-center text-slate-900 transition hover:bg-slate-100"
-          >
-            Calendar
-          </Link>
+      <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Today</p>
+            <h1 className="mt-2 text-3xl font-semibold text-slate-900">Today Status</h1>
+          </div>
+          <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700">Good</span>
         </div>
-      </div>
+
+        <div className="mt-6 rounded-3xl bg-slate-50 p-4">
+          <p className="text-sm text-slate-500">Streak</p>
+          <p className="mt-2 text-3xl font-semibold text-slate-900">5</p>
+        </div>
+      </section>
+
+      <section className="mt-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-slate-900">Today&apos;s Meals</h2>
+          <span className="text-sm text-slate-500">{homeMeals.length} items</span>
+        </div>
+
+        <div className="space-y-4">
+          {homeMeals.map((meal) => (
+            <MealCard key={meal.id} imageUrl={meal.imageUrl} type={meal.tag} />
+          ))}
+        </div>
+      </section>
 
       <Link
         to="/camera"
