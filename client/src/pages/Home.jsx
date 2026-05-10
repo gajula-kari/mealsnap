@@ -2,9 +2,9 @@ import { Link } from 'react-router-dom'
 
 export default function Home() {
   return (
-    <div className="min-h-screen p-6">
-      <div className="mx-auto max-w-xl space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h1 className="text-4xl font-bold text-slate-900">MealSnap</h1>
+    <div className="pb-24">
+      <div className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h1 className="text-4xl font-bold text-slate-900">Welcome to MealSnap</h1>
         <p className="text-slate-600">Temporary navigation test screen. Use the buttons below to verify routing.</p>
 
         <div className="space-y-3">
@@ -22,6 +22,13 @@ export default function Home() {
           </Link>
         </div>
       </div>
+
+      <Link
+        to="/camera"
+        className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full bg-slate-900 px-6 py-4 text-sm font-semibold text-white shadow-2xl shadow-slate-900/25 transition hover:bg-slate-700"
+      >
+        + Add Meal
+      </Link>
     </div>
   )
 }
