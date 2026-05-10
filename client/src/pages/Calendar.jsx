@@ -1,18 +1,91 @@
-import { Link } from 'react-router-dom'
+import { useContext } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { MealContext } from '../context/MealContext.jsx'
+
+function getMonthDays() {
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = today.getMonth()
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+  return Array.from({ length: daysInMonth }, (_, index) => index + 1)
+}
+
+function formatLocalDate(date) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+function getMealColorClass(meals, date) {
+  const dateString = date.toDateString()
+  const mealsForDay = meals.filter((meal) => new Date(meal.date).toDateString() === dateString)
+  if (!mealsForDay.length) {
+    return 'bg-slate-100 text-slate-500'
+  }
+
+  const latestMeal = mealsForDay.reduce((latest, meal) => (meal.occurredAt > latest.occurredAt ? meal : latest))
+
+  switch (latestMeal.tag) {
+    case 'HOME':
+      return 'bg-emerald-100 text-emerald-700'
+    case 'OUTSIDE':
+      return 'bg-rose-100 text-rose-700'
+    case 'MIXED':
+      return 'bg-amber-100 text-amber-700'
+    default:
+      return 'bg-slate-100 text-slate-500'
+  }
+}
 
 export default function Calendar() {
+  const { meals } = useContext(MealContext)
+  const navigate = useNavigate()
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = today.getMonth()
+  const monthName = today.toLocaleString('default', { month: 'long' })
+  const days = getMonthDays()
+
   return (
-    <div className="p-6">
-      <div className="mx-auto max-w-xl space-y-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h1 className="text-3xl font-bold text-slate-900">Calendar</h1>
-        <p className="text-slate-600">This page is a placeholder for the Calendar route.</p>
-        <Link
-          to="/"
-          className="inline-flex rounded-2xl border border-slate-900 px-4 py-3 text-slate-900 transition hover:bg-slate-100"
-        >
-          Back to Home
-        </Link>
-      </div>
+    <div className="pb-24">
+      <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Current month</p>
+            <h1 className="mt-2 text-3xl font-semibold text-slate-900">{monthName} {year}</h1>
+          </div>
+          <Link
+            to="/"
+            className="rounded-2xl border border-slate-900 px-4 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-100"
+          >
+            Home
+          </Link>
+        </div>
+
+        <div className="mt-6 grid grid-cols-7 gap-2">
+          {days.map((day) => {
+            const date = new Date(year, month, day)
+            const colorClass = getMealColorClass(meals, date)
+            return (
+              <button
+                key={day}
+                type="button"
+                onClick={() => navigate(`/day/${formatLocalDate(date)}`)}
+                className={`${colorClass} aspect-square rounded-2xl border border-slate-200 p-2 text-xs font-semibold shadow-sm transition hover:shadow-md`}
+              >
+                <span>{day}</span>
+              </button>
+            )
+          })}
+        </div>
+
+        <div className="mt-6 grid grid-cols-3 gap-2 text-center text-[10px]">
+          <div className="rounded-2xl bg-emerald-100 px-2 py-2 text-emerald-700">HOME</div>
+          <div className="rounded-2xl bg-rose-100 px-2 py-2 text-rose-700">OUTSIDE</div>
+          <div className="rounded-2xl bg-amber-100 px-2 py-2 text-amber-700">MIXED</div>
+        </div>
+      </section>
     </div>
   )
 }
