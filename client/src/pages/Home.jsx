@@ -1,8 +1,22 @@
+import { useContext } from 'react'
 import { Link } from 'react-router-dom'
 import MealCard from '../components/MealCard.jsx'
-import { homeMeals } from '../mocks/homeMeals.js'
+import { MealContext } from '../context/MealContext.jsx'
+
+function isToday(timestamp) {
+  const date = new Date(timestamp)
+  const now = new Date()
+  return (
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth() &&
+    date.getDate() === now.getDate()
+  )
+}
 
 export default function Home() {
+  const { meals } = useContext(MealContext)
+  const todayMeals = meals.filter((meal) => isToday(meal.occurredAt))
+
   return (
     <div className="pb-24">
       <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -23,11 +37,11 @@ export default function Home() {
       <section className="mt-6 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold text-slate-900">Today&apos;s Meals</h2>
-          <span className="text-sm text-slate-500">{homeMeals.length} items</span>
+          <span className="text-sm text-slate-500">{todayMeals.length} items</span>
         </div>
 
         <div className="space-y-4">
-          {homeMeals.map((meal) => (
+          {todayMeals.map((meal) => (
             <MealCard key={meal.id} imageUrl={meal.imageUrl} type={meal.tag} />
           ))}
         </div>

@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useContext } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { MealContext } from '../context/MealContext.jsx'
 
 export default function TagMeal() {
+  const { addMeal } = useContext(MealContext)
   const location = useLocation()
   const navigate = useNavigate()
   const imageFile = location.state?.image
@@ -14,13 +16,31 @@ export default function TagMeal() {
 
     const objectUrl = URL.createObjectURL(imageFile)
     setPreview(objectUrl)
-
-    return () => {
-      URL.revokeObjectURL(objectUrl)
-    }
   }, [imageFile])
 
   const mealTagOptions = useMemo(() => ['HOME', 'OUTSIDE', 'MIXED'], [])
+
+  function handleTag(tag) {
+    if (!preview) {
+      return
+    }
+
+    const now = Date.now()
+    const meal = {
+      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `meal-${now}`,
+      userId: 'user-123',
+      imageUrl: preview,
+      tag,
+      amountSpent: null,
+      note: null,
+      occurredAt: now,
+      createdAt: now,
+      updatedAt: now,
+    }
+
+    addMeal(meal)
+    navigate('/')
+  }
 
   if (!imageFile) {
     return (
@@ -60,7 +80,7 @@ export default function TagMeal() {
               key={tag}
               type="button"
               className="rounded-3xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
-              onClick={() => console.log('Selected tag', tag)}
+              onClick={() => handleTag(tag)}
             >
               {tag}
             </button>
@@ -71,7 +91,7 @@ export default function TagMeal() {
           to="/"
           className="inline-flex rounded-2xl border border-slate-900 px-4 py-3 text-slate-900 transition hover:bg-slate-100"
         >
-          Done
+          Cancel
         </Link>
       </div>
     </div>
