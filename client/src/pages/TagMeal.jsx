@@ -10,12 +10,20 @@ export default function TagMeal() {
   const [preview, setPreview] = useState(null)
 
   useEffect(() => {
-    if (!imageFile) {
-      return
+    if (!imageFile) return
+
+    let cancelled = false
+    const reader = new FileReader()
+
+    reader.onload = () => {
+      if (!cancelled) setPreview(reader.result)
     }
 
-    const objectUrl = URL.createObjectURL(imageFile)
-    setPreview(objectUrl)
+    reader.readAsDataURL(imageFile)
+
+    return () => {
+      cancelled = true
+    }
   }, [imageFile])
 
   const mealTagOptions = useMemo(() => ['HOME', 'OUTSIDE', 'MIXED'], [])

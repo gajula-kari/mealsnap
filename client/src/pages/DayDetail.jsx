@@ -7,7 +7,8 @@ export default function DayDetail() {
   const { date } = useParams()
   const { meals } = useContext(MealContext)
 
-  const selectedDate = new Date(date)
+  const [y, m, d] = date.split('-').map(Number)
+  const selectedDate = new Date(y, m - 1, d)
   const selectedMeals = meals.filter((meal) => {
     const mealDate = new Date(meal.date)
     return mealDate.toDateString() === selectedDate.toDateString()
