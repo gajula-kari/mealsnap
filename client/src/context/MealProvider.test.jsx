@@ -50,7 +50,7 @@ describe('MealProvider', () => {
     expect(screen.getByText('id-1:HOME')).toBeInTheDocument()
   })
 
-  it('skips loading state on repeat visit when cache exists', () => {
+  it('skips loading state on repeat visit when cache has meals', () => {
     localStorage.setItem('mealsnap_meals', JSON.stringify([{ id: 'id-1', tag: 'HOME' }]))
     api.fetchMeals.mockResolvedValue([{ id: 'id-1', tag: 'HOME' }])
 
@@ -58,6 +58,15 @@ describe('MealProvider', () => {
 
     expect(screen.queryByText('loading')).not.toBeInTheDocument()
     expect(screen.getByText('id-1:HOME')).toBeInTheDocument()
+  })
+
+  it('shows loading state when cache exists but is empty', () => {
+    localStorage.setItem('mealsnap_meals', JSON.stringify([]))
+    api.fetchMeals.mockResolvedValue([])
+
+    renderProvider()
+
+    expect(screen.getByText('loading')).toBeInTheDocument()
   })
 
   it('addMeal calls api.createMeal and prepends the new meal to state', async () => {

@@ -23,7 +23,10 @@ function writeCache(meals) {
 
 export function MealProvider({ children }) {
   const [meals, setMeals] = useState(() => readCache() ?? [])
-  const [loading, setLoading] = useState(() => readCache() === null)
+  const [loading, setLoading] = useState(() => {
+    const cache = readCache()
+    return !cache || cache.length === 0
+  })
   const [error, setError] = useState(null)
 
   useEffect(() => {
