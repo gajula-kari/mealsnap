@@ -105,10 +105,7 @@ describe('deleteMeal', () => {
 
     await deleteMeal('abc')
 
-    expect(fetch).toHaveBeenCalledWith(
-      '/meals/abc',
-      expect.objectContaining({ method: 'DELETE' })
-    )
+    expect(fetch).toHaveBeenCalledWith('/meals/abc', expect.objectContaining({ method: 'DELETE' }))
   })
 
   it('throws on non-ok response', async () => {
