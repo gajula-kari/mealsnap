@@ -12,5 +12,14 @@ export default [
       ecmaVersion: 2022,
     },
   },
+  {
+    files: ['**/*.test.js', '**/*.spec.js'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.jest,
+      },
+    },
+  },
   prettier,
 ]
