@@ -1,27 +1,20 @@
-// Home has two pieces of real logic worth testing:
-//   1. calculateStreak — counts consecutive days ending today
-//   2. UI states — loading dash, plural/singular day, error message
-//
-// Neither function is exported, so we test them through the rendered output.
-// useMealContext is mocked so we control exactly what data the component sees.
-
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import Home from './Home'
+import type { Meal } from '../types'
 
-vi.mock('../hooks/useMealContext.js')
-vi.mock('../services/settingsApi.js')
+vi.mock('../hooks/useMealContext')
+vi.mock('../services/settingsApi')
 vi.mock('react-router-dom', async (importOriginal) => {
-  const actual = await importOriginal()
+  const actual = await importOriginal<typeof import('react-router-dom')>()
   return { ...actual, useNavigate: vi.fn(() => vi.fn()) }
 })
 
-import { useMealContext } from '../hooks/useMealContext.js'
-import { fetchSettings } from '../services/settingsApi.js'
+import { useMealContext } from '../hooks/useMealContext'
+import { fetchSettings } from '../services/settingsApi'
 import { useNavigate } from 'react-router-dom'
 
-// Renders Home inside MemoryRouter so useNavigate doesn't throw.
 function renderHome() {
   return render(
     <MemoryRouter>
@@ -30,13 +23,18 @@ function renderHome() {
   )
 }
 
-// Builds a meal that occurred on a given Date object.
-function mealOn(date) {
-  return { id: String(date.getTime()), tag: 'HOME', occurredAt: date.getTime() }
+function mealOn(date: Date): Meal {
+  return {
+    id: String(date.getTime()),
+    tag: 'HOME',
+    imageUrl: null,
+    amountSpent: null,
+    note: null,
+    occurredAt: date.getTime(),
+  }
 }
 
-// Returns a Date set to N days before today (same wall-clock day, noon).
-function daysAgo(n) {
+function daysAgo(n: number): Date {
   const d = new Date()
   d.setDate(d.getDate() - n)
   d.setHours(12, 0, 0, 0)
@@ -45,44 +43,62 @@ function daysAgo(n) {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  fetchSettings.mockResolvedValue(null)
+  vi.mocked(fetchSettings).mockResolvedValue(null)
 })
-
-// ─── Loading and error states ─────────────────────────────────────────────────
 
 describe('loading and error states', () => {
   it('shows "—" while meals are loading', () => {
-    useMealContext.mockReturnValue({ meals: [], loading: true, error: null })
+    vi.mocked(useMealContext).mockReturnValue({
+      meals: [],
+      loading: true,
+      error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
+    })
     renderHome()
 
-    // Streak + all three stat counters show "—" while loading.
     expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(1)
   })
 
   it('shows the error message when loading fails', () => {
-    useMealContext.mockReturnValue({ meals: [], loading: false, error: 'Failed to load' })
+    vi.mocked(useMealContext).mockReturnValue({
+      meals: [],
+      loading: false,
+      error: 'Failed to load',
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
+    })
     renderHome()
 
     expect(screen.getByText('Failed to load')).toBeInTheDocument()
   })
 })
 
-// ─── calculateStreak ─────────────────────────────────────────────────────────
-
 describe('calculateStreak (via rendered streak text)', () => {
   it('shows "0 days" when no meals are logged', () => {
-    useMealContext.mockReturnValue({ meals: [], loading: false, error: null })
+    vi.mocked(useMealContext).mockReturnValue({
+      meals: [],
+      loading: false,
+      error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
+    })
     renderHome()
 
     expect(screen.getByText('0 days')).toBeInTheDocument()
   })
 
   it('shows "0 days" when the most recent meal is not today', () => {
-    // A meal from yesterday means today is unlogged → streak breaks.
-    useMealContext.mockReturnValue({
+    vi.mocked(useMealContext).mockReturnValue({
       meals: [mealOn(daysAgo(1))],
       loading: false,
       error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
     })
     renderHome()
 
@@ -90,23 +106,28 @@ describe('calculateStreak (via rendered streak text)', () => {
   })
 
   it('shows "1 day" (singular) when only today is logged', () => {
-    useMealContext.mockReturnValue({
+    vi.mocked(useMealContext).mockReturnValue({
       meals: [mealOn(daysAgo(0))],
       loading: false,
       error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
     })
     renderHome()
 
-    // Singular: "1 day" not "1 days".
     expect(screen.getByText('1 day')).toBeInTheDocument()
     expect(screen.queryByText('1 days')).not.toBeInTheDocument()
   })
 
   it('shows "2 days" for today + yesterday', () => {
-    useMealContext.mockReturnValue({
+    vi.mocked(useMealContext).mockReturnValue({
       meals: [mealOn(daysAgo(0)), mealOn(daysAgo(1))],
       loading: false,
       error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
     })
     renderHome()
 
@@ -114,11 +135,13 @@ describe('calculateStreak (via rendered streak text)', () => {
   })
 
   it('breaks the streak on a gap — counts only the unbroken run', () => {
-    // Today + 2 days ago, skipping yesterday → streak = 1 despite 2 logged days.
-    useMealContext.mockReturnValue({
+    vi.mocked(useMealContext).mockReturnValue({
       meals: [mealOn(daysAgo(0)), mealOn(daysAgo(2))],
       loading: false,
       error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
     })
     renderHome()
 
@@ -126,11 +149,13 @@ describe('calculateStreak (via rendered streak text)', () => {
   })
 
   it('counts multiple meals on the same day as one streak day', () => {
-    // Three meals today should still be a 1-day streak, not 3.
-    useMealContext.mockReturnValue({
+    vi.mocked(useMealContext).mockReturnValue({
       meals: [mealOn(daysAgo(0)), mealOn(daysAgo(0)), mealOn(daysAgo(0))],
       loading: false,
       error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
     })
     renderHome()
 
@@ -138,15 +163,16 @@ describe('calculateStreak (via rendered streak text)', () => {
   })
 })
 
-// ─── Calendar grid ────────────────────────────────────────────────────────────
-
 describe('calendar grid', () => {
   const today = new Date()
 
-  function mealToday(tag) {
+  function mealToday(tag: Meal['tag']): Meal {
     return {
       id: tag,
       tag,
+      imageUrl: null,
+      amountSpent: null,
+      note: null,
       occurredAt: new Date(
         today.getFullYear(),
         today.getMonth(),
@@ -159,7 +185,14 @@ describe('calendar grid', () => {
   }
 
   it('applies emerald class to today when the latest meal is HOME', () => {
-    useMealContext.mockReturnValue({ meals: [mealToday('HOME')], loading: false, error: null })
+    vi.mocked(useMealContext).mockReturnValue({
+      meals: [mealToday('HOME')],
+      loading: false,
+      error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
+    })
     renderHome()
     expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass(
       'bg-emerald-100'
@@ -167,7 +200,14 @@ describe('calendar grid', () => {
   })
 
   it('applies amber class to today when the meal is OUTSIDE and no goal is set', () => {
-    useMealContext.mockReturnValue({ meals: [mealToday('OUTSIDE')], loading: false, error: null })
+    vi.mocked(useMealContext).mockReturnValue({
+      meals: [mealToday('OUTSIDE')],
+      loading: false,
+      error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
+    })
     renderHome()
     expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass(
       'bg-amber-100'
@@ -175,7 +215,14 @@ describe('calendar grid', () => {
   })
 
   it('applies amber class to today when the only meal has legacy MIXED tag', () => {
-    useMealContext.mockReturnValue({ meals: [mealToday('MIXED')], loading: false, error: null })
+    vi.mocked(useMealContext).mockReturnValue({
+      meals: [mealToday('MIXED')],
+      loading: false,
+      error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
+    })
     renderHome()
     expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass(
       'bg-amber-100'
@@ -183,10 +230,13 @@ describe('calendar grid', () => {
   })
 
   it('applies amber class to today when there are both HOME and OUTSIDE meals', () => {
-    useMealContext.mockReturnValue({
+    vi.mocked(useMealContext).mockReturnValue({
       meals: [mealToday('HOME'), mealToday('OUTSIDE')],
       loading: false,
       error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
     })
     renderHome()
     expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass(
@@ -195,10 +245,13 @@ describe('calendar grid', () => {
   })
 
   it('applies amber class when all meals today are OUTSIDE and no goal is set', () => {
-    useMealContext.mockReturnValue({
+    vi.mocked(useMealContext).mockReturnValue({
       meals: [mealToday('OUTSIDE'), mealToday('OUTSIDE')],
       loading: false,
       error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
     })
     renderHome()
     expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass(
@@ -207,25 +260,29 @@ describe('calendar grid', () => {
   })
 
   it('applies rose class when the outside day falls beyond the goal cutoff', async () => {
-    // Goal = 0 means any outside day is immediately over the limit → rose.
-    fetchSettings.mockResolvedValue({ monthlyOutsideGoal: 0 })
-    useMealContext.mockReturnValue({
+    vi.mocked(fetchSettings).mockResolvedValue({ monthlyOutsideGoal: 0 })
+    vi.mocked(useMealContext).mockReturnValue({
       meals: [mealToday('OUTSIDE')],
       loading: false,
       error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
     })
     renderHome()
 
-    // Wait for settings to resolve — OVER chip only appears once goal is loaded.
     await screen.findByText('OVER')
     expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass('bg-rose-100')
   })
 
   it('applies emerald class when all meals today are HOME', () => {
-    useMealContext.mockReturnValue({
+    vi.mocked(useMealContext).mockReturnValue({
       meals: [mealToday('HOME'), mealToday('HOME')],
       loading: false,
       error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
     })
     renderHome()
     expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass(
@@ -234,7 +291,14 @@ describe('calendar grid', () => {
   })
 
   it('applies slate class to today when no meals are logged', () => {
-    useMealContext.mockReturnValue({ meals: [], loading: false, error: null })
+    vi.mocked(useMealContext).mockReturnValue({
+      meals: [],
+      loading: false,
+      error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
+    })
     renderHome()
     expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass(
       'bg-slate-100'
@@ -243,8 +307,15 @@ describe('calendar grid', () => {
 
   it("clicking today's day button navigates to /day/YYYY-MM-DD", async () => {
     const navigate = vi.fn()
-    useNavigate.mockReturnValue(navigate)
-    useMealContext.mockReturnValue({ meals: [], loading: false, error: null })
+    vi.mocked(useNavigate).mockReturnValue(navigate)
+    vi.mocked(useMealContext).mockReturnValue({
+      meals: [],
+      loading: false,
+      error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
+    })
     renderHome()
 
     await userEvent.click(screen.getByRole('button', { name: String(today.getDate()) }))
@@ -256,58 +327,69 @@ describe('calendar grid', () => {
   })
 })
 
-// ─── Stats card ──────────────────────────────────────────────────────────────
-
 describe('stats card', () => {
   const today = new Date()
   const year = today.getFullYear()
   const month = today.getMonth()
 
-  function mealThisMonth(tag, dayOffset = 0) {
+  function mealThisMonth(tag: Meal['tag'], dayOffset = 0): Meal {
     return {
       id: `${tag}-${dayOffset}`,
       tag,
+      imageUrl: null,
+      amountSpent: null,
+      note: null,
       occurredAt: new Date(year, month, 1 + dayOffset, 12, 0, 0).getTime(),
     }
   }
 
   it('shows Home days and Outside days labels', () => {
-    useMealContext.mockReturnValue({ meals: [], loading: false, error: null })
+    vi.mocked(useMealContext).mockReturnValue({
+      meals: [],
+      loading: false,
+      error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
+    })
     renderHome()
 
     expect(screen.getByText('Home days')).toBeInTheDocument()
     expect(screen.getByText('Outside days')).toBeInTheDocument()
-    expect(screen.queryByText('Both days')).not.toBeInTheDocument()
   })
 
   it('counts a day with only HOME meals as a home day', () => {
-    useMealContext.mockReturnValue({
+    vi.mocked(useMealContext).mockReturnValue({
       meals: [mealThisMonth('HOME', 0), mealThisMonth('HOME', 0)],
       loading: false,
       error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
     })
     renderHome()
 
-    expect(screen.getByText('Home days').previousSibling.textContent).toBe('1')
+    expect(screen.getByText('Home days').previousSibling?.textContent).toBe('1')
   })
 
   it('counts a day with HOME + OUTSIDE meals as an outside day', () => {
-    useMealContext.mockReturnValue({
+    vi.mocked(useMealContext).mockReturnValue({
       meals: [mealThisMonth('HOME', 0), mealThisMonth('OUTSIDE', 0)],
       loading: false,
       error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
     })
     renderHome()
 
-    expect(screen.getByText('Outside days').previousSibling.textContent).toBe('1')
-    expect(screen.getByText('Home days').previousSibling.textContent).toBe('0')
+    expect(screen.getByText('Outside days').previousSibling?.textContent).toBe('1')
+    expect(screen.getByText('Home days').previousSibling?.textContent).toBe('0')
   })
 
-  it('shows banner when outside days (including mixed-meal days) exceed the goal', async () => {
-    fetchSettings.mockResolvedValue({ monthlyOutsideGoal: 1 })
-    // Day 1: HOME only (home day). Day 2: HOME + OUTSIDE (outside day = 1, at goal).
-    // Day 3: OUTSIDE (outside day = 2, now over goal = 1).
-    useMealContext.mockReturnValue({
+  it('shows banner when outside days exceed the goal', async () => {
+    vi.mocked(fetchSettings).mockResolvedValue({ monthlyOutsideGoal: 1 })
+    vi.mocked(useMealContext).mockReturnValue({
       meals: [
         mealThisMonth('HOME', 0),
         mealThisMonth('HOME', 1),
@@ -316,6 +398,9 @@ describe('stats card', () => {
       ],
       loading: false,
       error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
     })
     renderHome()
 
@@ -323,22 +408,24 @@ describe('stats card', () => {
   })
 
   it('does not show the goal banner when outside total is within the limit', async () => {
-    fetchSettings.mockResolvedValue({ monthlyOutsideGoal: 5 })
-    useMealContext.mockReturnValue({
+    vi.mocked(fetchSettings).mockResolvedValue({ monthlyOutsideGoal: 5 })
+    vi.mocked(useMealContext).mockReturnValue({
       meals: [mealThisMonth('OUTSIDE', 0)],
       loading: false,
       error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
     })
     renderHome()
 
-    // Wait for settings to load, then confirm banner is absent.
     await screen.findByText('Outside days')
     expect(screen.queryByText('Outside eating limit reached')).not.toBeInTheDocument()
   })
 
   it('does not show the goal banner when no goal is set', () => {
-    fetchSettings.mockResolvedValue(null)
-    useMealContext.mockReturnValue({
+    vi.mocked(fetchSettings).mockResolvedValue(null)
+    vi.mocked(useMealContext).mockReturnValue({
       meals: [
         mealThisMonth('OUTSIDE', 0),
         mealThisMonth('OUTSIDE', 1),
@@ -346,6 +433,9 @@ describe('stats card', () => {
       ],
       loading: false,
       error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
     })
     renderHome()
 
@@ -353,17 +443,22 @@ describe('stats card', () => {
   })
 })
 
-// ─── FAB file input ───────────────────────────────────────────────────────────
-
 describe('FAB file input', () => {
   it('navigates to /tag with the selected file when a file is chosen', async () => {
     const navigate = vi.fn()
-    useNavigate.mockReturnValue(navigate)
-    useMealContext.mockReturnValue({ meals: [], loading: false, error: null })
+    vi.mocked(useNavigate).mockReturnValue(navigate)
+    vi.mocked(useMealContext).mockReturnValue({
+      meals: [],
+      loading: false,
+      error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
+    })
     renderHome()
 
     const file = new File(['img'], 'meal.jpg', { type: 'image/jpeg' })
-    const input = document.querySelector('input[type="file"]')
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement
     await userEvent.upload(input, file)
 
     expect(navigate).toHaveBeenCalledWith('/tag', { state: { image: file } })

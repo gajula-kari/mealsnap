@@ -2,29 +2,40 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import Calendar from './Calendar'
+import type { Meal } from '../types'
 
-vi.mock('../hooks/useMealContext.js')
+vi.mock('../hooks/useMealContext')
 vi.mock('react-router-dom', async (importOriginal) => {
-  const actual = await importOriginal()
+  const actual = await importOriginal<typeof import('react-router-dom')>()
   return {
     ...actual,
     useNavigate: vi.fn(() => vi.fn()),
   }
 })
 
-import { useMealContext } from '../hooks/useMealContext.js'
+import { useMealContext } from '../hooks/useMealContext'
 import { useNavigate } from 'react-router-dom'
 
-function mealOn(year, month, day, tag = 'HOME') {
+function mealOn(year: number, month: number, day: number, tag: Meal['tag'] = 'HOME'): Meal {
   return {
     id: `${year}-${month}-${day}-${tag}`,
     tag,
+    imageUrl: null,
+    amountSpent: null,
+    note: null,
     occurredAt: new Date(year, month - 1, day, 12, 0, 0, 0).getTime(),
   }
 }
 
-function renderCalendar(meals = []) {
-  useMealContext.mockReturnValue({ meals })
+function renderCalendar(meals: Meal[] = []) {
+  vi.mocked(useMealContext).mockReturnValue({
+    meals,
+    loading: false,
+    error: null,
+    addMeal: vi.fn(),
+    updateMeal: vi.fn(),
+    deleteMeal: vi.fn(),
+  })
   return render(
     <MemoryRouter>
       <Calendar />
@@ -105,15 +116,29 @@ describe('Calendar', () => {
     const y = today.getFullYear()
     const mo = today.getMonth() + 1
     const d = today.getDate()
-    const earlier = { id: 'a', tag: 'HOME', occurredAt: new Date(y, mo - 1, d, 10, 0).getTime() }
-    const later = { id: 'b', tag: 'OUTSIDE', occurredAt: new Date(y, mo - 1, d, 14, 0).getTime() }
+    const earlier: Meal = {
+      id: 'a',
+      tag: 'HOME',
+      imageUrl: null,
+      amountSpent: null,
+      note: null,
+      occurredAt: new Date(y, mo - 1, d, 10, 0).getTime(),
+    }
+    const later: Meal = {
+      id: 'b',
+      tag: 'OUTSIDE',
+      imageUrl: null,
+      amountSpent: null,
+      note: null,
+      occurredAt: new Date(y, mo - 1, d, 14, 0).getTime(),
+    }
     renderCalendar([earlier, later])
     expect(screen.getByRole('button', { name: String(d) })).toHaveClass('bg-rose-100')
   })
 
   it("clicking today's button navigates to /day/YYYY-MM-DD", async () => {
     const navigate = vi.fn()
-    useNavigate.mockReturnValue(navigate)
+    vi.mocked(useNavigate).mockReturnValue(navigate)
     renderCalendar()
 
     const today = new Date()

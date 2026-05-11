@@ -3,13 +3,13 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import Settings from './Settings'
 
-vi.mock('../services/settingsApi.js')
+vi.mock('../services/settingsApi')
 vi.mock('react-router-dom', async (importOriginal) => {
-  const actual = await importOriginal()
+  const actual = await importOriginal<typeof import('react-router-dom')>()
   return { ...actual, useNavigate: vi.fn(() => vi.fn()) }
 })
 
-import { fetchSettings, saveSettings } from '../services/settingsApi.js'
+import { fetchSettings, saveSettings } from '../services/settingsApi'
 import { useNavigate } from 'react-router-dom'
 
 function renderSettings() {
@@ -22,15 +22,13 @@ function renderSettings() {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  fetchSettings.mockResolvedValue(null)
-  saveSettings.mockResolvedValue({
+  vi.mocked(fetchSettings).mockResolvedValue(null)
+  vi.mocked(saveSettings).mockResolvedValue({
     monthlyOutsideGoal: 7,
     previousGoal: null,
     goalUpdatedAt: Date.now(),
   })
 })
-
-// ─── Static rendering ─────────────────────────────────────────────────────────
 
 describe('Settings rendering', () => {
   it('renders the heading and description', () => {
@@ -54,11 +52,9 @@ describe('Settings rendering', () => {
   })
 })
 
-// ─── Loading existing settings ────────────────────────────────────────────────
-
 describe('Settings with existing data', () => {
   it('pre-fills the input with the current goal', async () => {
-    fetchSettings.mockResolvedValue({
+    vi.mocked(fetchSettings).mockResolvedValue({
       monthlyOutsideGoal: 10,
       previousGoal: null,
       goalUpdatedAt: null,
@@ -68,7 +64,7 @@ describe('Settings with existing data', () => {
   })
 
   it('shows previous goal when one exists', async () => {
-    fetchSettings.mockResolvedValue({
+    vi.mocked(fetchSettings).mockResolvedValue({
       monthlyOutsideGoal: 10,
       previousGoal: 5,
       goalUpdatedAt: 1700000000000,
@@ -78,7 +74,7 @@ describe('Settings with existing data', () => {
   })
 
   it('shows last updated date when goalUpdatedAt exists', async () => {
-    fetchSettings.mockResolvedValue({
+    vi.mocked(fetchSettings).mockResolvedValue({
       monthlyOutsideGoal: 10,
       previousGoal: null,
       goalUpdatedAt: 1700000000000,
@@ -87,8 +83,6 @@ describe('Settings with existing data', () => {
     expect(await screen.findByText(/Last updated:/)).toBeInTheDocument()
   })
 })
-
-// ─── Quick-pick chips ─────────────────────────────────────────────────────────
 
 describe('quick-pick chips', () => {
   it('clicking a chip sets that value in the input', async () => {
@@ -105,12 +99,10 @@ describe('quick-pick chips', () => {
   })
 })
 
-// ─── Save ─────────────────────────────────────────────────────────────────────
-
 describe('saving', () => {
   it('calls saveSettings with the chosen goal and navigates to /', async () => {
     const navigate = vi.fn()
-    useNavigate.mockReturnValue(navigate)
+    vi.mocked(useNavigate).mockReturnValue(navigate)
     renderSettings()
 
     await userEvent.click(screen.getByRole('button', { name: '7' }))
@@ -127,7 +119,7 @@ describe('saving', () => {
   })
 
   it('shows an error message when saveSettings throws', async () => {
-    saveSettings.mockRejectedValue(new Error('Network error'))
+    vi.mocked(saveSettings).mockRejectedValue(new Error('Network error'))
     renderSettings()
 
     await userEvent.click(screen.getByRole('button', { name: '5' }))
@@ -137,8 +129,12 @@ describe('saving', () => {
   })
 
   it('shows "Saving…" on the button while the request is in flight', async () => {
-    let resolve
-    saveSettings.mockReturnValue(new Promise((r) => (resolve = r)))
+    let resolve!: (value: {
+      monthlyOutsideGoal: number
+      previousGoal: null
+      goalUpdatedAt: number
+    }) => void
+    vi.mocked(saveSettings).mockReturnValue(new Promise((r) => (resolve = r)))
     renderSettings()
 
     await userEvent.click(screen.getByRole('button', { name: '5' }))

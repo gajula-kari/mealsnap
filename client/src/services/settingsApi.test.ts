@@ -1,4 +1,4 @@
-vi.mock('../utils/deviceId.js', () => ({ getDeviceId: () => 'test-device-id' }))
+vi.mock('../utils/deviceId', () => ({ getDeviceId: () => 'test-device-id' }))
 
 import { fetchSettings, saveSettings } from './settingsApi'
 
@@ -10,14 +10,12 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-function mockFetch(body, ok = true) {
-  fetch.mockResolvedValue({
+function mockFetch(body: unknown, ok = true) {
+  vi.mocked(fetch).mockResolvedValue({
     ok,
     json: vi.fn().mockResolvedValue(body),
-  })
+  } as unknown as Response)
 }
-
-// ─── fetchSettings ────────────────────────────────────────────────────────────
 
 describe('fetchSettings', () => {
   it('calls GET /settings and returns the settings object', async () => {
@@ -44,8 +42,6 @@ describe('fetchSettings', () => {
     await expect(fetchSettings()).rejects.toThrow('Server error')
   })
 })
-
-// ─── saveSettings ─────────────────────────────────────────────────────────────
 
 describe('saveSettings', () => {
   it('sends PATCH /settings with the goal and returns updated settings', async () => {

@@ -1,18 +1,7 @@
-// mealApi is the network boundary between the client and the server.
-// Its jobs:
-//   1. Call the correct URL with the correct method and body
-//   2. Normalize the response (_id → id) so the rest of the app never sees _id
-//   3. Throw a meaningful error when the server responds with !ok
-//
-// We mock global fetch — no real network needed.
-
-vi.mock('../utils/deviceId.js', () => ({ getDeviceId: () => 'test-device-id' }))
+vi.mock('../utils/deviceId', () => ({ getDeviceId: () => 'test-device-id' }))
 
 import { fetchMeals, createMeal, updateMeal, deleteMeal } from './mealApi'
 
-// Replace the global fetch with a vi.fn() before every test.
-// vi.stubGlobal wires it up so that references to `fetch` inside mealApi.js
-// hit this mock too (same global scope in jsdom).
 beforeEach(() => {
   vi.stubGlobal('fetch', vi.fn())
 })
@@ -21,15 +10,12 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-// Helper: build a fake fetch response. ok=true simulates a 2xx, ok=false simulates 4xx/5xx.
-function mockFetch(body, ok = true) {
-  fetch.mockResolvedValue({
+function mockFetch(body: unknown, ok = true) {
+  vi.mocked(fetch).mockResolvedValue({
     ok,
     json: vi.fn().mockResolvedValue(body),
-  })
+  } as unknown as Response)
 }
-
-// ─── fetchMeals ───────────────────────────────────────────────────────────────
 
 describe('fetchMeals', () => {
   it('calls GET /meals and returns normalized meals', async () => {
@@ -37,10 +23,7 @@ describe('fetchMeals', () => {
 
     const result = await fetchMeals()
 
-    // Verify the URL and that no extra options were passed (GET has no body).
     expect(fetch).toHaveBeenCalledWith('/meals', expect.objectContaining({}))
-
-    // normalize() must copy _id into id — the client uses id everywhere.
     expect(result).toEqual([{ _id: 'abc', tag: 'HOME', id: 'abc' }])
   })
 
@@ -57,11 +40,9 @@ describe('fetchMeals', () => {
   })
 })
 
-// ─── createMeal ───────────────────────────────────────────────────────────────
-
 describe('createMeal', () => {
   it('POSTs to /api/meals with JSON body and returns the normalized meal', async () => {
-    const payload = { tag: 'HOME', occurredAt: 1700000000000 }
+    const payload = { tag: 'HOME' as const, occurredAt: 1700000000000, imageUrl: 'data:img' }
     mockFetch({ meal: { _id: 'xyz', ...payload } })
 
     const result = await createMeal(payload)
@@ -74,17 +55,14 @@ describe('createMeal', () => {
         headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
       })
     )
-    // The returned meal must have id (from _id).
     expect(result).toMatchObject({ id: 'xyz', tag: 'HOME' })
   })
 })
 
-// ─── updateMeal ───────────────────────────────────────────────────────────────
-
 describe('updateMeal', () => {
   it('PATCHes to /api/meals/:id with JSON body and returns the normalized meal', async () => {
-    const payload = { tag: 'OUTSIDE', amountSpent: 250 }
-    mockFetch({ meal: { _id: 'abc', ...payload } })
+    const payload = { tag: 'OUTSIDE' as const, amountSpent: 250 }
+    mockFetch({ meal: { _id: 'abc', occurredAt: 0, ...payload } })
 
     const result = await updateMeal('abc', payload)
 
@@ -99,8 +77,6 @@ describe('updateMeal', () => {
     expect(result).toMatchObject({ id: 'abc', tag: 'OUTSIDE' })
   })
 })
-
-// ─── deleteMeal ───────────────────────────────────────────────────────────────
 
 describe('deleteMeal', () => {
   it('sends DELETE to /api/meals/:id', async () => {

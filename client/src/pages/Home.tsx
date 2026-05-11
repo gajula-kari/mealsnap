@@ -1,16 +1,17 @@
 import { useRef, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useMealContext } from '../hooks/useMealContext.js'
-import { fetchSettings } from '../services/settingsApi.js'
+import { useMealContext } from '../hooks/useMealContext'
+import { fetchSettings } from '../services/settingsApi'
+import type { Meal, MealTag } from '../types'
 
-function formatLocalDate(date) {
+function formatLocalDate(date: Date): string {
   const y = date.getFullYear()
   const m = String(date.getMonth() + 1).padStart(2, '0')
   const d = String(date.getDate()).padStart(2, '0')
   return `${y}-${m}-${d}`
 }
 
-function getMealColorClass(meals, date, redDaySet) {
+function getMealColorClass(meals: Meal[], date: Date, redDaySet: Set<string>): string {
   const dateString = date.toDateString()
   const mealsForDay = meals.filter(
     (meal) => new Date(meal.occurredAt).toDateString() === dateString
@@ -23,9 +24,9 @@ function getMealColorClass(meals, date, redDaySet) {
   return 'bg-amber-100 text-amber-700'
 }
 
-function calculateStreak(meals) {
+function calculateStreak(meals: Meal[]): number {
   const uniqueDays = Array.from(new Set(meals.map((m) => new Date(m.occurredAt).toDateString())))
-  uniqueDays.sort((a, b) => new Date(b) - new Date(a))
+  uniqueDays.sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
 
   const todayString = new Date().toDateString()
   if (!uniqueDays.includes(todayString)) return 0
@@ -46,8 +47,8 @@ function calculateStreak(meals) {
 export default function Home() {
   const { meals, loading, error } = useMealContext()
   const navigate = useNavigate()
-  const fileInputRef = useRef(null)
-  const [monthlyGoal, setMonthlyGoal] = useState(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [monthlyGoal, setMonthlyGoal] = useState<number | null>(null)
 
   useEffect(() => {
     fetchSettings()
@@ -57,7 +58,7 @@ export default function Home() {
       .catch(() => {})
   }, [])
 
-  function handleFileChange(e) {
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (file) navigate('/tag', { state: { image: file } })
   }
@@ -75,7 +76,7 @@ export default function Home() {
     return d.getFullYear() === year && d.getMonth() === month
   })
 
-  const dayTagMap = {}
+  const dayTagMap: Record<string, MealTag[]> = {}
   thisMonthMeals.forEach((m) => {
     const key = new Date(m.occurredAt).toDateString()
     if (!dayTagMap[key]) dayTagMap[key] = []
@@ -97,7 +98,7 @@ export default function Home() {
         .filter((m) => m.tag === 'OUTSIDE' || m.tag === 'MIXED')
         .map((m) => new Date(m.occurredAt).toDateString())
     )
-  ).sort((a, b) => new Date(a) - new Date(b))
+  ).sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
 
   const redDaySet = new Set(monthlyGoal != null ? sortedOutsideDays.slice(monthlyGoal) : [])
 

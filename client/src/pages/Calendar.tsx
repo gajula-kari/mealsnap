@@ -1,7 +1,8 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { useMealContext } from '../hooks/useMealContext.js'
+import { useMealContext } from '../hooks/useMealContext'
+import type { Meal, MealTag } from '../types'
 
-function getMonthDays() {
+function getMonthDays(): number[] {
   const today = new Date()
   const year = today.getFullYear()
   const month = today.getMonth()
@@ -9,14 +10,14 @@ function getMonthDays() {
   return Array.from({ length: daysInMonth }, (_, index) => index + 1)
 }
 
-function formatLocalDate(date) {
+function formatLocalDate(date: Date): string {
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
 }
 
-function getMealColorClass(meals, date) {
+function getMealColorClass(meals: Meal[], date: Date): string {
   const dateString = date.toDateString()
   const mealsForDay = meals.filter(
     (meal) => new Date(meal.occurredAt).toDateString() === dateString
@@ -29,16 +30,13 @@ function getMealColorClass(meals, date) {
     meal.occurredAt > latest.occurredAt ? meal : latest
   )
 
-  switch (latestMeal.tag) {
-    case 'HOME':
-      return 'bg-emerald-100 text-emerald-700'
-    case 'OUTSIDE':
-      return 'bg-rose-100 text-rose-700'
-    case 'MIXED':
-      return 'bg-amber-100 text-amber-700'
-    default:
-      return 'bg-slate-100 text-slate-500'
+  const colorMap: Record<MealTag, string> = {
+    HOME: 'bg-emerald-100 text-emerald-700',
+    OUTSIDE: 'bg-rose-100 text-rose-700',
+    MIXED: 'bg-amber-100 text-amber-700',
   }
+
+  return colorMap[latestMeal.tag] ?? 'bg-slate-100 text-slate-500'
 }
 
 export default function Calendar() {

@@ -1,9 +1,10 @@
+import { type ReactNode } from 'react'
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
-import Home from './pages/Home.jsx'
-import TagMeal from './pages/TagMeal.jsx'
-import DayDetail from './pages/DayDetail.jsx'
-import Settings from './pages/Settings.jsx'
-import ErrorBoundary from './components/ErrorBoundary.jsx'
+import Home from './pages/Home'
+import TagMeal from './pages/TagMeal'
+import DayDetail from './pages/DayDetail'
+import Settings from './pages/Settings'
+import ErrorBoundary from './components/ErrorBoundary'
 
 function Header() {
   const navigate = useNavigate()
@@ -71,7 +72,7 @@ function Header() {
   )
 }
 
-function Layout({ children }) {
+function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="h-screen overflow-hidden bg-slate-50 text-slate-900">
       <div className="mx-auto flex h-full w-full max-w-[480px] flex-col px-4 py-4">

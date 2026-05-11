@@ -1,19 +1,26 @@
 import { useState } from 'react'
+import type { Meal, MealTag, UpdateMealPayload } from '../types'
 
-const TAG_OPTIONS = ['HOME', 'OUTSIDE', 'MIXED']
+const TAG_OPTIONS: MealTag[] = ['HOME', 'OUTSIDE', 'MIXED']
 
-const TAG_COLOR = {
+const TAG_COLOR: Record<MealTag, string> = {
   HOME: 'bg-emerald-100 text-emerald-700',
   OUTSIDE: 'bg-rose-100 text-rose-700',
   MIXED: 'bg-amber-100 text-amber-700',
 }
 
-export default function MealCard({ meal, onEdit, onDelete }) {
+interface MealCardProps {
+  meal: Meal
+  onEdit?: (id: string, payload: UpdateMealPayload) => Promise<Meal>
+  onDelete?: (id: string) => Promise<void>
+}
+
+export default function MealCard({ meal, onEdit, onDelete }: MealCardProps) {
   const [editing, setEditing] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
-  const [tag, setTag] = useState(meal.tag)
+  const [tag, setTag] = useState<MealTag>(meal.tag)
   const [note, setNote] = useState(meal.note ?? '')
-  const [amountSpent, setAmountSpent] = useState(meal.amountSpent ?? '')
+  const [amountSpent, setAmountSpent] = useState<number | string>(meal.amountSpent ?? '')
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
@@ -33,7 +40,7 @@ export default function MealCard({ meal, onEdit, onDelete }) {
   async function handleSave() {
     setSaving(true)
     try {
-      await onEdit(meal.id, {
+      await onEdit?.(meal.id, {
         tag,
         note: note.trim() || null,
         amountSpent: tag === 'HOME' ? null : amountSpent !== '' ? Number(amountSpent) : null,
@@ -47,7 +54,7 @@ export default function MealCard({ meal, onEdit, onDelete }) {
   async function handleDelete() {
     setDeleting(true)
     try {
-      await onDelete(meal.id)
+      await onDelete?.(meal.id)
     } finally {
       setDeleting(false)
       setConfirmDelete(false)

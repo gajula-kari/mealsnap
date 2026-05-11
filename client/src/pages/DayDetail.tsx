@@ -1,20 +1,20 @@
 import { useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useMealContext } from '../hooks/useMealContext.js'
-import MealCard from '../components/MealCard.jsx'
+import { useMealContext } from '../hooks/useMealContext'
+import MealCard from '../components/MealCard'
 
 export default function DayDetail() {
-  const { date } = useParams()
+  const { date } = useParams<{ date: string }>()
   const { meals, updateMeal, deleteMeal } = useMealContext()
   const navigate = useNavigate()
-  const fileInputRef = useRef(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  function handleFileChange(e) {
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (file) navigate('/tag', { state: { image: file, date } })
   }
 
-  const [y, m, d] = date.split('-').map(Number)
+  const [y, m, d] = (date ?? '').split('-').map(Number)
   const selectedDate = new Date(y, m - 1, d)
   const selectedMeals = meals.filter(
     (meal) => new Date(meal.occurredAt).toDateString() === selectedDate.toDateString()

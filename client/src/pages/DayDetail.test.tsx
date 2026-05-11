@@ -1,17 +1,12 @@
-// DayDetail's job: given a date from the URL, filter the full meals list
-// and render only the meals that occurred on that day.
-//
-// We mock useParams to control the date, and useMealContext to control the meals.
-// MemoryRouter satisfies useNavigate.
-
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import DayDetail from './DayDetail'
+import type { Meal } from '../types'
 
-vi.mock('../hooks/useMealContext.js')
+vi.mock('../hooks/useMealContext')
 vi.mock('react-router-dom', async (importOriginal) => {
-  const actual = await importOriginal()
+  const actual = await importOriginal<typeof import('react-router-dom')>()
   return {
     ...actual,
     useParams: vi.fn(),
@@ -19,13 +14,12 @@ vi.mock('react-router-dom', async (importOriginal) => {
   }
 })
 
-import { useMealContext } from '../hooks/useMealContext.js'
+import { useMealContext } from '../hooks/useMealContext'
 import { useParams, useNavigate } from 'react-router-dom'
 
 const DATE = '2024-06-15'
 
-// A meal that falls on DATE (June 15 2024, local noon).
-function mealOnDate(id, tag = 'HOME') {
+function mealOnDate(id: string, tag: Meal['tag'] = 'HOME'): Meal {
   return {
     id,
     tag,
@@ -36,8 +30,7 @@ function mealOnDate(id, tag = 'HOME') {
   }
 }
 
-// A meal that falls on a different date (June 14 2024).
-function mealOffDate(id) {
+function mealOffDate(id: string): Meal {
   return {
     id,
     tag: 'HOME',
@@ -58,13 +51,16 @@ function renderDayDetail() {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  useParams.mockReturnValue({ date: DATE })
+  vi.mocked(useParams).mockReturnValue({ date: DATE })
 })
 
 describe('DayDetail', () => {
   it('shows the empty state when no meals match the date', () => {
-    useMealContext.mockReturnValue({
+    vi.mocked(useMealContext).mockReturnValue({
       meals: [mealOffDate('other')],
+      loading: false,
+      error: null,
+      addMeal: vi.fn(),
       updateMeal: vi.fn(),
       deleteMeal: vi.fn(),
     })
@@ -74,31 +70,45 @@ describe('DayDetail', () => {
   })
 
   it('renders only the meals that match the URL date', () => {
-    useMealContext.mockReturnValue({
+    vi.mocked(useMealContext).mockReturnValue({
       meals: [mealOnDate('match-1'), mealOnDate('match-2'), mealOffDate('no-match')],
+      loading: false,
+      error: null,
+      addMeal: vi.fn(),
       updateMeal: vi.fn(),
       deleteMeal: vi.fn(),
     })
     renderDayDetail()
 
-    // Each matching MealCard renders its tag badge.
-    // 2 HOME meals → 2 HOME badges. The off-date meal must not appear.
     expect(screen.getAllByText('HOME')).toHaveLength(2)
     expect(screen.queryByText('No meals logged')).not.toBeInTheDocument()
   })
 
   it('displays the correctly formatted date heading', () => {
-    useMealContext.mockReturnValue({ meals: [], updateMeal: vi.fn(), deleteMeal: vi.fn() })
+    vi.mocked(useMealContext).mockReturnValue({
+      meals: [],
+      loading: false,
+      error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
+    })
     renderDayDetail()
 
-    // new Date(2024, 5, 15).toLocaleDateString('en-US', { weekday: 'long', ... })
     expect(screen.getByText(/Saturday, June 15, 2024/)).toBeInTheDocument()
   })
 
   it('Back button navigates to /', async () => {
     const navigate = vi.fn()
-    useNavigate.mockReturnValue(navigate)
-    useMealContext.mockReturnValue({ meals: [], updateMeal: vi.fn(), deleteMeal: vi.fn() })
+    vi.mocked(useNavigate).mockReturnValue(navigate)
+    vi.mocked(useMealContext).mockReturnValue({
+      meals: [],
+      loading: false,
+      error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
+    })
     renderDayDetail()
 
     await userEvent.click(screen.getByRole('button', { name: 'Back' }))
@@ -108,12 +118,19 @@ describe('DayDetail', () => {
 
   it('navigates to /tag with the file and date when a file is selected', async () => {
     const navigate = vi.fn()
-    useNavigate.mockReturnValue(navigate)
-    useMealContext.mockReturnValue({ meals: [], updateMeal: vi.fn(), deleteMeal: vi.fn() })
+    vi.mocked(useNavigate).mockReturnValue(navigate)
+    vi.mocked(useMealContext).mockReturnValue({
+      meals: [],
+      loading: false,
+      error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
+    })
     renderDayDetail()
 
     const file = new File(['img'], 'meal.jpg', { type: 'image/jpeg' })
-    const input = document.querySelector('input[type="file"]')
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement
     await userEvent.upload(input, file)
 
     expect(navigate).toHaveBeenCalledWith('/tag', { state: { image: file, date: DATE } })

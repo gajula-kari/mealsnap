@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { fetchSettings, saveSettings } from '../services/settingsApi.js'
+import { fetchSettings, saveSettings } from '../services/settingsApi'
 
 const QUICK_OPTIONS = [5, 7, 10, 15]
 
-function formatDate(ts) {
+function formatDate(ts: number | null | undefined): string | null {
   if (!ts) return null
   return new Date(ts).toLocaleDateString('default', {
     day: 'numeric',
@@ -16,10 +16,10 @@ function formatDate(ts) {
 export default function Settings() {
   const navigate = useNavigate()
   const [goal, setGoal] = useState('')
-  const [previousGoal, setPreviousGoal] = useState(null)
-  const [goalUpdatedAt, setGoalUpdatedAt] = useState(null)
+  const [previousGoal, setPreviousGoal] = useState<number | null | undefined>(null)
+  const [goalUpdatedAt, setGoalUpdatedAt] = useState<number | null | undefined>(null)
   const [saving, setSaving] = useState(false)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     fetchSettings()
