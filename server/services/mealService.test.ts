@@ -9,12 +9,12 @@ beforeEach(() => {
 
 describe('createMeal', () => {
   it('calls Meal.create with the correct fields and returns the result', async () => {
-    const fakeMeal = { _id: '123', tag: 'OUTSIDE', amountSpent: 300, occurredAt: 1700000000000 }
+    const fakeMeal = { _id: '123', tag: 'INDULGENT', amountSpent: 300, occurredAt: 1700000000000 }
     jest.mocked(Meal.create).mockResolvedValue(fakeMeal as any)
 
     const result = await createMeal('user-123', {
       imageUrl: 'https://example.com/img.jpg',
-      tag: 'OUTSIDE',
+      tag: 'INDULGENT',
       amountSpent: 300,
       note: 'Lunch',
       occurredAt: 1700000000000,
@@ -23,7 +23,7 @@ describe('createMeal', () => {
     expect(Meal.create).toHaveBeenCalledWith({
       userId: 'user-123',
       imageUrl: 'https://example.com/img.jpg',
-      tag: 'OUTSIDE',
+      tag: 'INDULGENT',
       amountSpent: 300,
       note: 'Lunch',
       occurredAt: 1700000000000,
@@ -32,34 +32,34 @@ describe('createMeal', () => {
   })
 
   it('throws if occurredAt is missing', async () => {
-    await expect(createMeal('user-123', { tag: 'HOME' })).rejects.toThrow('occurredAt is required')
+    await expect(createMeal('user-123', { tag: 'CLEAN' })).rejects.toThrow('occurredAt is required')
     expect(Meal.create).not.toHaveBeenCalled()
   })
 
   it('forces amountSpent to null for HOME meals regardless of input', async () => {
     jest.mocked(Meal.create).mockResolvedValue({} as any)
 
-    await createMeal('user-123', { tag: 'HOME', amountSpent: 500, occurredAt: 1700000000000 })
+    await createMeal('user-123', { tag: 'CLEAN', amountSpent: 500, occurredAt: 1700000000000 })
 
     expect(Meal.create).toHaveBeenCalledWith(
-      expect.objectContaining({ tag: 'HOME', amountSpent: null })
+      expect.objectContaining({ tag: 'CLEAN', amountSpent: null })
     )
   })
 
   it('passes amountSpent through for OUTSIDE meals', async () => {
     jest.mocked(Meal.create).mockResolvedValue({} as any)
 
-    await createMeal('user-123', { tag: 'OUTSIDE', amountSpent: 250, occurredAt: 1700000000000 })
+    await createMeal('user-123', { tag: 'INDULGENT', amountSpent: 250, occurredAt: 1700000000000 })
 
     expect(Meal.create).toHaveBeenCalledWith(
-      expect.objectContaining({ tag: 'OUTSIDE', amountSpent: 250 })
+      expect.objectContaining({ tag: 'INDULGENT', amountSpent: 250 })
     )
   })
 
   it('defaults imageUrl and note to null when omitted', async () => {
     jest.mocked(Meal.create).mockResolvedValue({} as any)
 
-    await createMeal('user-123', { tag: 'HOME', occurredAt: 1700000000000 })
+    await createMeal('user-123', { tag: 'CLEAN', occurredAt: 1700000000000 })
 
     expect(Meal.create).toHaveBeenCalledWith(
       expect.objectContaining({ imageUrl: null, note: null })
@@ -115,18 +115,18 @@ describe('getMealsByDate', () => {
 
 describe('updateMeal', () => {
   it('calls findOneAndUpdate with correct query, updates, and options, then returns the meal', async () => {
-    const fakeMeal = { _id: 'abc', tag: 'OUTSIDE', amountSpent: 200 }
+    const fakeMeal = { _id: 'abc', tag: 'INDULGENT', amountSpent: 200 }
     jest.mocked(Meal.findOneAndUpdate).mockResolvedValue(fakeMeal as any)
 
     const result = await updateMeal('user-123', 'abc', {
-      tag: 'OUTSIDE',
+      tag: 'INDULGENT',
       amountSpent: 200,
       note: 'Dinner',
     })
 
     expect(Meal.findOneAndUpdate).toHaveBeenCalledWith(
       { _id: 'abc', userId: 'user-123' },
-      { tag: 'OUTSIDE', amountSpent: 200, note: 'Dinner' },
+      { tag: 'INDULGENT', amountSpent: 200, note: 'Dinner' },
       { new: true, runValidators: true }
     )
     expect(result).toBe(fakeMeal)
@@ -135,20 +135,20 @@ describe('updateMeal', () => {
   it('throws "Meal not found" when findOneAndUpdate returns null', async () => {
     jest.mocked(Meal.findOneAndUpdate).mockResolvedValue(null)
 
-    await expect(updateMeal('user-123', 'nonexistent', { tag: 'HOME' })).rejects.toThrow(
+    await expect(updateMeal('user-123', 'nonexistent', { tag: 'CLEAN' })).rejects.toThrow(
       'Meal not found'
     )
   })
 
   it('allows null amountSpent for OUTSIDE meals', async () => {
-    const fakeMeal = { _id: 'abc', tag: 'OUTSIDE', amountSpent: null }
+    const fakeMeal = { _id: 'abc', tag: 'INDULGENT', amountSpent: null }
     jest.mocked(Meal.findOneAndUpdate).mockResolvedValue(fakeMeal as any)
 
-    const result = await updateMeal('user-123', 'abc', { tag: 'OUTSIDE', amountSpent: null })
+    const result = await updateMeal('user-123', 'abc', { tag: 'INDULGENT', amountSpent: null })
 
     expect(Meal.findOneAndUpdate).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ tag: 'OUTSIDE', amountSpent: null }),
+      expect.objectContaining({ tag: 'INDULGENT', amountSpent: null }),
       expect.anything()
     )
     expect(result).toBe(fakeMeal)
@@ -157,9 +157,9 @@ describe('updateMeal', () => {
   it('forces amountSpent to null when tag is HOME', async () => {
     jest
       .mocked(Meal.findOneAndUpdate)
-      .mockResolvedValue({ _id: 'abc', tag: 'HOME', amountSpent: null } as any)
+      .mockResolvedValue({ _id: 'abc', tag: 'CLEAN', amountSpent: null } as any)
 
-    await updateMeal('user-123', 'abc', { tag: 'HOME', amountSpent: 500 })
+    await updateMeal('user-123', 'abc', { tag: 'CLEAN', amountSpent: 500 })
 
     expect(Meal.findOneAndUpdate).toHaveBeenCalledWith(
       expect.anything(),

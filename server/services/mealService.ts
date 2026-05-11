@@ -23,7 +23,7 @@ export async function createMeal(userId: string, input: CreateMealInput) {
     userId,
     imageUrl: input.imageUrl ?? null,
     tag: input.tag,
-    amountSpent: input.tag === 'HOME' ? null : input.amountSpent,
+    amountSpent: input.tag === 'CLEAN' ? null : input.amountSpent,
     note: input.note ?? null,
     occurredAt: input.occurredAt,
   })
@@ -53,7 +53,7 @@ export async function getMealsByDate(userId: string, dateString: string) {
 export async function updateMeal(userId: string, mealId: string, input: UpdateMealInput) {
   const updates = {
     tag: input.tag,
-    amountSpent: input.tag === 'HOME' ? null : input.amountSpent,
+    amountSpent: input.tag === 'CLEAN' ? null : input.amountSpent,
     note: input.note ?? null,
   }
 

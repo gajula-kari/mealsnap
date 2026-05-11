@@ -22,13 +22,13 @@ export async function upsertSettingsController(req: Request, res: Response): Pro
     return
   }
   try {
-    const { monthlyOutsideGoal } = req.body as { monthlyOutsideGoal: number }
+    const { monthlyIndulgentLimit } = req.body as { monthlyIndulgentLimit: number }
     const existing = await UserSettings.findOne({ userId })
 
-    const update: Record<string, unknown> = { monthlyOutsideGoal, goalUpdatedAt: Date.now() }
+    const update: Record<string, unknown> = { monthlyIndulgentLimit, goalUpdatedAt: Date.now() }
 
-    if (existing && existing.monthlyOutsideGoal !== monthlyOutsideGoal) {
-      update.previousGoal = existing.monthlyOutsideGoal
+    if (existing && existing.monthlyIndulgentLimit !== monthlyIndulgentLimit) {
+      update.previousGoal = existing.monthlyIndulgentLimit
     }
 
     const settings = await UserSettings.findOneAndUpdate(

@@ -1,4 +1,4 @@
-export type MealTag = 'HOME' | 'OUTSIDE' | 'MIXED'
+export type MealTag = 'CLEAN' | 'INDULGENT'
 
 export interface Meal {
   id: string
@@ -14,7 +14,7 @@ export interface Meal {
 }
 
 export interface Settings {
-  monthlyOutsideGoal: number | null
+  monthlyIndulgentLimit: number | null
   previousGoal?: number | null
   goalUpdatedAt?: number | null
   userId?: string

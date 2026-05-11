@@ -31,9 +31,8 @@ function getMealColorClass(meals: Meal[], date: Date): string {
   )
 
   const colorMap: Record<MealTag, string> = {
-    HOME: 'bg-emerald-100 text-emerald-700',
-    OUTSIDE: 'bg-rose-100 text-rose-700',
-    MIXED: 'bg-amber-100 text-amber-700',
+    CLEAN: 'bg-emerald-100 text-emerald-700',
+    INDULGENT: 'bg-amber-100 text-amber-700',
   }
 
   return colorMap[latestMeal.tag] ?? 'bg-slate-100 text-slate-500'
@@ -87,10 +86,9 @@ export default function Calendar() {
           })}
         </div>
 
-        <div className="mt-6 grid grid-cols-3 gap-2 text-center text-[10px]">
-          <div className="rounded-2xl bg-emerald-100 px-2 py-2 text-emerald-700">HOME</div>
-          <div className="rounded-2xl bg-rose-100 px-2 py-2 text-rose-700">OUTSIDE</div>
-          <div className="rounded-2xl bg-amber-100 px-2 py-2 text-amber-700">MIXED</div>
+        <div className="mt-6 grid grid-cols-2 gap-2 text-center text-[10px]">
+          <div className="rounded-2xl bg-emerald-100 px-2 py-2 text-emerald-700">CLEAN</div>
+          <div className="rounded-2xl bg-amber-100 px-2 py-2 text-amber-700">INDULGENT</div>
         </div>
       </section>
     </div>

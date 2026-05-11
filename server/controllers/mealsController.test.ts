@@ -45,10 +45,10 @@ beforeEach(() => {
 
 describe('createMealController', () => {
   it('responds 201 with the created meal on success', async () => {
-    const fakeMeal = { _id: 'abc', tag: 'HOME', occurredAt: 1700000000000 }
+    const fakeMeal = { _id: 'abc', tag: 'CLEAN', occurredAt: 1700000000000 }
     jest.mocked(createMeal).mockResolvedValue(fakeMeal as any)
 
-    const req = makeReq({ headers: withUser, body: { tag: 'HOME', occurredAt: 1700000000000 } })
+    const req = makeReq({ headers: withUser, body: { tag: 'CLEAN', occurredAt: 1700000000000 } })
     const res = makeRes()
 
     await createMealController(req, res as unknown as Response)
@@ -71,7 +71,7 @@ describe('createMealController', () => {
   })
 
   it('responds 400 when x-user-id header is missing', async () => {
-    const req = makeReq({ body: { tag: 'HOME', occurredAt: 1700000000000 } })
+    const req = makeReq({ body: { tag: 'CLEAN', occurredAt: 1700000000000 } })
     const res = makeRes()
 
     await createMealController(req, res as unknown as Response)
@@ -150,13 +150,13 @@ describe('getMealsController', () => {
 
 describe('updateMealController', () => {
   it('responds 200 with the updated meal on success', async () => {
-    const fakeMeal = { _id: 'abc', tag: 'OUTSIDE', amountSpent: 350 }
+    const fakeMeal = { _id: 'abc', tag: 'INDULGENT', amountSpent: 350 }
     jest.mocked(updateMeal).mockResolvedValue(fakeMeal as any)
 
     const req = makeReq({
       headers: withUser,
       params: { id: 'abc' },
-      body: { tag: 'OUTSIDE', amountSpent: 350 },
+      body: { tag: 'INDULGENT', amountSpent: 350 },
     })
     const res = makeRes()
 
@@ -170,7 +170,11 @@ describe('updateMealController', () => {
   it('responds 404 when the service throws "Meal not found"', async () => {
     jest.mocked(updateMeal).mockRejectedValue(new Error('Meal not found'))
 
-    const req = makeReq({ headers: withUser, params: { id: 'nonexistent' }, body: { tag: 'HOME' } })
+    const req = makeReq({
+      headers: withUser,
+      params: { id: 'nonexistent' },
+      body: { tag: 'CLEAN' },
+    })
     const res = makeRes()
 
     await updateMealController(req, res as unknown as Response)
@@ -182,7 +186,7 @@ describe('updateMealController', () => {
   it('responds 400 for any other service error', async () => {
     jest.mocked(updateMeal).mockRejectedValue(new Error('DB connection lost'))
 
-    const req = makeReq({ headers: withUser, params: { id: 'abc' }, body: { tag: 'OUTSIDE' } })
+    const req = makeReq({ headers: withUser, params: { id: 'abc' }, body: { tag: 'INDULGENT' } })
     const res = makeRes()
 
     await updateMealController(req, res as unknown as Response)
@@ -192,7 +196,7 @@ describe('updateMealController', () => {
   })
 
   it('responds 400 when x-user-id header is missing', async () => {
-    const req = makeReq({ params: { id: 'abc' }, body: { tag: 'HOME' } })
+    const req = makeReq({ params: { id: 'abc' }, body: { tag: 'CLEAN' } })
     const res = makeRes()
 
     await updateMealController(req, res as unknown as Response)

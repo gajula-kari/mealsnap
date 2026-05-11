@@ -1,12 +1,11 @@
 import { useState } from 'react'
 import type { Meal, MealTag, UpdateMealPayload } from '../types'
 
-const TAG_OPTIONS: MealTag[] = ['HOME', 'OUTSIDE', 'MIXED']
+const TAG_OPTIONS: MealTag[] = ['CLEAN', 'INDULGENT']
 
 const TAG_COLOR: Record<MealTag, string> = {
-  HOME: 'bg-emerald-100 text-emerald-700',
-  OUTSIDE: 'bg-rose-100 text-rose-700',
-  MIXED: 'bg-amber-100 text-amber-700',
+  CLEAN: 'bg-emerald-100 text-emerald-700',
+  INDULGENT: 'bg-amber-100 text-amber-700',
 }
 
 interface MealCardProps {
@@ -43,7 +42,7 @@ export default function MealCard({ meal, onEdit, onDelete }: MealCardProps) {
       await onEdit?.(meal.id, {
         tag,
         note: note.trim() || null,
-        amountSpent: tag === 'HOME' ? null : amountSpent !== '' ? Number(amountSpent) : null,
+        amountSpent: tag === 'CLEAN' ? null : amountSpent !== '' ? Number(amountSpent) : null,
       })
       setEditing(false)
     } finally {
@@ -146,7 +145,7 @@ export default function MealCard({ meal, onEdit, onDelete }: MealCardProps) {
         {/* Edit form */}
         {editing && (
           <div className="space-y-3 border-t border-slate-100 pt-3">
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               {TAG_OPTIONS.map((t) => (
                 <button
                   key={t}
@@ -163,7 +162,7 @@ export default function MealCard({ meal, onEdit, onDelete }: MealCardProps) {
               ))}
             </div>
 
-            {tag !== 'HOME' && (
+            {tag !== 'CLEAN' && (
               <input
                 type="number"
                 placeholder="Amount spent"

@@ -19,12 +19,12 @@ function mockFetch(body: unknown, ok = true) {
 
 describe('fetchMeals', () => {
   it('calls GET /meals and returns normalized meals', async () => {
-    mockFetch({ meals: [{ _id: 'abc', tag: 'HOME' }] })
+    mockFetch({ meals: [{ _id: 'abc', tag: 'CLEAN' }] })
 
     const result = await fetchMeals()
 
     expect(fetch).toHaveBeenCalledWith('/meals', expect.objectContaining({}))
-    expect(result).toEqual([{ _id: 'abc', tag: 'HOME', id: 'abc' }])
+    expect(result).toEqual([{ _id: 'abc', tag: 'CLEAN', id: 'abc' }])
   })
 
   it('throws with the server error message on non-ok response', async () => {
@@ -42,7 +42,7 @@ describe('fetchMeals', () => {
 
 describe('createMeal', () => {
   it('POSTs to /api/meals with JSON body and returns the normalized meal', async () => {
-    const payload = { tag: 'HOME' as const, occurredAt: 1700000000000, imageUrl: 'data:img' }
+    const payload = { tag: 'CLEAN' as const, occurredAt: 1700000000000, imageUrl: 'data:img' }
     mockFetch({ meal: { _id: 'xyz', ...payload } })
 
     const result = await createMeal(payload)
@@ -55,13 +55,13 @@ describe('createMeal', () => {
         headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
       })
     )
-    expect(result).toMatchObject({ id: 'xyz', tag: 'HOME' })
+    expect(result).toMatchObject({ id: 'xyz', tag: 'CLEAN' })
   })
 })
 
 describe('updateMeal', () => {
   it('PATCHes to /api/meals/:id with JSON body and returns the normalized meal', async () => {
-    const payload = { tag: 'OUTSIDE' as const, amountSpent: 250 }
+    const payload = { tag: 'INDULGENT' as const, amountSpent: 250 }
     mockFetch({ meal: { _id: 'abc', occurredAt: 0, ...payload } })
 
     const result = await updateMeal('abc', payload)
@@ -74,7 +74,7 @@ describe('updateMeal', () => {
         headers: expect.objectContaining({ 'x-user-id': 'test-device-id' }),
       })
     )
-    expect(result).toMatchObject({ id: 'abc', tag: 'OUTSIDE' })
+    expect(result).toMatchObject({ id: 'abc', tag: 'INDULGENT' })
   })
 })
 
