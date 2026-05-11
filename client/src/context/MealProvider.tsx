@@ -1,19 +1,20 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { MealContext } from './MealContext.js'
-import * as api from '../services/mealApi.js'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { MealContext } from './MealContext'
+import * as api from '../services/mealApi'
+import type { Meal } from '../types'
 
 const CACHE_KEY = 'mealsnap_meals'
 
-function readCache() {
+function readCache(): Meal[] | null {
   try {
     const raw = localStorage.getItem(CACHE_KEY)
-    return raw ? JSON.parse(raw) : null
+    return raw ? (JSON.parse(raw) as Meal[]) : null
   } catch {
     return null
   }
 }
 
-function writeCache(meals) {
+function writeCache(meals: Meal[]): void {
   try {
     // imageUrl is a base64 string — too large for localStorage quota.
     // Tags and timestamps are all we need for streak and calendar colours.
@@ -24,13 +25,13 @@ function writeCache(meals) {
   }
 }
 
-export function MealProvider({ children }) {
-  const [meals, setMeals] = useState(() => readCache() ?? [])
+export function MealProvider({ children }: { children: ReactNode }) {
+  const [meals, setMeals] = useState<Meal[]>(() => readCache() ?? [])
   const [loading, setLoading] = useState(() => {
     const cache = readCache()
     return !cache || cache.length === 0
   })
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     writeCache(meals)
@@ -41,23 +42,26 @@ export function MealProvider({ children }) {
     api
       .fetchMeals()
       .then(setMeals)
-      .catch((err) => setError(err.message))
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : 'Unknown error'))
       .finally(() => setLoading(false))
   }, [])
 
-  const addMeal = useCallback(async (payload) => {
+  const addMeal = useCallback(async (payload: Parameters<typeof api.createMeal>[0]) => {
     const meal = await api.createMeal(payload)
     setMeals((prev) => [meal, ...prev])
     return meal
   }, [])
 
-  const updateMeal = useCallback(async (id, payload) => {
-    const updated = await api.updateMeal(id, payload)
-    setMeals((prev) => prev.map((m) => (m.id === id ? updated : m)))
-    return updated
-  }, [])
+  const updateMeal = useCallback(
+    async (id: string, payload: Parameters<typeof api.updateMeal>[1]) => {
+      const updated = await api.updateMeal(id, payload)
+      setMeals((prev) => prev.map((m) => (m.id === id ? updated : m)))
+      return updated
+    },
+    []
+  )
 
-  const deleteMeal = useCallback(async (id) => {
+  const deleteMeal = useCallback(async (id: string) => {
     await api.deleteMeal(id)
     setMeals((prev) => prev.filter((m) => m.id !== id))
   }, [])

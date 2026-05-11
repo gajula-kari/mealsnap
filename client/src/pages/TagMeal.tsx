@@ -1,8 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { useMealContext } from '../hooks/useMealContext.js'
+import { useMealContext } from '../hooks/useMealContext'
+import type { MealTag } from '../types'
 
-function formatDateLabel(date, includeTime) {
+interface TagMealLocationState {
+  image?: File
+  date?: string
+}
+
+function formatDateLabel(date: Date, includeTime: boolean): string {
   const dateStr = date.toLocaleDateString('en-US', {
     weekday: 'long',
     day: 'numeric',
@@ -14,7 +20,7 @@ function formatDateLabel(date, includeTime) {
   return `${dateStr} · ${timeStr}`
 }
 
-function formatLocalDate(date) {
+function formatLocalDate(date: Date): string {
   const y = date.getFullYear()
   const m = String(date.getMonth() + 1).padStart(2, '0')
   const d = String(date.getDate()).padStart(2, '0')
@@ -25,11 +31,12 @@ export default function TagMeal() {
   const { addMeal } = useMealContext()
   const location = useLocation()
   const navigate = useNavigate()
-  const imageFile = location.state?.image
-  const dateFromState = location.state?.date // 'YYYY-MM-DD' if coming from a past day
-  const [preview, setPreview] = useState(null)
+  const state = location.state as TagMealLocationState | null
+  const imageFile = state?.image
+  const dateFromState = state?.date
+  const [preview, setPreview] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
-  const [saveError, setSaveError] = useState(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const [mountedAt] = useState(() => Date.now())
 
   const { occurredAt, dateLabel } = useMemo(() => {
@@ -43,7 +50,7 @@ export default function TagMeal() {
     }
     const now = new Date(mountedAt)
     return {
-      occurredAt: null, // will use Date.now() at save time for today
+      occurredAt: null as number | null,
       dateLabel: formatDateLabel(now, true),
     }
   }, [dateFromState, mountedAt])
@@ -53,7 +60,7 @@ export default function TagMeal() {
     let cancelled = false
     const reader = new FileReader()
     reader.onload = () => {
-      if (!cancelled) setPreview(reader.result)
+      if (!cancelled) setPreview(reader.result as string)
     }
     reader.readAsDataURL(imageFile)
     return () => {
@@ -61,10 +68,10 @@ export default function TagMeal() {
     }
   }, [imageFile])
 
-  const mealTagOptions = useMemo(() => ['HOME', 'OUTSIDE'], [])
+  const mealTagOptions = useMemo<MealTag[]>(() => ['HOME', 'OUTSIDE'], [])
 
   const handleTag = useCallback(
-    async (tag) => {
+    async (tag: MealTag) => {
       if (!preview || saving) return
 
       setSaving(true)
@@ -76,7 +83,7 @@ export default function TagMeal() {
         const targetDate = dateFromState ?? formatLocalDate(new Date())
         navigate(`/day/${targetDate}`)
       } catch (err) {
-        setSaveError(err.message)
+        setSaveError(err instanceof Error ? err.message : 'Unknown error')
         setSaving(false)
       }
     },

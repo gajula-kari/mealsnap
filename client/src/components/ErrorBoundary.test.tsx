@@ -2,18 +2,17 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ErrorBoundary from './ErrorBoundary'
 
-function Bomb({ shouldThrow }) {
+function Bomb({ shouldThrow }: { shouldThrow: boolean }) {
   if (shouldThrow) throw new Error('Test explosion')
   return <p>All good</p>
 }
 
-// React logs the caught error to console.error — suppress it so test output is clean.
 beforeEach(() => {
   vi.spyOn(console, 'error').mockImplementation(() => {})
 })
 
 afterEach(() => {
-  console.error.mockRestore()
+  vi.mocked(console.error).mockRestore()
 })
 
 describe('ErrorBoundary', () => {
@@ -47,7 +46,6 @@ describe('ErrorBoundary', () => {
 
     expect(screen.getByText('Something went wrong')).toBeInTheDocument()
 
-    // Simulate the parent fixing the broken prop before the retry.
     rerender(
       <ErrorBoundary>
         <Bomb shouldThrow={false} />

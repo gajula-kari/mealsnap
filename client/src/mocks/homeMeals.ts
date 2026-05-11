@@ -1,6 +1,8 @@
+import type { Meal } from '../types'
+
 const yesterday = Date.now() - 1000 * 60 * 60 * 24
 
-export const homeMeals = [
+export const homeMeals: Meal[] = [
   {
     id: 'meal-1',
     userId: 'user-123',

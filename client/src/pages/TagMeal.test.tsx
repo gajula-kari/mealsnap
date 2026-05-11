@@ -1,19 +1,11 @@
-// TagMeal is mostly orchestration (FileReader, location state, navigation).
-// FileReader is a browser API that's cumbersome to mock in jsdom.
-//
-// The one case we can test cleanly and that matters:
-// when no image is in location state, the component shows a fallback UI
-// instead of the tagging form. This guards against the user landing on /tag
-// without going through the image picker.
-
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import TagMeal from './TagMeal'
 
-vi.mock('../hooks/useMealContext.js')
+vi.mock('../hooks/useMealContext')
 vi.mock('react-router-dom', async (importOriginal) => {
-  const actual = await importOriginal()
+  const actual = await importOriginal<typeof import('react-router-dom')>()
   return {
     ...actual,
     useLocation: vi.fn(),
@@ -21,17 +13,30 @@ vi.mock('react-router-dom', async (importOriginal) => {
   }
 })
 
-import { useMealContext } from '../hooks/useMealContext.js'
+import { useMealContext } from '../hooks/useMealContext'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 beforeEach(() => {
   vi.clearAllMocks()
-  useMealContext.mockReturnValue({ addMeal: vi.fn() })
+  vi.mocked(useMealContext).mockReturnValue({
+    meals: [],
+    loading: false,
+    error: null,
+    addMeal: vi.fn(),
+    updateMeal: vi.fn(),
+    deleteMeal: vi.fn(),
+  })
 })
 
 describe('TagMeal', () => {
   it('shows a fallback message when no image is in location state', () => {
-    useLocation.mockReturnValue({ state: null })
+    vi.mocked(useLocation).mockReturnValue({
+      state: null,
+      pathname: '/tag',
+      search: '',
+      hash: '',
+      key: 'default',
+    })
 
     render(
       <MemoryRouter>
@@ -44,7 +49,13 @@ describe('TagMeal', () => {
   })
 
   it('does not render the tagging form when there is no image', () => {
-    useLocation.mockReturnValue({ state: null })
+    vi.mocked(useLocation).mockReturnValue({
+      state: null,
+      pathname: '/tag',
+      search: '',
+      hash: '',
+      key: 'default',
+    })
 
     render(
       <MemoryRouter>
@@ -52,26 +63,31 @@ describe('TagMeal', () => {
       </MemoryRouter>
     )
 
-    // The tag buttons (HOME / OUTSIDE / MIXED) must not appear in the fallback view.
     expect(screen.queryByRole('button', { name: 'HOME' })).not.toBeInTheDocument()
   })
 })
 
-// ─── With image ───────────────────────────────────────────────────────────────
-
 describe('TagMeal with image', () => {
-  // FileReader is async in real browsers. This mock fires onload via queueMicrotask
-  // so RTL's findBy* queries can await the preview state update.
   class MockFileReader {
-    readAsDataURL() {
+    result: string | ArrayBuffer | null = null
+    onload: ((ev: Event) => void) | null = null
+
+    readAsDataURL(_url: string): void {
       this.result = 'data:image/jpeg;base64,fake'
-      queueMicrotask(() => this.onload())
+      queueMicrotask(() => this.onload?.(new Event('load')))
     }
   }
 
   beforeEach(() => {
     vi.stubGlobal('FileReader', MockFileReader)
-    useMealContext.mockReturnValue({ addMeal: vi.fn() })
+    vi.mocked(useMealContext).mockReturnValue({
+      meals: [],
+      loading: false,
+      error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
+    })
   })
 
   afterEach(() => {
@@ -83,7 +99,13 @@ describe('TagMeal with image', () => {
   }
 
   it('renders only HOME and OUTSIDE tag buttons once the preview loads', async () => {
-    useLocation.mockReturnValue({ state: { image: imageFile() } })
+    vi.mocked(useLocation).mockReturnValue({
+      state: { image: imageFile() },
+      pathname: '/tag',
+      search: '',
+      hash: '',
+      key: 'default',
+    })
 
     render(
       <MemoryRouter>
@@ -100,10 +122,23 @@ describe('TagMeal with image', () => {
 
   it('calls addMeal with the chosen tag and navigates to the day detail', async () => {
     const navigate = vi.fn()
-    useNavigate.mockReturnValue(navigate)
+    vi.mocked(useNavigate).mockReturnValue(navigate)
     const addMeal = vi.fn().mockResolvedValue({})
-    useMealContext.mockReturnValue({ addMeal })
-    useLocation.mockReturnValue({ state: { image: imageFile() } })
+    vi.mocked(useMealContext).mockReturnValue({
+      meals: [],
+      loading: false,
+      error: null,
+      addMeal,
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
+    })
+    vi.mocked(useLocation).mockReturnValue({
+      state: { image: imageFile() },
+      pathname: '/tag',
+      search: '',
+      hash: '',
+      key: 'default',
+    })
 
     render(
       <MemoryRouter>
@@ -124,8 +159,21 @@ describe('TagMeal with image', () => {
 
   it('uses noon of dateFromState as occurredAt when coming from a past day', async () => {
     const addMeal = vi.fn().mockResolvedValue({})
-    useMealContext.mockReturnValue({ addMeal })
-    useLocation.mockReturnValue({ state: { image: imageFile(), date: '2024-06-15' } })
+    vi.mocked(useMealContext).mockReturnValue({
+      meals: [],
+      loading: false,
+      error: null,
+      addMeal,
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
+    })
+    vi.mocked(useLocation).mockReturnValue({
+      state: { image: imageFile(), date: '2024-06-15' },
+      pathname: '/tag',
+      search: '',
+      hash: '',
+      key: 'default',
+    })
 
     render(
       <MemoryRouter>
@@ -146,10 +194,23 @@ describe('TagMeal with image', () => {
 
   it('navigates to the dateFromState day after tagging', async () => {
     const navigate = vi.fn()
-    useNavigate.mockReturnValue(navigate)
+    vi.mocked(useNavigate).mockReturnValue(navigate)
     const addMeal = vi.fn().mockResolvedValue({})
-    useMealContext.mockReturnValue({ addMeal })
-    useLocation.mockReturnValue({ state: { image: imageFile(), date: '2024-06-15' } })
+    vi.mocked(useMealContext).mockReturnValue({
+      meals: [],
+      loading: false,
+      error: null,
+      addMeal,
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
+    })
+    vi.mocked(useLocation).mockReturnValue({
+      state: { image: imageFile(), date: '2024-06-15' },
+      pathname: '/tag',
+      search: '',
+      hash: '',
+      key: 'default',
+    })
 
     render(
       <MemoryRouter>
@@ -164,10 +225,21 @@ describe('TagMeal with image', () => {
   })
 
   it('shows a save error when addMeal throws', async () => {
-    useMealContext.mockReturnValue({
+    vi.mocked(useMealContext).mockReturnValue({
+      meals: [],
+      loading: false,
+      error: null,
       addMeal: vi.fn().mockRejectedValue(new Error('Network error')),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
     })
-    useLocation.mockReturnValue({ state: { image: imageFile() } })
+    vi.mocked(useLocation).mockReturnValue({
+      state: { image: imageFile() },
+      pathname: '/tag',
+      search: '',
+      hash: '',
+      key: 'default',
+    })
 
     render(
       <MemoryRouter>
@@ -183,8 +255,14 @@ describe('TagMeal with image', () => {
 
   it('Cancel button navigates back when image is present', async () => {
     const navigate = vi.fn()
-    useNavigate.mockReturnValue(navigate)
-    useLocation.mockReturnValue({ state: { image: imageFile() } })
+    vi.mocked(useNavigate).mockReturnValue(navigate)
+    vi.mocked(useLocation).mockReturnValue({
+      state: { image: imageFile() },
+      pathname: '/tag',
+      search: '',
+      hash: '',
+      key: 'default',
+    })
 
     render(
       <MemoryRouter>
