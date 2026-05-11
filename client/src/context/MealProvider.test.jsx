@@ -40,13 +40,23 @@ beforeEach(() => {
 })
 
 describe('MealProvider', () => {
-  it('fetches meals on mount and clears the loading state', async () => {
+  it('shows loading state on first visit when no cache exists', async () => {
     api.fetchMeals.mockResolvedValue([{ id: 'id-1', tag: 'HOME' }])
 
     renderProvider()
     expect(screen.getByText('loading')).toBeInTheDocument()
 
     await waitFor(() => expect(screen.queryByText('loading')).not.toBeInTheDocument())
+    expect(screen.getByText('id-1:HOME')).toBeInTheDocument()
+  })
+
+  it('skips loading state on repeat visit when cache exists', () => {
+    localStorage.setItem('mealsnap_meals', JSON.stringify([{ id: 'id-1', tag: 'HOME' }]))
+    api.fetchMeals.mockResolvedValue([{ id: 'id-1', tag: 'HOME' }])
+
+    renderProvider()
+
+    expect(screen.queryByText('loading')).not.toBeInTheDocument()
     expect(screen.getByText('id-1:HOME')).toBeInTheDocument()
   })
 
