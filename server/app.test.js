@@ -167,10 +167,7 @@ describe('PATCH /settings', () => {
     UserSettings.findOne.mockResolvedValue(null)
     UserSettings.findOneAndUpdate.mockResolvedValue(fakeSettings)
 
-    const res = await request(app)
-      .patch('/settings')
-      .send({ monthlyOutsideGoal: 7 })
-      .expect(200)
+    const res = await request(app).patch('/settings').send({ monthlyOutsideGoal: 7 }).expect(200)
 
     expect(res.body).toEqual({ settings: fakeSettings })
   })
@@ -181,10 +178,7 @@ describe('PATCH /settings', () => {
     UserSettings.findOne.mockResolvedValue(existing)
     UserSettings.findOneAndUpdate.mockResolvedValue(updated)
 
-    const res = await request(app)
-      .patch('/settings')
-      .send({ monthlyOutsideGoal: 10 })
-      .expect(200)
+    const res = await request(app).patch('/settings').send({ monthlyOutsideGoal: 10 }).expect(200)
 
     expect(res.body).toEqual({ settings: updated })
     const setArg = UserSettings.findOneAndUpdate.mock.calls[0][1].$set

@@ -51,7 +51,9 @@ export default function Home() {
 
   useEffect(() => {
     fetchSettings()
-      .then((s) => { if (s?.monthlyOutsideGoal != null) setMonthlyGoal(s.monthlyOutsideGoal) })
+      .then((s) => {
+        if (s?.monthlyOutsideGoal != null) setMonthlyGoal(s.monthlyOutsideGoal)
+      })
       .catch(() => {})
   }, [])
 
@@ -80,7 +82,8 @@ export default function Home() {
     dayTagMap[key].push(m.tag)
   })
 
-  let homeDays = 0, outsideDays = 0
+  let homeDays = 0,
+    outsideDays = 0
   Object.values(dayTagMap).forEach((tags) => {
     const hasOutside = tags.includes('OUTSIDE') || tags.includes('MIXED')
     if (hasOutside) outsideDays++
@@ -96,9 +99,7 @@ export default function Home() {
     )
   ).sort((a, b) => new Date(a) - new Date(b))
 
-  const redDaySet = new Set(
-    monthlyGoal != null ? sortedOutsideDays.slice(monthlyGoal) : []
-  )
+  const redDaySet = new Set(monthlyGoal != null ? sortedOutsideDays.slice(monthlyGoal) : [])
 
   const overGoal = monthlyGoal != null && outsideDays > monthlyGoal
 
@@ -112,7 +113,9 @@ export default function Home() {
         {error && <p className="mt-2 text-sm text-rose-500">{error}</p>}
       </section>
 
-      <section className={`rounded-3xl border p-5 shadow-sm ${overGoal ? 'border-rose-200 bg-rose-50' : 'border-slate-200 bg-white'}`}>
+      <section
+        className={`rounded-3xl border p-5 shadow-sm ${overGoal ? 'border-rose-200 bg-rose-50' : 'border-slate-200 bg-white'}`}
+      >
         <p className="mb-3 text-xs uppercase tracking-[0.3em] text-slate-500">{monthName}</p>
         <div className="grid grid-cols-2 gap-2">
           <div>
@@ -120,7 +123,9 @@ export default function Home() {
             <p className="mt-0.5 text-xs text-slate-500">Home days</p>
           </div>
           <div>
-            <p className={`text-2xl font-semibold ${overGoal ? 'text-rose-600' : 'text-slate-900'}`}>
+            <p
+              className={`text-2xl font-semibold ${overGoal ? 'text-rose-600' : 'text-slate-900'}`}
+            >
               {loading ? '—' : outsideDays}
             </p>
             <p className="mt-0.5 text-xs text-slate-500">
@@ -133,9 +138,7 @@ export default function Home() {
             </p>
           </div>
         </div>
-        {overGoal && (
-          <p className="mt-3 text-xs text-rose-500">Outside eating limit reached</p>
-        )}
+        {overGoal && <p className="mt-3 text-xs text-rose-500">Outside eating limit reached</p>}
       </section>
 
       <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -154,7 +157,8 @@ export default function Home() {
 
         {monthlyGoal != null && (
           <p className="mb-3 text-xs text-slate-400">
-            First {monthlyGoal} outside day{monthlyGoal === 1 ? '' : 's'} are within your limit. Days beyond that are red.
+            First {monthlyGoal} outside day{monthlyGoal === 1 ? '' : 's'} are within your limit.
+            Days beyond that are red.
           </p>
         )}
 

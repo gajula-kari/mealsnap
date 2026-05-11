@@ -169,7 +169,9 @@ describe('calendar grid', () => {
   it('applies amber class to today when the meal is OUTSIDE and no goal is set', () => {
     useMealContext.mockReturnValue({ meals: [mealToday('OUTSIDE')], loading: false, error: null })
     renderHome()
-    expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass('bg-amber-100')
+    expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass(
+      'bg-amber-100'
+    )
   })
 
   it('applies amber class to today when the only meal has legacy MIXED tag', () => {
@@ -199,7 +201,9 @@ describe('calendar grid', () => {
       error: null,
     })
     renderHome()
-    expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass('bg-amber-100')
+    expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass(
+      'bg-amber-100'
+    )
   })
 
   it('applies rose class when the outside day falls beyond the goal cutoff', async () => {
@@ -335,7 +339,11 @@ describe('stats card', () => {
   it('does not show the goal banner when no goal is set', () => {
     fetchSettings.mockResolvedValue(null)
     useMealContext.mockReturnValue({
-      meals: [mealThisMonth('OUTSIDE', 0), mealThisMonth('OUTSIDE', 1), mealThisMonth('OUTSIDE', 2)],
+      meals: [
+        mealThisMonth('OUTSIDE', 0),
+        mealThisMonth('OUTSIDE', 1),
+        mealThisMonth('OUTSIDE', 2),
+      ],
       loading: false,
       error: null,
     })
