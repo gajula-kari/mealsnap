@@ -1,4 +1,4 @@
-const BASE = '/api/meals'
+const BASE = `${import.meta.env.VITE_API_URL ?? ''}/meals`
 
 function normalize(meal) {
   return { ...meal, id: meal._id }

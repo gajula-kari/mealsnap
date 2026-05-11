@@ -30,13 +30,13 @@ function mockFetch(body, ok = true) {
 // ─── fetchMeals ───────────────────────────────────────────────────────────────
 
 describe('fetchMeals', () => {
-  it('calls GET /api/meals and returns normalized meals', async () => {
+  it('calls GET /meals and returns normalized meals', async () => {
     mockFetch({ meals: [{ _id: 'abc', tag: 'HOME' }] })
 
     const result = await fetchMeals()
 
     // Verify the URL and that no extra options were passed (GET has no body).
-    expect(fetch).toHaveBeenCalledWith('/api/meals', expect.objectContaining({}))
+    expect(fetch).toHaveBeenCalledWith('/meals', expect.objectContaining({}))
 
     // normalize() must copy _id into id — the client uses id everywhere.
     expect(result).toEqual([{ _id: 'abc', tag: 'HOME', id: 'abc' }])
@@ -65,7 +65,7 @@ describe('createMeal', () => {
     const result = await createMeal(payload)
 
     expect(fetch).toHaveBeenCalledWith(
-      '/api/meals',
+      '/meals',
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify(payload),
@@ -87,7 +87,7 @@ describe('updateMeal', () => {
     const result = await updateMeal('abc', payload)
 
     expect(fetch).toHaveBeenCalledWith(
-      '/api/meals/abc',
+      '/meals/abc',
       expect.objectContaining({
         method: 'PATCH',
         body: JSON.stringify(payload),
@@ -106,7 +106,7 @@ describe('deleteMeal', () => {
     await deleteMeal('abc')
 
     expect(fetch).toHaveBeenCalledWith(
-      '/api/meals/abc',
+      '/meals/abc',
       expect.objectContaining({ method: 'DELETE' })
     )
   })

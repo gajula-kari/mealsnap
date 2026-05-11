@@ -104,6 +104,6 @@ describe('App integration', () => {
     expect(await screen.findByText('1 day')).toBeInTheDocument()
 
     // fetch was called with the correct endpoint — proves MealProvider wired mealApi correctly.
-    expect(fetch).toHaveBeenCalledWith('/api/meals', expect.anything())
+    expect(fetch).toHaveBeenCalledWith('/meals', expect.anything())
   })
 })
