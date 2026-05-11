@@ -6,6 +6,8 @@
 //
 // We mock global fetch — no real network needed.
 
+vi.mock('../utils/deviceId.js', () => ({ getDeviceId: () => 'test-device-id' }))
+
 import { fetchMeals, createMeal, updateMeal, deleteMeal } from './mealApi'
 
 // Replace the global fetch with a vi.fn() before every test.
@@ -69,7 +71,7 @@ describe('createMeal', () => {
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify(payload),
-        headers: { 'Content-Type': 'application/json' },
+        headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
       })
     )
     // The returned meal must have id (from _id).
@@ -91,6 +93,7 @@ describe('updateMeal', () => {
       expect.objectContaining({
         method: 'PATCH',
         body: JSON.stringify(payload),
+        headers: expect.objectContaining({ 'x-user-id': 'test-device-id' }),
       })
     )
     expect(result).toMatchObject({ id: 'abc', tag: 'OUTSIDE' })

@@ -3,22 +3,17 @@
 // What's different from unit tests:
 //   - We import the real Express app and send actual HTTP requests through it.
 //   - The full stack runs: supertest → app → router → controller → service → model.
-//   - We only mock at the bottom (Meal model) — everything above it is real code.
+//   - We only mock at the bottom (Meal/UserSettings models) — everything above is real.
 //
 // This catches wiring bugs that unit tests can't:
 //   - Wrong HTTP method or route path
 //   - Missing middleware (e.g. body not parsed so req.body is empty)
 //   - Wrong status code at the route level
-//   - req.params.id not reaching the service correctly
-//
-// We still mock the Mongoose model so no real DB is needed.
+//   - req.params.id / x-user-id not reaching the service correctly
 
 const request = require('supertest')
 const app = require('./app')
 
-// Mock the Meal model at the bottom of the stack.
-// The controller calls the service, the service calls the model —
-// mocking here means all three layers above it run for real.
 jest.mock('./models/Meal')
 const Meal = require('./models/Meal')
 
@@ -36,27 +31,32 @@ describe('POST /meals', () => {
     const fakeMeal = { _id: 'abc', tag: 'HOME', occurredAt: 1700000000000 }
     Meal.create.mockResolvedValue(fakeMeal)
 
-    // request(app) creates a test HTTP server bound to the app — no port needed.
-    // .post() / .get() etc. set the method and path.
-    // .send() sets the request body (supertest sets Content-Type: application/json automatically).
-    // .expect() asserts on the response — you can chain multiple expects.
     const res = await request(app)
       .post('/meals')
+      .set('x-user-id', 'user-test')
       .send({ tag: 'HOME', occurredAt: 1700000000000 })
       .expect(201)
 
     expect(res.body).toEqual({ meal: fakeMeal })
   })
 
-  it('returns 400 when the service throws (e.g. missing occurredAt)', async () => {
-    // Meal.create won't be called because the service throws before it.
-    // But we send a body that the real service will reject.
+  it('returns 400 when occurredAt is missing', async () => {
     const res = await request(app)
       .post('/meals')
-      .send({ tag: 'HOME' }) // no occurredAt
+      .set('x-user-id', 'user-test')
+      .send({ tag: 'HOME' })
       .expect(400)
 
     expect(res.body).toEqual({ error: 'occurredAt is required' })
+  })
+
+  it('returns 400 when x-user-id header is missing', async () => {
+    const res = await request(app)
+      .post('/meals')
+      .send({ tag: 'HOME', occurredAt: 1700000000000 })
+      .expect(400)
+
+    expect(res.body).toEqual({ error: 'x-user-id header is required' })
   })
 })
 
@@ -65,10 +65,9 @@ describe('POST /meals', () => {
 describe('GET /meals', () => {
   it('returns 200 with all meals when no date query param', async () => {
     const fakeMeals = [{ _id: '1' }, { _id: '2' }]
-    // getMeals() chains: Meal.find().sort() — mock both.
     Meal.find.mockReturnValue({ sort: jest.fn().mockResolvedValue(fakeMeals) })
 
-    const res = await request(app).get('/meals').expect(200)
+    const res = await request(app).get('/meals').set('x-user-id', 'user-test').expect(200)
 
     expect(res.body).toEqual({ meals: fakeMeals })
   })
@@ -77,17 +76,29 @@ describe('GET /meals', () => {
     const fakeMeals = [{ _id: '3' }]
     Meal.find.mockReturnValue({ sort: jest.fn().mockResolvedValue(fakeMeals) })
 
-    // Query params go in .query() — supertest appends them as ?date=...
-    const res = await request(app).get('/meals').query({ date: '2024-06-15' }).expect(200)
+    const res = await request(app)
+      .get('/meals')
+      .set('x-user-id', 'user-test')
+      .query({ date: '2024-06-15' })
+      .expect(200)
 
     expect(res.body).toEqual({ meals: fakeMeals })
   })
 
   it('returns 400 when the date format is invalid', async () => {
-    // The real service validates the format — no model mock needed here.
-    const res = await request(app).get('/meals').query({ date: 'not-a-date' }).expect(400)
+    const res = await request(app)
+      .get('/meals')
+      .set('x-user-id', 'user-test')
+      .query({ date: 'not-a-date' })
+      .expect(400)
 
     expect(res.body).toEqual({ error: 'date must be in YYYY-MM-DD format' })
+  })
+
+  it('returns 400 when x-user-id header is missing', async () => {
+    const res = await request(app).get('/meals').expect(400)
+
+    expect(res.body).toEqual({ error: 'x-user-id header is required' })
   })
 })
 
@@ -98,10 +109,9 @@ describe('PATCH /meals/:id', () => {
     const fakeMeal = { _id: 'abc', tag: 'OUTSIDE', amountSpent: 200 }
     Meal.findOneAndUpdate.mockResolvedValue(fakeMeal)
 
-    // The :id in the URL becomes req.params.id inside the controller.
-    // This verifies the route correctly extracts and forwards the param.
     const res = await request(app)
       .patch('/meals/abc')
+      .set('x-user-id', 'user-test')
       .send({ tag: 'OUTSIDE', amountSpent: 200 })
       .expect(200)
 
@@ -109,12 +119,21 @@ describe('PATCH /meals/:id', () => {
   })
 
   it('returns 404 when the meal does not exist', async () => {
-    // findOneAndUpdate returning null triggers the 'Meal not found' error in the service.
     Meal.findOneAndUpdate.mockResolvedValue(null)
 
-    const res = await request(app).patch('/meals/nonexistent').send({ tag: 'HOME' }).expect(404)
+    const res = await request(app)
+      .patch('/meals/nonexistent')
+      .set('x-user-id', 'user-test')
+      .send({ tag: 'HOME' })
+      .expect(404)
 
     expect(res.body).toEqual({ error: 'Meal not found' })
+  })
+
+  it('returns 400 when x-user-id header is missing', async () => {
+    const res = await request(app).patch('/meals/abc').send({ tag: 'HOME' }).expect(400)
+
+    expect(res.body).toEqual({ error: 'x-user-id header is required' })
   })
 })
 
@@ -124,7 +143,7 @@ describe('DELETE /meals/:id', () => {
   it('returns 200 with { success: true }', async () => {
     Meal.findOneAndDelete.mockResolvedValue({ _id: 'abc' })
 
-    const res = await request(app).delete('/meals/abc').expect(200)
+    const res = await request(app).delete('/meals/abc').set('x-user-id', 'user-test').expect(200)
 
     expect(res.body).toEqual({ success: true })
   })
@@ -132,9 +151,18 @@ describe('DELETE /meals/:id', () => {
   it('returns 404 when the meal does not exist', async () => {
     Meal.findOneAndDelete.mockResolvedValue(null)
 
-    const res = await request(app).delete('/meals/nonexistent').expect(404)
+    const res = await request(app)
+      .delete('/meals/nonexistent')
+      .set('x-user-id', 'user-test')
+      .expect(404)
 
     expect(res.body).toEqual({ error: 'Meal not found' })
+  })
+
+  it('returns 400 when x-user-id header is missing', async () => {
+    const res = await request(app).delete('/meals/abc').expect(400)
+
+    expect(res.body).toEqual({ error: 'x-user-id header is required' })
   })
 })
 
@@ -142,10 +170,10 @@ describe('DELETE /meals/:id', () => {
 
 describe('GET /settings', () => {
   it('returns 200 with settings when a record exists', async () => {
-    const fakeSettings = { userId: 'user-123', monthlyOutsideGoal: 7 }
+    const fakeSettings = { userId: 'user-test', monthlyOutsideGoal: 7 }
     UserSettings.findOne.mockResolvedValue(fakeSettings)
 
-    const res = await request(app).get('/settings').expect(200)
+    const res = await request(app).get('/settings').set('x-user-id', 'user-test').expect(200)
 
     expect(res.body).toEqual({ settings: fakeSettings })
   })
@@ -153,9 +181,15 @@ describe('GET /settings', () => {
   it('returns 200 with null when no settings have been saved yet', async () => {
     UserSettings.findOne.mockResolvedValue(null)
 
-    const res = await request(app).get('/settings').expect(200)
+    const res = await request(app).get('/settings').set('x-user-id', 'user-test').expect(200)
 
     expect(res.body).toEqual({ settings: null })
+  })
+
+  it('returns 400 when x-user-id header is missing', async () => {
+    const res = await request(app).get('/settings').expect(400)
+
+    expect(res.body).toEqual({ error: 'x-user-id header is required' })
   })
 })
 
@@ -163,22 +197,34 @@ describe('GET /settings', () => {
 
 describe('PATCH /settings', () => {
   it('returns 200 with the upserted settings', async () => {
-    const fakeSettings = { userId: 'user-123', monthlyOutsideGoal: 7, goalUpdatedAt: 1700000000000 }
+    const fakeSettings = {
+      userId: 'user-test',
+      monthlyOutsideGoal: 7,
+      goalUpdatedAt: 1700000000000,
+    }
     UserSettings.findOne.mockResolvedValue(null)
     UserSettings.findOneAndUpdate.mockResolvedValue(fakeSettings)
 
-    const res = await request(app).patch('/settings').send({ monthlyOutsideGoal: 7 }).expect(200)
+    const res = await request(app)
+      .patch('/settings')
+      .set('x-user-id', 'user-test')
+      .send({ monthlyOutsideGoal: 7 })
+      .expect(200)
 
     expect(res.body).toEqual({ settings: fakeSettings })
   })
 
   it('stores the old goal as previousGoal when the goal changes', async () => {
-    const existing = { userId: 'user-123', monthlyOutsideGoal: 5 }
-    const updated = { userId: 'user-123', monthlyOutsideGoal: 10, previousGoal: 5 }
+    const existing = { userId: 'user-test', monthlyOutsideGoal: 5 }
+    const updated = { userId: 'user-test', monthlyOutsideGoal: 10, previousGoal: 5 }
     UserSettings.findOne.mockResolvedValue(existing)
     UserSettings.findOneAndUpdate.mockResolvedValue(updated)
 
-    const res = await request(app).patch('/settings').send({ monthlyOutsideGoal: 10 }).expect(200)
+    const res = await request(app)
+      .patch('/settings')
+      .set('x-user-id', 'user-test')
+      .send({ monthlyOutsideGoal: 10 })
+      .expect(200)
 
     expect(res.body).toEqual({ settings: updated })
     const setArg = UserSettings.findOneAndUpdate.mock.calls[0][1].$set
@@ -186,13 +232,23 @@ describe('PATCH /settings', () => {
   })
 
   it('does not set previousGoal when the goal is unchanged', async () => {
-    const existing = { userId: 'user-123', monthlyOutsideGoal: 7 }
+    const existing = { userId: 'user-test', monthlyOutsideGoal: 7 }
     UserSettings.findOne.mockResolvedValue(existing)
     UserSettings.findOneAndUpdate.mockResolvedValue(existing)
 
-    await request(app).patch('/settings').send({ monthlyOutsideGoal: 7 }).expect(200)
+    await request(app)
+      .patch('/settings')
+      .set('x-user-id', 'user-test')
+      .send({ monthlyOutsideGoal: 7 })
+      .expect(200)
 
     const setArg = UserSettings.findOneAndUpdate.mock.calls[0][1].$set
     expect(setArg).not.toHaveProperty('previousGoal')
+  })
+
+  it('returns 400 when x-user-id header is missing', async () => {
+    const res = await request(app).patch('/settings').send({ monthlyOutsideGoal: 7 }).expect(400)
+
+    expect(res.body).toEqual({ error: 'x-user-id header is required' })
   })
 })
