@@ -8,6 +8,8 @@ export default function TagMeal() {
   const navigate = useNavigate()
   const imageFile = location.state?.image
   const [preview, setPreview] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState(null)
 
   useEffect(() => {
     if (!imageFile) return
@@ -28,27 +30,18 @@ export default function TagMeal() {
 
   const mealTagOptions = useMemo(() => ['HOME', 'OUTSIDE', 'MIXED'], [])
 
-  function handleTag(tag) {
-    if (!preview) {
-      return
-    }
+  async function handleTag(tag) {
+    if (!preview || saving) return
 
-    const now = Date.now()
-    const meal = {
-      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `meal-${now}`,
-      userId: 'user-123',
-      imageUrl: preview,
-      tag,
-      amountSpent: null,
-      note: null,
-      date: new Date(now).toISOString(),
-      occurredAt: now,
-      createdAt: now,
-      updatedAt: now,
+    setSaving(true)
+    setSaveError(null)
+    try {
+      await addMeal({ imageUrl: preview, tag })
+      navigate('/')
+    } catch (err) {
+      setSaveError(err.message)
+      setSaving(false)
     }
-
-    addMeal(meal)
-    navigate('/')
   }
 
   if (!imageFile) {
@@ -83,15 +76,20 @@ export default function TagMeal() {
           )}
         </div>
 
+        {saveError && (
+          <p className="rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-600">{saveError}</p>
+        )}
+
         <div className="grid gap-3 sm:grid-cols-3">
           {mealTagOptions.map((tag) => (
             <button
               key={tag}
               type="button"
-              className="rounded-3xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
+              disabled={saving || !preview}
+              className="rounded-3xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-semibold text-slate-900 transition hover:bg-slate-100 disabled:opacity-50"
               onClick={() => handleTag(tag)}
             >
-              {tag}
+              {saving ? 'Saving…' : tag}
             </button>
           ))}
         </div>

@@ -19,6 +19,10 @@ async function createMeal({ imageUrl, tag, amountSpent, note }) {
   return meal
 }
 
+async function getMeals() {
+  return Meal.find({ userId: HARDCODED_USER_ID }).sort({ occurredAt: -1 })
+}
+
 async function getMealsByDate(dateString) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
     throw new Error('date must be in YYYY-MM-DD format')
@@ -68,4 +72,4 @@ async function deleteMeal(mealId) {
   return true
 }
 
-module.exports = { createMeal, getMealsByDate, updateMeal, deleteMeal }
+module.exports = { createMeal, getMeals, getMealsByDate, updateMeal, deleteMeal }

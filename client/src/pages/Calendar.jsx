@@ -19,7 +19,7 @@ function formatLocalDate(date) {
 
 function getMealColorClass(meals, date) {
   const dateString = date.toDateString()
-  const mealsForDay = meals.filter((meal) => new Date(meal.date).toDateString() === dateString)
+  const mealsForDay = meals.filter((meal) => new Date(meal.occurredAt).toDateString() === dateString)
   if (!mealsForDay.length) {
     return 'bg-slate-100 text-slate-500'
   }

@@ -1,7 +1,6 @@
-const { createMeal, getMealsByDate, updateMeal, deleteMeal } = require('../services/mealService')
+const { createMeal, getMeals, getMealsByDate, updateMeal, deleteMeal } = require('../services/mealService')
 
 async function createMealController(req, res) {
-  
   try {
     const meal = await createMeal(req.body)
     res.status(201).json({ meal })
@@ -12,12 +11,8 @@ async function createMealController(req, res) {
 
 async function getMealsController(req, res) {
   try {
-
     const { date } = req.query
-    if (!date) {
-      return res.status(400).json({ error: 'date query param is required' })
-    }
-    const meals = await getMealsByDate(date)
+    const meals = date ? await getMealsByDate(date) : await getMeals()
     res.json({ meals })
   } catch (err) {
     res.status(400).json({ error: err.message })

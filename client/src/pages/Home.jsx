@@ -3,22 +3,19 @@ import { Link } from 'react-router-dom'
 import MealCard from '../components/MealCard.jsx'
 import { MealContext } from '../context/MealContext.jsx'
 
-function isToday(dateValue) {
-  const mealDate = new Date(dateValue)
-  return mealDate.toDateString() === new Date().toDateString()
+function isToday(occurredAt) {
+  return new Date(occurredAt).toDateString() === new Date().toDateString()
 }
 
 function calculateStreak(meals) {
   const uniqueDays = Array.from(
-    new Set(meals.map((meal) => new Date(meal.date).toDateString())),
+    new Set(meals.map((meal) => new Date(meal.occurredAt).toDateString())),
   )
 
   uniqueDays.sort((a, b) => new Date(b) - new Date(a))
 
   const todayString = new Date().toDateString()
-  if (!uniqueDays.includes(todayString)) {
-    return 0
-  }
+  if (!uniqueDays.includes(todayString)) return 0
 
   let streak = 1
   let current = new Date(todayString)
@@ -26,10 +23,7 @@ function calculateStreak(meals) {
 
   while (true) {
     current.setDate(current.getDate() - 1)
-    const previousDay = current.toDateString()
-    if (!datesSet.has(previousDay)) {
-      break
-    }
+    if (!datesSet.has(current.toDateString())) break
     streak += 1
   }
 
@@ -37,8 +31,8 @@ function calculateStreak(meals) {
 }
 
 export default function Home() {
-  const { meals } = useContext(MealContext)
-  const todayMeals = meals.filter((meal) => isToday(meal.date))
+  const { meals, loading, error, updateMeal, deleteMeal } = useContext(MealContext)
+  const todayMeals = meals.filter((meal) => isToday(meal.occurredAt))
   const streak = calculateStreak(meals)
 
   return (
@@ -64,9 +58,21 @@ export default function Home() {
           <span className="text-sm text-slate-500">{todayMeals.length} items</span>
         </div>
 
+        {loading && (
+          <p className="py-8 text-center text-sm text-slate-400">Loading meals…</p>
+        )}
+        {error && (
+          <p className="rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-600">{error}</p>
+        )}
+
         <div className="space-y-4">
           {todayMeals.map((meal) => (
-            <MealCard key={meal.id} imageUrl={meal.imageUrl} type={meal.tag} />
+            <MealCard
+              key={meal.id}
+              meal={meal}
+              onEdit={updateMeal}
+              onDelete={deleteMeal}
+            />
           ))}
         </div>
       </section>

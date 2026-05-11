@@ -5,14 +5,13 @@ import MealCard from '../components/MealCard.jsx'
 
 export default function DayDetail() {
   const { date } = useParams()
-  const { meals } = useContext(MealContext)
+  const { meals, updateMeal, deleteMeal } = useContext(MealContext)
 
   const [y, m, d] = date.split('-').map(Number)
   const selectedDate = new Date(y, m - 1, d)
-  const selectedMeals = meals.filter((meal) => {
-    const mealDate = new Date(meal.date)
-    return mealDate.toDateString() === selectedDate.toDateString()
-  })
+  const selectedMeals = meals.filter(
+    (meal) => new Date(meal.occurredAt).toDateString() === selectedDate.toDateString(),
+  )
 
   const formattedDate = selectedDate.toLocaleDateString('en-US', {
     weekday: 'long',
@@ -46,7 +45,12 @@ export default function DayDetail() {
 
             <div className="space-y-4">
               {selectedMeals.map((meal) => (
-                <MealCard key={meal.id} imageUrl={meal.imageUrl} type={meal.tag} />
+                <MealCard
+                  key={meal.id}
+                  meal={meal}
+                  onEdit={updateMeal}
+                  onDelete={deleteMeal}
+                />
               ))}
             </div>
           </div>
@@ -60,4 +64,3 @@ export default function DayDetail() {
     </div>
   )
 }
-
