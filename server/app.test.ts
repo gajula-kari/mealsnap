@@ -147,7 +147,7 @@ describe('DELETE /meals/:id', () => {
 
 describe('GET /settings', () => {
   it('returns 200 with settings when a record exists', async () => {
-    const fakeSettings = { userId: 'user-test', monthlyOutsideGoal: 7 }
+    const fakeSettings = { userId: 'user-test', monthlyIndulgentLimit: 7 }
     jest.mocked(UserSettings.findOne).mockResolvedValue(fakeSettings as any)
 
     const res = await request(app).get('/settings').set('x-user-id', 'user-test').expect(200)
@@ -174,7 +174,7 @@ describe('PATCH /settings', () => {
   it('returns 200 with the upserted settings', async () => {
     const fakeSettings = {
       userId: 'user-test',
-      monthlyOutsideGoal: 7,
+      monthlyIndulgentLimit: 7,
       goalUpdatedAt: 1700000000000,
     }
     jest.mocked(UserSettings.findOne).mockResolvedValue(null)
@@ -183,38 +183,38 @@ describe('PATCH /settings', () => {
     const res = await request(app)
       .patch('/settings')
       .set('x-user-id', 'user-test')
-      .send({ monthlyOutsideGoal: 7 })
+      .send({ monthlyIndulgentLimit: 7 })
       .expect(200)
 
     expect(res.body).toEqual({ settings: fakeSettings })
   })
 
   it('stores the old goal as previousGoal when the goal changes', async () => {
-    const existing = { userId: 'user-test', monthlyOutsideGoal: 5 }
-    const updated = { userId: 'user-test', monthlyOutsideGoal: 10, previousGoal: 5 }
+    const existing = { userId: 'user-test', monthlyIndulgentLimit: 5 }
+    const updated = { userId: 'user-test', monthlyIndulgentLimit: 10, previousGoal: 5 }
     jest.mocked(UserSettings.findOne).mockResolvedValue(existing as any)
     jest.mocked(UserSettings.findOneAndUpdate).mockResolvedValue(updated as any)
 
     const res = await request(app)
       .patch('/settings')
       .set('x-user-id', 'user-test')
-      .send({ monthlyOutsideGoal: 10 })
+      .send({ monthlyIndulgentLimit: 10 })
       .expect(200)
 
     expect(res.body).toEqual({ settings: updated })
     const setArg = (jest.mocked(UserSettings.findOneAndUpdate).mock.calls[0]?.[1] as any)?.$set
-    expect(setArg).toMatchObject({ previousGoal: 5, monthlyOutsideGoal: 10 })
+    expect(setArg).toMatchObject({ previousGoal: 5, monthlyIndulgentLimit: 10 })
   })
 
   it('does not set previousGoal when the goal is unchanged', async () => {
-    const existing = { userId: 'user-test', monthlyOutsideGoal: 7 }
+    const existing = { userId: 'user-test', monthlyIndulgentLimit: 7 }
     jest.mocked(UserSettings.findOne).mockResolvedValue(existing as any)
     jest.mocked(UserSettings.findOneAndUpdate).mockResolvedValue(existing as any)
 
     await request(app)
       .patch('/settings')
       .set('x-user-id', 'user-test')
-      .send({ monthlyOutsideGoal: 7 })
+      .send({ monthlyIndulgentLimit: 7 })
       .expect(200)
 
     const setArg = (jest.mocked(UserSettings.findOneAndUpdate).mock.calls[0]?.[1] as any)?.$set
@@ -222,7 +222,7 @@ describe('PATCH /settings', () => {
   })
 
   it('returns 400 when x-user-id header is missing', async () => {
-    const res = await request(app).patch('/settings').send({ monthlyOutsideGoal: 7 }).expect(400)
+    const res = await request(app).patch('/settings').send({ monthlyIndulgentLimit: 7 }).expect(400)
 
     expect(res.body).toEqual({ error: 'x-user-id header is required' })
   })

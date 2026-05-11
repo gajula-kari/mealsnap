@@ -19,7 +19,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 
 const DATE = '2024-06-15'
 
-function mealOnDate(id: string, tag: Meal['tag'] = 'HOME'): Meal {
+function mealOnDate(id: string, tag: Meal['tag'] = 'CLEAN'): Meal {
   return {
     id,
     tag,
@@ -33,7 +33,7 @@ function mealOnDate(id: string, tag: Meal['tag'] = 'HOME'): Meal {
 function mealOffDate(id: string): Meal {
   return {
     id,
-    tag: 'HOME',
+    tag: 'CLEAN',
     imageUrl: null,
     note: null,
     amountSpent: null,
@@ -80,7 +80,7 @@ describe('DayDetail', () => {
     })
     renderDayDetail()
 
-    expect(screen.getAllByText('HOME')).toHaveLength(2)
+    expect(screen.getAllByText('CLEAN')).toHaveLength(2)
     expect(screen.queryByText('No meals logged')).not.toBeInTheDocument()
   })
 

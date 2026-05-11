@@ -1,6 +1,6 @@
 import { Schema, model } from 'mongoose'
 
-export type MealTag = 'HOME' | 'OUTSIDE' | 'MIXED'
+export type MealTag = 'CLEAN' | 'INDULGENT'
 
 export interface IMeal {
   userId: string
@@ -15,7 +15,7 @@ const mealSchema = new Schema<IMeal>(
   {
     userId: { type: String, required: true },
     imageUrl: { type: String, default: null },
-    tag: { type: String, enum: ['HOME', 'OUTSIDE', 'MIXED'], required: true },
+    tag: { type: String, enum: ['CLEAN', 'INDULGENT'], required: true },
     amountSpent: { type: Number, default: null },
     note: { type: String, default: null },
     occurredAt: { type: Number, required: true },

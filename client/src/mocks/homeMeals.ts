@@ -8,7 +8,7 @@ export const homeMeals: Meal[] = [
     userId: 'user-123',
     imageUrl:
       'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=800&q=80',
-    tag: 'HOME',
+    tag: 'CLEAN',
     amountSpent: null,
     note: 'Quick homemade dinner',
     date: new Date(yesterday - 1000 * 60 * 60 * 3).toISOString(),
@@ -21,7 +21,7 @@ export const homeMeals: Meal[] = [
     userId: 'user-123',
     imageUrl:
       'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80',
-    tag: 'OUTSIDE',
+    tag: 'INDULGENT',
     amountSpent: 320,
     note: 'Lunch at the cafe',
     date: new Date(yesterday - 1000 * 60 * 60 * 7).toISOString(),
@@ -34,7 +34,7 @@ export const homeMeals: Meal[] = [
     userId: 'user-123',
     imageUrl:
       'https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=800&q=80',
-    tag: 'HOME',
+    tag: 'CLEAN',
     amountSpent: null,
     note: 'Breakfast smoothie',
     date: new Date(yesterday - 1000 * 60 * 60 * 11).toISOString(),

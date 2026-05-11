@@ -18,8 +18,10 @@ function TestConsumer() {
           </li>
         ))}
       </ul>
-      <button onClick={() => addMeal({ tag: 'OUTSIDE', occurredAt: 1, imageUrl: '' })}>Add</button>
-      <button onClick={() => updateMeal('id-1', { tag: 'MIXED' })}>Update</button>
+      <button onClick={() => addMeal({ tag: 'INDULGENT', occurredAt: 1, imageUrl: '' })}>
+        Add
+      </button>
+      <button onClick={() => updateMeal('id-1', { tag: 'INDULGENT' })}>Update</button>
       <button onClick={() => deleteMeal('id-1')}>Delete</button>
     </div>
   )
@@ -41,31 +43,31 @@ beforeEach(() => {
 describe('MealProvider', () => {
   it('shows loading state on first visit when no cache exists', async () => {
     vi.mocked(api.fetchMeals).mockResolvedValue([
-      { id: 'id-1', tag: 'HOME', imageUrl: null, amountSpent: null, note: null, occurredAt: 0 },
+      { id: 'id-1', tag: 'CLEAN', imageUrl: null, amountSpent: null, note: null, occurredAt: 0 },
     ])
 
     renderProvider()
     expect(screen.getByText('loading')).toBeInTheDocument()
 
     await waitFor(() => expect(screen.queryByText('loading')).not.toBeInTheDocument())
-    expect(screen.getByText('id-1:HOME')).toBeInTheDocument()
+    expect(screen.getByText('id-1:CLEAN')).toBeInTheDocument()
   })
 
   it('skips loading state on repeat visit when cache has meals', () => {
     localStorage.setItem(
       'mealsnap_meals',
       JSON.stringify([
-        { id: 'id-1', tag: 'HOME', imageUrl: null, amountSpent: null, note: null, occurredAt: 0 },
+        { id: 'id-1', tag: 'CLEAN', imageUrl: null, amountSpent: null, note: null, occurredAt: 0 },
       ])
     )
     vi.mocked(api.fetchMeals).mockResolvedValue([
-      { id: 'id-1', tag: 'HOME', imageUrl: null, amountSpent: null, note: null, occurredAt: 0 },
+      { id: 'id-1', tag: 'CLEAN', imageUrl: null, amountSpent: null, note: null, occurredAt: 0 },
     ])
 
     renderProvider()
 
     expect(screen.queryByText('loading')).not.toBeInTheDocument()
-    expect(screen.getByText('id-1:HOME')).toBeInTheDocument()
+    expect(screen.getByText('id-1:CLEAN')).toBeInTheDocument()
   })
 
   it('shows loading state when cache exists but is empty', () => {
@@ -79,11 +81,11 @@ describe('MealProvider', () => {
 
   it('addMeal calls api.createMeal and prepends the new meal to state', async () => {
     vi.mocked(api.fetchMeals).mockResolvedValue([
-      { id: 'id-1', tag: 'HOME', imageUrl: null, amountSpent: null, note: null, occurredAt: 0 },
+      { id: 'id-1', tag: 'CLEAN', imageUrl: null, amountSpent: null, note: null, occurredAt: 0 },
     ])
     vi.mocked(api.createMeal).mockResolvedValue({
       id: 'id-2',
-      tag: 'OUTSIDE',
+      tag: 'INDULGENT',
       imageUrl: null,
       amountSpent: null,
       note: null,
@@ -96,17 +98,17 @@ describe('MealProvider', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Add' }))
 
     const items = screen.getAllByRole('listitem')
-    expect(items[0]).toHaveTextContent('id-2:OUTSIDE')
-    expect(items[1]).toHaveTextContent('id-1:HOME')
+    expect(items[0]).toHaveTextContent('id-2:INDULGENT')
+    expect(items[1]).toHaveTextContent('id-1:CLEAN')
   })
 
   it('updateMeal calls api.updateMeal and replaces the meal in state', async () => {
     vi.mocked(api.fetchMeals).mockResolvedValue([
-      { id: 'id-1', tag: 'HOME', imageUrl: null, amountSpent: null, note: null, occurredAt: 0 },
+      { id: 'id-1', tag: 'CLEAN', imageUrl: null, amountSpent: null, note: null, occurredAt: 0 },
     ])
     vi.mocked(api.updateMeal).mockResolvedValue({
       id: 'id-1',
-      tag: 'MIXED',
+      tag: 'INDULGENT',
       imageUrl: null,
       amountSpent: null,
       note: null,
@@ -118,13 +120,13 @@ describe('MealProvider', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Update' }))
 
-    expect(screen.getByText('id-1:MIXED')).toBeInTheDocument()
-    expect(screen.queryByText('id-1:HOME')).not.toBeInTheDocument()
+    expect(screen.getByText('id-1:INDULGENT')).toBeInTheDocument()
+    expect(screen.queryByText('id-1:CLEAN')).not.toBeInTheDocument()
   })
 
   it('deleteMeal calls api.deleteMeal and removes the meal from state', async () => {
     vi.mocked(api.fetchMeals).mockResolvedValue([
-      { id: 'id-1', tag: 'HOME', imageUrl: null, amountSpent: null, note: null, occurredAt: 0 },
+      { id: 'id-1', tag: 'CLEAN', imageUrl: null, amountSpent: null, note: null, occurredAt: 0 },
     ])
     vi.mocked(api.deleteMeal).mockResolvedValue()
 
@@ -142,7 +144,7 @@ describe('MealProvider', () => {
       JSON.stringify([
         {
           id: 'cached-1',
-          tag: 'HOME',
+          tag: 'CLEAN',
           imageUrl: null,
           amountSpent: null,
           note: null,
@@ -151,17 +153,31 @@ describe('MealProvider', () => {
       ])
     )
     vi.mocked(api.fetchMeals).mockResolvedValue([
-      { id: 'cached-1', tag: 'HOME', imageUrl: null, amountSpent: null, note: null, occurredAt: 0 },
+      {
+        id: 'cached-1',
+        tag: 'CLEAN',
+        imageUrl: null,
+        amountSpent: null,
+        note: null,
+        occurredAt: 0,
+      },
     ])
 
     renderProvider()
 
-    expect(screen.getByText('cached-1:HOME')).toBeInTheDocument()
+    expect(screen.getByText('cached-1:CLEAN')).toBeInTheDocument()
   })
 
   it('writes fresh meals to localStorage after fetch', async () => {
     vi.mocked(api.fetchMeals).mockResolvedValue([
-      { id: 'id-1', tag: 'OUTSIDE', imageUrl: null, amountSpent: null, note: null, occurredAt: 0 },
+      {
+        id: 'id-1',
+        tag: 'INDULGENT',
+        imageUrl: null,
+        amountSpent: null,
+        note: null,
+        occurredAt: 0,
+      },
     ])
 
     renderProvider()
@@ -169,7 +185,7 @@ describe('MealProvider', () => {
 
     const cached = JSON.parse(localStorage.getItem('mealsnap_meals') ?? '[]')
     expect(cached).toEqual([
-      { id: 'id-1', tag: 'OUTSIDE', amountSpent: null, note: null, occurredAt: 0 },
+      { id: 'id-1', tag: 'INDULGENT', amountSpent: null, note: null, occurredAt: 0 },
     ])
   })
 

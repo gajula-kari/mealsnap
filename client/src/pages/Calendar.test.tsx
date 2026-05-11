@@ -16,7 +16,7 @@ vi.mock('react-router-dom', async (importOriginal) => {
 import { useMealContext } from '../hooks/useMealContext'
 import { useNavigate } from 'react-router-dom'
 
-function mealOn(year: number, month: number, day: number, tag: Meal['tag'] = 'HOME'): Meal {
+function mealOn(year: number, month: number, day: number, tag: Meal['tag'] = 'CLEAN'): Meal {
   return {
     id: `${year}-${month}-${day}-${tag}`,
     tag,
@@ -81,23 +81,19 @@ describe('Calendar', () => {
     expect(btn).toBeDisabled()
   })
 
-  it('applies emerald class when latest meal is HOME', () => {
+  it('applies emerald class when latest meal is CLEAN', () => {
     const today = new Date()
-    renderCalendar([mealOn(today.getFullYear(), today.getMonth() + 1, today.getDate(), 'HOME')])
+    renderCalendar([mealOn(today.getFullYear(), today.getMonth() + 1, today.getDate(), 'CLEAN')])
     expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass(
       'bg-emerald-100'
     )
   })
 
-  it('applies rose class when latest meal is OUTSIDE', () => {
+  it('applies amber class when latest meal is INDULGENT', () => {
     const today = new Date()
-    renderCalendar([mealOn(today.getFullYear(), today.getMonth() + 1, today.getDate(), 'OUTSIDE')])
-    expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass('bg-rose-100')
-  })
-
-  it('applies amber class when latest meal is MIXED', () => {
-    const today = new Date()
-    renderCalendar([mealOn(today.getFullYear(), today.getMonth() + 1, today.getDate(), 'MIXED')])
+    renderCalendar([
+      mealOn(today.getFullYear(), today.getMonth() + 1, today.getDate(), 'INDULGENT'),
+    ])
     expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass(
       'bg-amber-100'
     )
@@ -118,7 +114,7 @@ describe('Calendar', () => {
     const d = today.getDate()
     const earlier: Meal = {
       id: 'a',
-      tag: 'HOME',
+      tag: 'CLEAN',
       imageUrl: null,
       amountSpent: null,
       note: null,
@@ -126,14 +122,14 @@ describe('Calendar', () => {
     }
     const later: Meal = {
       id: 'b',
-      tag: 'OUTSIDE',
+      tag: 'INDULGENT',
       imageUrl: null,
       amountSpent: null,
       note: null,
       occurredAt: new Date(y, mo - 1, d, 14, 0).getTime(),
     }
     renderCalendar([earlier, later])
-    expect(screen.getByRole('button', { name: String(d) })).toHaveClass('bg-rose-100')
+    expect(screen.getByRole('button', { name: String(d) })).toHaveClass('bg-amber-100')
   })
 
   it("clicking today's button navigates to /day/YYYY-MM-DD", async () => {

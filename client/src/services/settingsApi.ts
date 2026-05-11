@@ -19,10 +19,10 @@ export async function fetchSettings(): Promise<Settings | null> {
   return data.settings
 }
 
-export async function saveSettings(monthlyOutsideGoal: number): Promise<Settings> {
+export async function saveSettings(monthlyIndulgentLimit: number): Promise<Settings> {
   const data = (await request(BASE, {
     method: 'PATCH',
-    body: JSON.stringify({ monthlyOutsideGoal }),
+    body: JSON.stringify({ monthlyIndulgentLimit }),
   })) as { settings: Settings }
   return data.settings
 }
