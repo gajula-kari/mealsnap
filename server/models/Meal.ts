@@ -1,6 +1,17 @@
-const { Schema, model } = require('mongoose')
+import { Schema, model } from 'mongoose'
 
-const mealSchema = new Schema(
+export type MealTag = 'HOME' | 'OUTSIDE' | 'MIXED'
+
+export interface IMeal {
+  userId: string
+  imageUrl: string | null
+  tag: MealTag
+  amountSpent: number | null
+  note: string | null
+  occurredAt: number
+}
+
+const mealSchema = new Schema<IMeal>(
   {
     userId: { type: String, required: true },
     imageUrl: { type: String, default: null },
@@ -12,4 +23,4 @@ const mealSchema = new Schema(
   { timestamps: true }
 )
 
-module.exports = model('Meal', mealSchema)
+export default model<IMeal>('Meal', mealSchema)

@@ -1,37 +1,38 @@
-// We're testing the controller layer in isolation.
-// The controller's only jobs are:
-//   1. Extract userId from x-user-id header and reject if missing
-//   2. Pull data out of req (body, params, query)
-//   3. Call the right service function with userId + payload
-//   4. Send the right HTTP response (status code + JSON shape)
-
-const {
+import { type Request, type Response } from 'express'
+import {
   createMealController,
   getMealsController,
   updateMealController,
   deleteMealController,
-} = require('./mealsController')
+} from './mealsController'
 
 jest.mock('../services/mealService')
-
-const {
+import {
   createMeal,
   getMeals,
   getMealsByDate,
   updateMeal,
   deleteMeal,
-} = require('../services/mealService')
+} from '../services/mealService'
 
-// ─── Test helpers ─────────────────────────────────────────────────────────────
+type MockRes = { status: jest.Mock; json: jest.Mock }
 
-function makeReq({ body = {}, params = {}, query = {}, headers = {} } = {}) {
-  return { body, params, query, headers }
+function makeReq(
+  options: {
+    body?: Record<string, unknown>
+    params?: Record<string, string>
+    query?: Record<string, string>
+    headers?: Record<string, string>
+  } = {}
+): Request {
+  const { body = {}, params = {}, query = {}, headers = {} } = options
+  return { body, params, query, headers } as unknown as Request
 }
 
-function makeRes() {
-  const res = {}
-  res.status = jest.fn().mockReturnValue(res)
-  res.json = jest.fn().mockReturnValue(res)
+function makeRes(): MockRes {
+  const res: MockRes = { status: jest.fn(), json: jest.fn() }
+  res.status.mockReturnValue(res)
+  res.json.mockReturnValue(res)
   return res
 }
 
@@ -42,17 +43,15 @@ beforeEach(() => {
   jest.clearAllMocks()
 })
 
-// ─── createMealController ─────────────────────────────────────────────────────
-
 describe('createMealController', () => {
   it('responds 201 with the created meal on success', async () => {
     const fakeMeal = { _id: 'abc', tag: 'HOME', occurredAt: 1700000000000 }
-    createMeal.mockResolvedValue(fakeMeal)
+    jest.mocked(createMeal).mockResolvedValue(fakeMeal as any)
 
     const req = makeReq({ headers: withUser, body: { tag: 'HOME', occurredAt: 1700000000000 } })
     const res = makeRes()
 
-    await createMealController(req, res)
+    await createMealController(req, res as unknown as Response)
 
     expect(createMeal).toHaveBeenCalledWith(USER_ID, req.body)
     expect(res.status).toHaveBeenCalledWith(201)
@@ -60,12 +59,12 @@ describe('createMealController', () => {
   })
 
   it('responds 400 with the error message when the service throws', async () => {
-    createMeal.mockRejectedValue(new Error('occurredAt is required'))
+    jest.mocked(createMeal).mockRejectedValue(new Error('occurredAt is required'))
 
     const req = makeReq({ headers: withUser, body: {} })
     const res = makeRes()
 
-    await createMealController(req, res)
+    await createMealController(req, res as unknown as Response)
 
     expect(res.status).toHaveBeenCalledWith(400)
     expect(res.json).toHaveBeenCalledWith({ error: 'occurredAt is required' })
@@ -75,7 +74,7 @@ describe('createMealController', () => {
     const req = makeReq({ body: { tag: 'HOME', occurredAt: 1700000000000 } })
     const res = makeRes()
 
-    await createMealController(req, res)
+    await createMealController(req, res as unknown as Response)
 
     expect(createMeal).not.toHaveBeenCalled()
     expect(res.status).toHaveBeenCalledWith(400)
@@ -83,17 +82,15 @@ describe('createMealController', () => {
   })
 })
 
-// ─── getMealsController ───────────────────────────────────────────────────────
-
 describe('getMealsController', () => {
   it('calls getMeals() with userId and responds with all meals when no date is given', async () => {
     const fakeMeals = [{ _id: '1' }, { _id: '2' }]
-    getMeals.mockResolvedValue(fakeMeals)
+    jest.mocked(getMeals).mockResolvedValue(fakeMeals as any)
 
     const req = makeReq({ headers: withUser })
     const res = makeRes()
 
-    await getMealsController(req, res)
+    await getMealsController(req, res as unknown as Response)
 
     expect(getMeals).toHaveBeenCalledWith(USER_ID)
     expect(getMealsByDate).not.toHaveBeenCalled()
@@ -103,37 +100,37 @@ describe('getMealsController', () => {
 
   it('calls getMealsByDate() with userId and date string when date query param is present', async () => {
     const fakeMeals = [{ _id: '3' }]
-    getMealsByDate.mockResolvedValue(fakeMeals)
+    jest.mocked(getMealsByDate).mockResolvedValue(fakeMeals as any)
 
     const req = makeReq({ headers: withUser, query: { date: '2024-06-15' } })
     const res = makeRes()
 
-    await getMealsController(req, res)
+    await getMealsController(req, res as unknown as Response)
 
     expect(getMealsByDate).toHaveBeenCalledWith(USER_ID, '2024-06-15')
     expect(getMeals).not.toHaveBeenCalled()
     expect(res.json).toHaveBeenCalledWith({ meals: fakeMeals })
   })
 
-  it('responds 400 when getMealsByDate throws (e.g. bad date format)', async () => {
-    getMealsByDate.mockRejectedValue(new Error('date must be in YYYY-MM-DD format'))
+  it('responds 400 when getMealsByDate throws', async () => {
+    jest.mocked(getMealsByDate).mockRejectedValue(new Error('date must be in YYYY-MM-DD format'))
 
     const req = makeReq({ headers: withUser, query: { date: 'not-a-date' } })
     const res = makeRes()
 
-    await getMealsController(req, res)
+    await getMealsController(req, res as unknown as Response)
 
     expect(res.status).toHaveBeenCalledWith(400)
     expect(res.json).toHaveBeenCalledWith({ error: 'date must be in YYYY-MM-DD format' })
   })
 
-  it('responds 400 when getMeals throws (e.g. DB error)', async () => {
-    getMeals.mockRejectedValue(new Error('DB connection lost'))
+  it('responds 400 when getMeals throws', async () => {
+    jest.mocked(getMeals).mockRejectedValue(new Error('DB connection lost'))
 
     const req = makeReq({ headers: withUser })
     const res = makeRes()
 
-    await getMealsController(req, res)
+    await getMealsController(req, res as unknown as Response)
 
     expect(res.status).toHaveBeenCalledWith(400)
     expect(res.json).toHaveBeenCalledWith({ error: 'DB connection lost' })
@@ -143,7 +140,7 @@ describe('getMealsController', () => {
     const req = makeReq()
     const res = makeRes()
 
-    await getMealsController(req, res)
+    await getMealsController(req, res as unknown as Response)
 
     expect(getMeals).not.toHaveBeenCalled()
     expect(res.status).toHaveBeenCalledWith(400)
@@ -151,12 +148,10 @@ describe('getMealsController', () => {
   })
 })
 
-// ─── updateMealController ─────────────────────────────────────────────────────
-
 describe('updateMealController', () => {
   it('responds 200 with the updated meal on success', async () => {
     const fakeMeal = { _id: 'abc', tag: 'OUTSIDE', amountSpent: 350 }
-    updateMeal.mockResolvedValue(fakeMeal)
+    jest.mocked(updateMeal).mockResolvedValue(fakeMeal as any)
 
     const req = makeReq({
       headers: withUser,
@@ -165,7 +160,7 @@ describe('updateMealController', () => {
     })
     const res = makeRes()
 
-    await updateMealController(req, res)
+    await updateMealController(req, res as unknown as Response)
 
     expect(updateMeal).toHaveBeenCalledWith(USER_ID, 'abc', req.body)
     expect(res.status).not.toHaveBeenCalled()
@@ -173,24 +168,24 @@ describe('updateMealController', () => {
   })
 
   it('responds 404 when the service throws "Meal not found"', async () => {
-    updateMeal.mockRejectedValue(new Error('Meal not found'))
+    jest.mocked(updateMeal).mockRejectedValue(new Error('Meal not found'))
 
     const req = makeReq({ headers: withUser, params: { id: 'nonexistent' }, body: { tag: 'HOME' } })
     const res = makeRes()
 
-    await updateMealController(req, res)
+    await updateMealController(req, res as unknown as Response)
 
     expect(res.status).toHaveBeenCalledWith(404)
     expect(res.json).toHaveBeenCalledWith({ error: 'Meal not found' })
   })
 
   it('responds 400 for any other service error', async () => {
-    updateMeal.mockRejectedValue(new Error('DB connection lost'))
+    jest.mocked(updateMeal).mockRejectedValue(new Error('DB connection lost'))
 
     const req = makeReq({ headers: withUser, params: { id: 'abc' }, body: { tag: 'OUTSIDE' } })
     const res = makeRes()
 
-    await updateMealController(req, res)
+    await updateMealController(req, res as unknown as Response)
 
     expect(res.status).toHaveBeenCalledWith(400)
     expect(res.json).toHaveBeenCalledWith({ error: 'DB connection lost' })
@@ -200,7 +195,7 @@ describe('updateMealController', () => {
     const req = makeReq({ params: { id: 'abc' }, body: { tag: 'HOME' } })
     const res = makeRes()
 
-    await updateMealController(req, res)
+    await updateMealController(req, res as unknown as Response)
 
     expect(updateMeal).not.toHaveBeenCalled()
     expect(res.status).toHaveBeenCalledWith(400)
@@ -208,16 +203,14 @@ describe('updateMealController', () => {
   })
 })
 
-// ─── deleteMealController ─────────────────────────────────────────────────────
-
 describe('deleteMealController', () => {
   it('responds { success: true } on successful delete', async () => {
-    deleteMeal.mockResolvedValue(true)
+    jest.mocked(deleteMeal).mockResolvedValue(true)
 
     const req = makeReq({ headers: withUser, params: { id: 'abc' } })
     const res = makeRes()
 
-    await deleteMealController(req, res)
+    await deleteMealController(req, res as unknown as Response)
 
     expect(deleteMeal).toHaveBeenCalledWith(USER_ID, 'abc')
     expect(res.status).not.toHaveBeenCalled()
@@ -225,24 +218,24 @@ describe('deleteMealController', () => {
   })
 
   it('responds 404 when the service throws "Meal not found"', async () => {
-    deleteMeal.mockRejectedValue(new Error('Meal not found'))
+    jest.mocked(deleteMeal).mockRejectedValue(new Error('Meal not found'))
 
     const req = makeReq({ headers: withUser, params: { id: 'ghost-id' } })
     const res = makeRes()
 
-    await deleteMealController(req, res)
+    await deleteMealController(req, res as unknown as Response)
 
     expect(res.status).toHaveBeenCalledWith(404)
     expect(res.json).toHaveBeenCalledWith({ error: 'Meal not found' })
   })
 
   it('responds 400 for any other service error', async () => {
-    deleteMeal.mockRejectedValue(new Error('DB connection lost'))
+    jest.mocked(deleteMeal).mockRejectedValue(new Error('DB connection lost'))
 
     const req = makeReq({ headers: withUser, params: { id: 'abc' } })
     const res = makeRes()
 
-    await deleteMealController(req, res)
+    await deleteMealController(req, res as unknown as Response)
 
     expect(res.status).toHaveBeenCalledWith(400)
     expect(res.json).toHaveBeenCalledWith({ error: 'DB connection lost' })
@@ -252,7 +245,7 @@ describe('deleteMealController', () => {
     const req = makeReq({ params: { id: 'abc' } })
     const res = makeRes()
 
-    await deleteMealController(req, res)
+    await deleteMealController(req, res as unknown as Response)
 
     expect(deleteMeal).not.toHaveBeenCalled()
     expect(res.status).toHaveBeenCalledWith(400)
