@@ -1,3 +1,5 @@
+vi.mock('../utils/deviceId', () => ({ getDeviceId: () => 'test-device-id' }))
+
 import { fetchMeals, createMeal, updateMeal, deleteMeal } from './mealApi'
 
 beforeEach(() => {
@@ -50,7 +52,7 @@ describe('createMeal', () => {
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify(payload),
-        headers: { 'Content-Type': 'application/json' },
+        headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
       })
     )
     expect(result).toMatchObject({ id: 'xyz', tag: 'HOME' })
@@ -69,6 +71,7 @@ describe('updateMeal', () => {
       expect.objectContaining({
         method: 'PATCH',
         body: JSON.stringify(payload),
+        headers: expect.objectContaining({ 'x-user-id': 'test-device-id' }),
       })
     )
     expect(result).toMatchObject({ id: 'abc', tag: 'OUTSIDE' })
