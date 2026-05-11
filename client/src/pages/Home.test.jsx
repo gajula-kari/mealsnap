@@ -166,10 +166,10 @@ describe('calendar grid', () => {
     )
   })
 
-  it('applies rose class to today when the latest meal is OUTSIDE', () => {
+  it('applies amber class to today when the meal is OUTSIDE and no goal is set', () => {
     useMealContext.mockReturnValue({ meals: [mealToday('OUTSIDE')], loading: false, error: null })
     renderHome()
-    expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass('bg-rose-100')
+    expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass('bg-amber-100')
   })
 
   it('applies amber class to today when the only meal has legacy MIXED tag', () => {
@@ -192,13 +192,28 @@ describe('calendar grid', () => {
     )
   })
 
-  it('applies rose class when all meals today are OUTSIDE', () => {
+  it('applies amber class when all meals today are OUTSIDE and no goal is set', () => {
     useMealContext.mockReturnValue({
       meals: [mealToday('OUTSIDE'), mealToday('OUTSIDE')],
       loading: false,
       error: null,
     })
     renderHome()
+    expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass('bg-amber-100')
+  })
+
+  it('applies rose class when the outside day falls beyond the goal cutoff', async () => {
+    // Goal = 0 means any outside day is immediately over the limit → rose.
+    fetchSettings.mockResolvedValue({ monthlyOutsideGoal: 0 })
+    useMealContext.mockReturnValue({
+      meals: [mealToday('OUTSIDE')],
+      loading: false,
+      error: null,
+    })
+    renderHome()
+
+    // Wait for settings to resolve — OVER chip only appears once goal is loaded.
+    await screen.findByText('OVER')
     expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass('bg-rose-100')
   })
 
@@ -252,13 +267,13 @@ describe('stats card', () => {
     }
   }
 
-  it('shows Home days, Outside days, Both days labels', () => {
+  it('shows Home days and Outside days labels', () => {
     useMealContext.mockReturnValue({ meals: [], loading: false, error: null })
     renderHome()
 
     expect(screen.getByText('Home days')).toBeInTheDocument()
     expect(screen.getByText('Outside days')).toBeInTheDocument()
-    expect(screen.getByText('Both days')).toBeInTheDocument()
+    expect(screen.queryByText('Both days')).not.toBeInTheDocument()
   })
 
   it('counts a day with only HOME meals as a home day', () => {
@@ -272,7 +287,7 @@ describe('stats card', () => {
     expect(screen.getByText('Home days').previousSibling.textContent).toBe('1')
   })
 
-  it('counts a day with HOME + OUTSIDE meals as a both day, not an outside day', () => {
+  it('counts a day with HOME + OUTSIDE meals as an outside day', () => {
     useMealContext.mockReturnValue({
       meals: [mealThisMonth('HOME', 0), mealThisMonth('OUTSIDE', 0)],
       loading: false,
@@ -280,14 +295,14 @@ describe('stats card', () => {
     })
     renderHome()
 
-    expect(screen.getByText('Both days').previousSibling.textContent).toBe('1')
+    expect(screen.getByText('Outside days').previousSibling.textContent).toBe('1')
     expect(screen.getByText('Home days').previousSibling.textContent).toBe('0')
   })
 
-  it('counts both-days toward the outside total for goal comparison', async () => {
+  it('shows banner when outside days (including mixed-meal days) exceed the goal', async () => {
     fetchSettings.mockResolvedValue({ monthlyOutsideGoal: 1 })
-    // Day 1: HOME only. Day 2: HOME + OUTSIDE (counts as "both" → outside total = 1, not over goal).
-    // Day 3: purely OUTSIDE (outside total = 2, now over goal = 1).
+    // Day 1: HOME only (home day). Day 2: HOME + OUTSIDE (outside day = 1, at goal).
+    // Day 3: OUTSIDE (outside day = 2, now over goal = 1).
     useMealContext.mockReturnValue({
       meals: [
         mealThisMonth('HOME', 0),

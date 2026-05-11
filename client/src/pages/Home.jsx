@@ -10,18 +10,17 @@ function formatLocalDate(date) {
   return `${y}-${m}-${d}`
 }
 
-function getMealColorClass(meals, date) {
+function getMealColorClass(meals, date, redDaySet) {
   const dateString = date.toDateString()
   const mealsForDay = meals.filter(
     (meal) => new Date(meal.occurredAt).toDateString() === dateString
   )
   if (!mealsForDay.length) return 'bg-slate-100 text-slate-500'
 
-  const tags = new Set(mealsForDay.map((m) => m.tag))
-  if (tags.has('MIXED') || (tags.has('HOME') && tags.has('OUTSIDE')))
-    return 'bg-amber-100 text-amber-700'
-  if (tags.has('OUTSIDE')) return 'bg-rose-100 text-rose-700'
-  return 'bg-emerald-100 text-emerald-700'
+  const hasOutside = mealsForDay.some((m) => m.tag === 'OUTSIDE' || m.tag === 'MIXED')
+  if (!hasOutside) return 'bg-emerald-100 text-emerald-700'
+  if (redDaySet.has(dateString)) return 'bg-rose-100 text-rose-700'
+  return 'bg-amber-100 text-amber-700'
 }
 
 function calculateStreak(meals) {
@@ -81,16 +80,27 @@ export default function Home() {
     dayTagMap[key].push(m.tag)
   })
 
-  let homeDays = 0, outsideDays = 0, bothDays = 0
+  let homeDays = 0, outsideDays = 0
   Object.values(dayTagMap).forEach((tags) => {
-    const unique = new Set(tags)
-    if (unique.has('MIXED') || (unique.has('HOME') && unique.has('OUTSIDE'))) bothDays++
-    else if (unique.has('OUTSIDE')) outsideDays++
+    const hasOutside = tags.includes('OUTSIDE') || tags.includes('MIXED')
+    if (hasOutside) outsideDays++
     else homeDays++
   })
 
-  const outsideTotal = outsideDays + bothDays
-  const overGoal = monthlyGoal != null && outsideTotal > monthlyGoal
+  // Sort outside days chronologically to apply goal cutoff in order.
+  const sortedOutsideDays = Array.from(
+    new Set(
+      thisMonthMeals
+        .filter((m) => m.tag === 'OUTSIDE' || m.tag === 'MIXED')
+        .map((m) => new Date(m.occurredAt).toDateString())
+    )
+  ).sort((a, b) => new Date(a) - new Date(b))
+
+  const redDaySet = new Set(
+    monthlyGoal != null ? sortedOutsideDays.slice(monthlyGoal) : []
+  )
+
+  const overGoal = monthlyGoal != null && outsideDays > monthlyGoal
 
   return (
     <div className="space-y-4 pb-24">
@@ -104,14 +114,14 @@ export default function Home() {
 
       <section className={`rounded-3xl border p-5 shadow-sm ${overGoal ? 'border-rose-200 bg-rose-50' : 'border-slate-200 bg-white'}`}>
         <p className="mb-3 text-xs uppercase tracking-[0.3em] text-slate-500">{monthName}</p>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           <div>
             <p className="text-2xl font-semibold text-emerald-600">{loading ? '—' : homeDays}</p>
             <p className="mt-0.5 text-xs text-slate-500">Home days</p>
           </div>
           <div>
             <p className={`text-2xl font-semibold ${overGoal ? 'text-rose-600' : 'text-slate-900'}`}>
-              {loading ? '—' : outsideTotal}
+              {loading ? '—' : outsideDays}
             </p>
             <p className="mt-0.5 text-xs text-slate-500">
               Outside days
@@ -121,10 +131,6 @@ export default function Home() {
                 </span>
               )}
             </p>
-          </div>
-          <div>
-            <p className="text-2xl font-semibold text-amber-500">{loading ? '—' : bothDays}</p>
-            <p className="mt-0.5 text-xs text-slate-500">Both days</p>
           </div>
         </div>
         {overGoal && (
@@ -137,12 +143,20 @@ export default function Home() {
           <h2 className="text-lg font-semibold text-slate-900">
             {monthName} {year}
           </h2>
-          <div className="flex gap-3 text-[10px]">
+          <div className="flex gap-2 text-[10px]">
             <span className="rounded-xl bg-emerald-100 px-2 py-1 text-emerald-700">HOME</span>
-            <span className="rounded-xl bg-rose-100 px-2 py-1 text-rose-700">OUTSIDE</span>
-            <span className="rounded-xl bg-amber-100 px-2 py-1 text-amber-700">BOTH</span>
+            <span className="rounded-xl bg-amber-100 px-2 py-1 text-amber-700">OUTSIDE</span>
+            {monthlyGoal != null && (
+              <span className="rounded-xl bg-rose-100 px-2 py-1 text-rose-700">OVER</span>
+            )}
           </div>
         </div>
+
+        {monthlyGoal != null && (
+          <p className="mb-3 text-xs text-slate-400">
+            First {monthlyGoal} outside day{monthlyGoal === 1 ? '' : 's'} are within your limit. Days beyond that are red.
+          </p>
+        )}
 
         <div className="grid grid-cols-7 gap-1.5">
           {days.map((day) => {
@@ -151,7 +165,7 @@ export default function Home() {
             const isToday = date.toDateString() === today.toDateString()
             const colorClass = isFuture
               ? 'bg-slate-100 text-slate-300'
-              : getMealColorClass(meals, date)
+              : getMealColorClass(meals, date, redDaySet)
             return (
               <button
                 key={day}
