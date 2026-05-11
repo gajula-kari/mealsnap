@@ -12,7 +12,7 @@ import MealCard from './MealCard'
 // A realistic meal fixture used across most tests.
 const meal = {
   id: 'meal-1',
-  tag: 'OUTSIDE',
+  tag: 'INDULGENT',
   imageUrl: 'https://example.com/img.jpg',
   note: 'Lunch',
   amountSpent: 200,
@@ -25,7 +25,7 @@ describe('display', () => {
   it('renders the tag badge, note, and amount', () => {
     render(<MealCard meal={meal} />)
 
-    expect(screen.getByText('OUTSIDE')).toBeInTheDocument()
+    expect(screen.getByText('INDULGENT')).toBeInTheDocument()
     expect(screen.getByText('Lunch')).toBeInTheDocument()
     expect(screen.getByText('₹200')).toBeInTheDocument()
   })
@@ -83,11 +83,11 @@ describe('edit flow', () => {
     expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument()
   })
 
-  it('hides the amount field in the edit form when tag is HOME', async () => {
+  it('hides the amount field in the edit form when tag is CLEAN', async () => {
     const user = userEvent.setup()
     render(
       <MealCard
-        meal={{ ...meal, tag: 'HOME', amountSpent: null }}
+        meal={{ ...meal, tag: 'CLEAN', amountSpent: null }}
         onEdit={vi.fn()}
         onDelete={vi.fn()}
       />
@@ -98,7 +98,7 @@ describe('edit flow', () => {
     expect(screen.queryByPlaceholderText('Amount spent')).not.toBeInTheDocument()
   })
 
-  it('shows the amount field in the edit form when tag is OUTSIDE', async () => {
+  it('shows the amount field in the edit form when tag is INDULGENT', async () => {
     const user = userEvent.setup()
     render(<MealCard meal={meal} onEdit={vi.fn()} onDelete={vi.fn()} />)
 
@@ -107,13 +107,13 @@ describe('edit flow', () => {
     expect(screen.getByPlaceholderText('Amount spent')).toBeInTheDocument()
   })
 
-  it('calls onEdit with amountSpent=null when tag is HOME', async () => {
+  it('calls onEdit with amountSpent=null when tag is CLEAN', async () => {
     const user = userEvent.setup()
     const onEdit = vi.fn().mockResolvedValue()
-    // Start with HOME tag — amount field hidden, so amountSpent must come out null.
+    // Start with CLEAN tag — amount field hidden, so amountSpent must come out null.
     render(
       <MealCard
-        meal={{ ...meal, tag: 'HOME', amountSpent: null }}
+        meal={{ ...meal, tag: 'CLEAN', amountSpent: null }}
         onEdit={onEdit}
         onDelete={vi.fn()}
       />
@@ -124,7 +124,7 @@ describe('edit flow', () => {
 
     expect(onEdit).toHaveBeenCalledWith(
       meal.id,
-      expect.objectContaining({ tag: 'HOME', amountSpent: null })
+      expect.objectContaining({ tag: 'CLEAN', amountSpent: null })
     )
   })
 
@@ -197,26 +197,23 @@ describe('delete flow', () => {
 // ─── Tag switching in edit form ───────────────────────────────────────────────
 
 describe('tag switching in edit form', () => {
-  it('switching tag to HOME hides the amount field', async () => {
+  it('switching tag to CLEAN hides the amount field', async () => {
     const user = userEvent.setup()
     render(<MealCard meal={meal} onEdit={vi.fn()} onDelete={vi.fn()} />)
 
     await user.click(screen.getByRole('button', { name: 'Edit' }))
     expect(screen.getByPlaceholderText('Amount spent')).toBeInTheDocument()
 
-    // The edit form renders tag option buttons (HOME, OUTSIDE, MIXED).
-    // Clicking HOME should hide the amount field since HOME meals never have a spend.
-    const tagButtons = screen.getAllByRole('button', { name: 'HOME' })
-    await user.click(tagButtons[tagButtons.length - 1]) // last HOME button is the tag option
+    await user.click(screen.getByRole('button', { name: 'CLEAN' }))
 
     expect(screen.queryByPlaceholderText('Amount spent')).not.toBeInTheDocument()
   })
 
-  it('switching tag from HOME to OUTSIDE shows the amount field', async () => {
+  it('switching tag from CLEAN to INDULGENT shows the amount field', async () => {
     const user = userEvent.setup()
     render(
       <MealCard
-        meal={{ ...meal, tag: 'HOME', amountSpent: null }}
+        meal={{ ...meal, tag: 'CLEAN', amountSpent: null }}
         onEdit={vi.fn()}
         onDelete={vi.fn()}
       />
@@ -225,8 +222,7 @@ describe('tag switching in edit form', () => {
     await user.click(screen.getByRole('button', { name: 'Edit' }))
     expect(screen.queryByPlaceholderText('Amount spent')).not.toBeInTheDocument()
 
-    const tagButtons = screen.getAllByRole('button', { name: 'OUTSIDE' })
-    await user.click(tagButtons[tagButtons.length - 1])
+    await user.click(screen.getByRole('button', { name: 'INDULGENT' }))
 
     expect(screen.getByPlaceholderText('Amount spent')).toBeInTheDocument()
   })

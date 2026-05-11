@@ -31,6 +31,7 @@ export default function TagMeal() {
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState(null)
   const [mountedAt] = useState(() => Date.now())
+  const [selectedTag, setSelectedTag] = useState('CLEAN')
 
   const { occurredAt, dateLabel } = useMemo(() => {
     if (dateFromState) {
@@ -61,27 +62,24 @@ export default function TagMeal() {
     }
   }, [imageFile])
 
-  const mealTagOptions = useMemo(() => ['HOME', 'OUTSIDE'], [])
+  const mealTagOptions = useMemo(() => ['CLEAN', 'INDULGENT'], [])
 
-  const handleTag = useCallback(
-    async (tag) => {
-      if (!preview || saving) return
+  const handleSave = useCallback(async () => {
+    if (!preview || saving) return
 
-      setSaving(true)
-      setSaveError(null)
-      try {
-        const finalOccurredAt = occurredAt ?? Date.now()
-        await addMeal({ imageUrl: preview, tag, occurredAt: finalOccurredAt })
+    setSaving(true)
+    setSaveError(null)
+    try {
+      const finalOccurredAt = occurredAt ?? Date.now()
+      await addMeal({ imageUrl: preview, tag: selectedTag, occurredAt: finalOccurredAt })
 
-        const targetDate = dateFromState ?? formatLocalDate(new Date())
-        navigate(`/day/${targetDate}`)
-      } catch (err) {
-        setSaveError(err.message)
-        setSaving(false)
-      }
-    },
-    [preview, saving, occurredAt, addMeal, dateFromState, navigate]
-  )
+      const targetDate = dateFromState ?? formatLocalDate(new Date())
+      navigate(`/day/${targetDate}`)
+    } catch (err) {
+      setSaveError(err.message)
+      setSaving(false)
+    }
+  }, [preview, saving, selectedTag, occurredAt, addMeal, dateFromState, navigate])
 
   if (!imageFile) {
     return (
@@ -128,13 +126,26 @@ export default function TagMeal() {
               key={tag}
               type="button"
               disabled={saving || !preview}
-              className="rounded-3xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-semibold text-slate-900 transition hover:bg-slate-100 disabled:opacity-50"
-              onClick={() => handleTag(tag)}
+              className={`rounded-3xl border px-4 py-4 text-sm font-semibold transition disabled:opacity-50 ${
+                selectedTag === tag
+                  ? 'border-slate-900 bg-slate-900 text-white'
+                  : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
+              }`}
+              onClick={() => setSelectedTag(tag)}
             >
-              {saving ? 'Saving…' : tag}
+              {tag === 'CLEAN' ? '✓ Clean' : '⚠ Indulgent'}
             </button>
           ))}
         </div>
+
+        <button
+          type="button"
+          disabled={saving || !preview}
+          onClick={handleSave}
+          className="w-full rounded-3xl bg-slate-900 px-4 py-4 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-50"
+        >
+          {saving ? 'Saving…' : 'Save'}
+        </button>
 
         <button
           type="button"

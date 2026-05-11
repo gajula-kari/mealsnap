@@ -17,8 +17,8 @@ function getMealColorClass(meals, date, redDaySet) {
   )
   if (!mealsForDay.length) return 'bg-slate-100 text-slate-500'
 
-  const hasOutside = mealsForDay.some((m) => m.tag === 'OUTSIDE' || m.tag === 'MIXED')
-  if (!hasOutside) return 'bg-emerald-100 text-emerald-700'
+  const hasIndulgent = mealsForDay.some((m) => m.tag === 'INDULGENT')
+  if (!hasIndulgent) return 'bg-emerald-100 text-emerald-700'
   if (redDaySet.has(dateString)) return 'bg-rose-100 text-rose-700'
   return 'bg-amber-100 text-amber-700'
 }
@@ -52,7 +52,7 @@ export default function Home() {
   useEffect(() => {
     fetchSettings()
       .then((s) => {
-        if (s?.monthlyOutsideGoal != null) setMonthlyGoal(s.monthlyOutsideGoal)
+        if (s?.monthlyIndulgentLimit != null) setMonthlyGoal(s.monthlyIndulgentLimit)
       })
       .catch(() => {})
   }, [])
@@ -82,26 +82,26 @@ export default function Home() {
     dayTagMap[key].push(m.tag)
   })
 
-  let homeDays = 0,
-    outsideDays = 0
+  let cleanDays = 0,
+    indulgentDays = 0
   Object.values(dayTagMap).forEach((tags) => {
-    const hasOutside = tags.includes('OUTSIDE') || tags.includes('MIXED')
-    if (hasOutside) outsideDays++
-    else homeDays++
+    const hasIndulgent = tags.includes('INDULGENT')
+    if (hasIndulgent) indulgentDays++
+    else cleanDays++
   })
 
-  // Sort outside days chronologically to apply goal cutoff in order.
-  const sortedOutsideDays = Array.from(
+  // Sort indulgent days chronologically to apply goal cutoff in order.
+  const sortedIndulgentDays = Array.from(
     new Set(
       thisMonthMeals
-        .filter((m) => m.tag === 'OUTSIDE' || m.tag === 'MIXED')
+        .filter((m) => m.tag === 'INDULGENT')
         .map((m) => new Date(m.occurredAt).toDateString())
     )
   ).sort((a, b) => new Date(a) - new Date(b))
 
-  const redDaySet = new Set(monthlyGoal != null ? sortedOutsideDays.slice(monthlyGoal) : [])
+  const redDaySet = new Set(monthlyGoal != null ? sortedIndulgentDays.slice(monthlyGoal) : [])
 
-  const overGoal = monthlyGoal != null && outsideDays > monthlyGoal
+  const overGoal = monthlyGoal != null && indulgentDays > monthlyGoal
 
   return (
     <div className="space-y-4 pb-24">
@@ -119,17 +119,17 @@ export default function Home() {
         <p className="mb-3 text-xs uppercase tracking-[0.3em] text-slate-500">{monthName}</p>
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <p className="text-2xl font-semibold text-emerald-600">{loading ? '—' : homeDays}</p>
-            <p className="mt-0.5 text-xs text-slate-500">Home days</p>
+            <p className="text-2xl font-semibold text-emerald-600">{loading ? '—' : cleanDays}</p>
+            <p className="mt-0.5 text-xs text-slate-500">Clean days</p>
           </div>
           <div>
             <p
               className={`text-2xl font-semibold ${overGoal ? 'text-rose-600' : 'text-slate-900'}`}
             >
-              {loading ? '—' : outsideDays}
+              {loading ? '—' : indulgentDays}
             </p>
             <p className="mt-0.5 text-xs text-slate-500">
-              Outside days
+              Indulgent days
               {monthlyGoal != null && (
                 <span className={`ml-1 ${overGoal ? 'text-rose-400' : 'text-slate-400'}`}>
                   / {monthlyGoal}
@@ -138,7 +138,7 @@ export default function Home() {
             </p>
           </div>
         </div>
-        {overGoal && <p className="mt-3 text-xs text-rose-500">Outside eating limit reached</p>}
+        {overGoal && <p className="mt-3 text-xs text-rose-500">Indulgent day limit reached</p>}
       </section>
 
       <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -147,8 +147,8 @@ export default function Home() {
             {monthName} {year}
           </h2>
           <div className="flex gap-2 text-[10px]">
-            <span className="rounded-xl bg-emerald-100 px-2 py-1 text-emerald-700">HOME</span>
-            <span className="rounded-xl bg-amber-100 px-2 py-1 text-amber-700">OUTSIDE</span>
+            <span className="rounded-xl bg-emerald-100 px-2 py-1 text-emerald-700">CLEAN</span>
+            <span className="rounded-xl bg-amber-100 px-2 py-1 text-amber-700">INDULGENT</span>
             {monthlyGoal != null && (
               <span className="rounded-xl bg-rose-100 px-2 py-1 text-rose-700">OVER</span>
             )}
@@ -157,7 +157,7 @@ export default function Home() {
 
         {monthlyGoal != null && (
           <p className="mb-3 text-xs text-slate-400">
-            First {monthlyGoal} outside day{monthlyGoal === 1 ? '' : 's'} are within your limit.
+            First {monthlyGoal} indulgent day{monthlyGoal === 1 ? '' : 's'} are within your limit.
             Days beyond that are red.
           </p>
         )}

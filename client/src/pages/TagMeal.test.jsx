@@ -52,8 +52,7 @@ describe('TagMeal', () => {
       </MemoryRouter>
     )
 
-    // The tag buttons (HOME / OUTSIDE / MIXED) must not appear in the fallback view.
-    expect(screen.queryByRole('button', { name: 'HOME' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '✓ Clean' })).not.toBeInTheDocument()
   })
 })
 
@@ -82,7 +81,7 @@ describe('TagMeal with image', () => {
     return new File(['img'], 'photo.jpg', { type: 'image/jpeg' })
   }
 
-  it('renders only HOME and OUTSIDE tag buttons once the preview loads', async () => {
+  it('renders Clean and Indulgent tag buttons plus Save once the preview loads', async () => {
     useLocation.mockReturnValue({ state: { image: imageFile() } })
 
     render(
@@ -93,12 +92,12 @@ describe('TagMeal with image', () => {
 
     await screen.findByAltText('Selected meal')
 
-    expect(screen.getByRole('button', { name: 'HOME' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'OUTSIDE' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'MIXED' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '✓ Clean' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '⚠ Indulgent' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument()
   })
 
-  it('calls addMeal with the chosen tag and navigates to the day detail', async () => {
+  it('calls addMeal with CLEAN tag by default and navigates to the day detail', async () => {
     const navigate = vi.fn()
     useNavigate.mockReturnValue(navigate)
     const addMeal = vi.fn().mockResolvedValue({})
@@ -112,9 +111,9 @@ describe('TagMeal with image', () => {
     )
     await screen.findByAltText('Selected meal')
 
-    await userEvent.click(screen.getByRole('button', { name: 'HOME' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }))
 
-    expect(addMeal).toHaveBeenCalledWith(expect.objectContaining({ tag: 'HOME' }))
+    expect(addMeal).toHaveBeenCalledWith(expect.objectContaining({ tag: 'CLEAN' }))
     const today = new Date()
     const y = today.getFullYear()
     const m = String(today.getMonth() + 1).padStart(2, '0')
@@ -134,11 +133,12 @@ describe('TagMeal with image', () => {
     )
     await screen.findByAltText('Selected meal')
 
-    await userEvent.click(screen.getByRole('button', { name: 'OUTSIDE' }))
+    await userEvent.click(screen.getByRole('button', { name: '⚠ Indulgent' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }))
 
     expect(addMeal).toHaveBeenCalledWith(
       expect.objectContaining({
-        tag: 'OUTSIDE',
+        tag: 'INDULGENT',
         occurredAt: new Date(2024, 5, 15, 12, 0, 0, 0).getTime(),
       })
     )
@@ -158,7 +158,7 @@ describe('TagMeal with image', () => {
     )
     await screen.findByAltText('Selected meal')
 
-    await userEvent.click(screen.getByRole('button', { name: 'OUTSIDE' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }))
 
     expect(navigate).toHaveBeenCalledWith('/day/2024-06-15')
   })
@@ -176,7 +176,7 @@ describe('TagMeal with image', () => {
     )
     await screen.findByAltText('Selected meal')
 
-    await userEvent.click(screen.getByRole('button', { name: 'HOME' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }))
 
     expect(await screen.findByText('Network error')).toBeInTheDocument()
   })

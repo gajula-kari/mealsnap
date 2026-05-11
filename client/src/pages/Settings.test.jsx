@@ -24,7 +24,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   fetchSettings.mockResolvedValue(null)
   saveSettings.mockResolvedValue({
-    monthlyOutsideGoal: 7,
+    monthlyIndulgentLimit: 7,
     previousGoal: null,
     goalUpdatedAt: Date.now(),
   })
@@ -35,9 +35,9 @@ beforeEach(() => {
 describe('Settings rendering', () => {
   it('renders the heading and description', () => {
     renderSettings()
-    expect(screen.getByText('Outside Eating Limit')).toBeInTheDocument()
+    expect(screen.getByText('Indulgent Days Limit')).toBeInTheDocument()
     expect(
-      screen.getByText("Set how many days you're okay eating outside each month")
+      screen.getByText('Set how many indulgent days you allow yourself per month')
     ).toBeInTheDocument()
   })
 
@@ -59,7 +59,7 @@ describe('Settings rendering', () => {
 describe('Settings with existing data', () => {
   it('pre-fills the input with the current goal', async () => {
     fetchSettings.mockResolvedValue({
-      monthlyOutsideGoal: 10,
+      monthlyIndulgentLimit: 10,
       previousGoal: null,
       goalUpdatedAt: null,
     })
@@ -69,7 +69,7 @@ describe('Settings with existing data', () => {
 
   it('shows previous goal when one exists', async () => {
     fetchSettings.mockResolvedValue({
-      monthlyOutsideGoal: 10,
+      monthlyIndulgentLimit: 10,
       previousGoal: 5,
       goalUpdatedAt: 1700000000000,
     })
@@ -79,7 +79,7 @@ describe('Settings with existing data', () => {
 
   it('shows last updated date when goalUpdatedAt exists', async () => {
     fetchSettings.mockResolvedValue({
-      monthlyOutsideGoal: 10,
+      monthlyIndulgentLimit: 10,
       previousGoal: null,
       goalUpdatedAt: 1700000000000,
     })
@@ -145,6 +145,6 @@ describe('saving', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Save' }))
 
     expect(screen.getByRole('button', { name: 'Saving…' })).toBeInTheDocument()
-    resolve({ monthlyOutsideGoal: 5, previousGoal: null, goalUpdatedAt: Date.now() })
+    resolve({ monthlyIndulgentLimit: 5, previousGoal: null, goalUpdatedAt: Date.now() })
   })
 })

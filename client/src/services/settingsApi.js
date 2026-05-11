@@ -18,10 +18,10 @@ export async function fetchSettings() {
   return data.settings
 }
 
-export async function saveSettings(monthlyOutsideGoal) {
+export async function saveSettings(monthlyIndulgentLimit) {
   const data = await request(BASE, {
     method: 'PATCH',
-    body: JSON.stringify({ monthlyOutsideGoal }),
+    body: JSON.stringify({ monthlyIndulgentLimit }),
   })
   return data.settings
 }

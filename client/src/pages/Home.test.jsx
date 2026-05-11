@@ -32,7 +32,7 @@ function renderHome() {
 
 // Builds a meal that occurred on a given Date object.
 function mealOn(date) {
-  return { id: String(date.getTime()), tag: 'HOME', occurredAt: date.getTime() }
+  return { id: String(date.getTime()), tag: 'CLEAN', occurredAt: date.getTime() }
 }
 
 // Returns a Date set to N days before today (same wall-clock day, noon).
@@ -158,33 +158,25 @@ describe('calendar grid', () => {
     }
   }
 
-  it('applies emerald class to today when the latest meal is HOME', () => {
-    useMealContext.mockReturnValue({ meals: [mealToday('HOME')], loading: false, error: null })
+  it('applies emerald class to today when the meal is CLEAN', () => {
+    useMealContext.mockReturnValue({ meals: [mealToday('CLEAN')], loading: false, error: null })
     renderHome()
     expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass(
       'bg-emerald-100'
     )
   })
 
-  it('applies amber class to today when the meal is OUTSIDE and no goal is set', () => {
-    useMealContext.mockReturnValue({ meals: [mealToday('OUTSIDE')], loading: false, error: null })
+  it('applies amber class to today when the meal is INDULGENT and no limit is set', () => {
+    useMealContext.mockReturnValue({ meals: [mealToday('INDULGENT')], loading: false, error: null })
     renderHome()
     expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass(
       'bg-amber-100'
     )
   })
 
-  it('applies amber class to today when the only meal has legacy MIXED tag', () => {
-    useMealContext.mockReturnValue({ meals: [mealToday('MIXED')], loading: false, error: null })
-    renderHome()
-    expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass(
-      'bg-amber-100'
-    )
-  })
-
-  it('applies amber class to today when there are both HOME and OUTSIDE meals', () => {
+  it('applies amber class to today when there are both CLEAN and INDULGENT meals', () => {
     useMealContext.mockReturnValue({
-      meals: [mealToday('HOME'), mealToday('OUTSIDE')],
+      meals: [mealToday('CLEAN'), mealToday('INDULGENT')],
       loading: false,
       error: null,
     })
@@ -194,9 +186,9 @@ describe('calendar grid', () => {
     )
   })
 
-  it('applies amber class when all meals today are OUTSIDE and no goal is set', () => {
+  it('applies amber class when all meals today are INDULGENT and no limit is set', () => {
     useMealContext.mockReturnValue({
-      meals: [mealToday('OUTSIDE'), mealToday('OUTSIDE')],
+      meals: [mealToday('INDULGENT'), mealToday('INDULGENT')],
       loading: false,
       error: null,
     })
@@ -206,24 +198,24 @@ describe('calendar grid', () => {
     )
   })
 
-  it('applies rose class when the outside day falls beyond the goal cutoff', async () => {
-    // Goal = 0 means any outside day is immediately over the limit → rose.
-    fetchSettings.mockResolvedValue({ monthlyOutsideGoal: 0 })
+  it('applies rose class when the indulgent day falls beyond the limit cutoff', async () => {
+    // Limit = 0 means any indulgent day is immediately over the limit → rose.
+    fetchSettings.mockResolvedValue({ monthlyIndulgentLimit: 0 })
     useMealContext.mockReturnValue({
-      meals: [mealToday('OUTSIDE')],
+      meals: [mealToday('INDULGENT')],
       loading: false,
       error: null,
     })
     renderHome()
 
-    // Wait for settings to resolve — OVER chip only appears once goal is loaded.
+    // Wait for settings to resolve — OVER chip only appears once limit is loaded.
     await screen.findByText('OVER')
     expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass('bg-rose-100')
   })
 
-  it('applies emerald class when all meals today are HOME', () => {
+  it('applies emerald class when all meals today are CLEAN', () => {
     useMealContext.mockReturnValue({
-      meals: [mealToday('HOME'), mealToday('HOME')],
+      meals: [mealToday('CLEAN'), mealToday('CLEAN')],
       loading: false,
       error: null,
     })
@@ -271,85 +263,85 @@ describe('stats card', () => {
     }
   }
 
-  it('shows Home days and Outside days labels', () => {
+  it('shows Clean days and Indulgent days labels', () => {
     useMealContext.mockReturnValue({ meals: [], loading: false, error: null })
     renderHome()
 
-    expect(screen.getByText('Home days')).toBeInTheDocument()
-    expect(screen.getByText('Outside days')).toBeInTheDocument()
+    expect(screen.getByText('Clean days')).toBeInTheDocument()
+    expect(screen.getByText('Indulgent days')).toBeInTheDocument()
     expect(screen.queryByText('Both days')).not.toBeInTheDocument()
   })
 
-  it('counts a day with only HOME meals as a home day', () => {
+  it('counts a day with only CLEAN meals as a clean day', () => {
     useMealContext.mockReturnValue({
-      meals: [mealThisMonth('HOME', 0), mealThisMonth('HOME', 0)],
+      meals: [mealThisMonth('CLEAN', 0), mealThisMonth('CLEAN', 0)],
       loading: false,
       error: null,
     })
     renderHome()
 
-    expect(screen.getByText('Home days').previousSibling.textContent).toBe('1')
+    expect(screen.getByText('Clean days').previousSibling.textContent).toBe('1')
   })
 
-  it('counts a day with HOME + OUTSIDE meals as an outside day', () => {
+  it('counts a day with CLEAN + INDULGENT meals as an indulgent day', () => {
     useMealContext.mockReturnValue({
-      meals: [mealThisMonth('HOME', 0), mealThisMonth('OUTSIDE', 0)],
+      meals: [mealThisMonth('CLEAN', 0), mealThisMonth('INDULGENT', 0)],
       loading: false,
       error: null,
     })
     renderHome()
 
-    expect(screen.getByText('Outside days').previousSibling.textContent).toBe('1')
-    expect(screen.getByText('Home days').previousSibling.textContent).toBe('0')
+    expect(screen.getByText('Indulgent days').previousSibling.textContent).toBe('1')
+    expect(screen.getByText('Clean days').previousSibling.textContent).toBe('0')
   })
 
-  it('shows banner when outside days (including mixed-meal days) exceed the goal', async () => {
-    fetchSettings.mockResolvedValue({ monthlyOutsideGoal: 1 })
-    // Day 1: HOME only (home day). Day 2: HOME + OUTSIDE (outside day = 1, at goal).
-    // Day 3: OUTSIDE (outside day = 2, now over goal = 1).
+  it('shows banner when indulgent days exceed the limit', async () => {
+    fetchSettings.mockResolvedValue({ monthlyIndulgentLimit: 1 })
+    // Day 1: CLEAN only (clean day). Day 2: CLEAN + INDULGENT (indulgent day = 1, at limit).
+    // Day 3: INDULGENT (indulgent day = 2, now over limit = 1).
     useMealContext.mockReturnValue({
       meals: [
-        mealThisMonth('HOME', 0),
-        mealThisMonth('HOME', 1),
-        mealThisMonth('OUTSIDE', 1),
-        mealThisMonth('OUTSIDE', 2),
+        mealThisMonth('CLEAN', 0),
+        mealThisMonth('CLEAN', 1),
+        mealThisMonth('INDULGENT', 1),
+        mealThisMonth('INDULGENT', 2),
       ],
       loading: false,
       error: null,
     })
     renderHome()
 
-    expect(await screen.findByText('Outside eating limit reached')).toBeInTheDocument()
+    expect(await screen.findByText('Indulgent day limit reached')).toBeInTheDocument()
   })
 
-  it('does not show the goal banner when outside total is within the limit', async () => {
-    fetchSettings.mockResolvedValue({ monthlyOutsideGoal: 5 })
+  it('does not show the banner when indulgent total is within the limit', async () => {
+    fetchSettings.mockResolvedValue({ monthlyIndulgentLimit: 5 })
     useMealContext.mockReturnValue({
-      meals: [mealThisMonth('OUTSIDE', 0)],
+      meals: [mealThisMonth('INDULGENT', 0)],
       loading: false,
       error: null,
     })
     renderHome()
 
     // Wait for settings to load, then confirm banner is absent.
-    await screen.findByText('Outside days')
-    expect(screen.queryByText('Outside eating limit reached')).not.toBeInTheDocument()
+    await screen.findByText('Indulgent days')
+    expect(screen.queryByText('Indulgent day limit reached')).not.toBeInTheDocument()
   })
 
-  it('does not show the goal banner when no goal is set', () => {
+  it('does not show the banner when no limit is set', () => {
     fetchSettings.mockResolvedValue(null)
     useMealContext.mockReturnValue({
       meals: [
-        mealThisMonth('OUTSIDE', 0),
-        mealThisMonth('OUTSIDE', 1),
-        mealThisMonth('OUTSIDE', 2),
+        mealThisMonth('INDULGENT', 0),
+        mealThisMonth('INDULGENT', 1),
+        mealThisMonth('INDULGENT', 2),
       ],
       loading: false,
       error: null,
     })
     renderHome()
 
-    expect(screen.queryByText('Outside eating limit reached')).not.toBeInTheDocument()
+    expect(screen.queryByText('Indulgent day limit reached')).not.toBeInTheDocument()
   })
 })
 

@@ -1,6 +1,6 @@
 // We're testing the service layer in isolation.
 // The service's jobs are:
-//   1. Enforce business rules (occurredAt required, HOME meals have no amountSpent, etc.)
+//   1. Enforce business rules (occurredAt required, CLEAN meals have no amountSpent, etc.)
 //   2. Build the correct query arguments and pass them to the Mongoose model
 //   3. Handle model responses (throw 'Meal not found' when the model returns null)
 //
@@ -22,12 +22,12 @@ beforeEach(() => {
 
 describe('createMeal', () => {
   it('calls Meal.create with the correct fields and returns the result', async () => {
-    const fakeMeal = { _id: '123', tag: 'OUTSIDE', amountSpent: 300, occurredAt: 1700000000000 }
+    const fakeMeal = { _id: '123', tag: 'INDULGENT', amountSpent: 300, occurredAt: 1700000000000 }
     Meal.create.mockResolvedValue(fakeMeal)
 
     const result = await createMeal('user-123', {
       imageUrl: 'https://example.com/img.jpg',
-      tag: 'OUTSIDE',
+      tag: 'INDULGENT',
       amountSpent: 300,
       note: 'Lunch',
       occurredAt: 1700000000000,
@@ -38,7 +38,7 @@ describe('createMeal', () => {
     expect(Meal.create).toHaveBeenCalledWith({
       userId: 'user-123',
       imageUrl: 'https://example.com/img.jpg',
-      tag: 'OUTSIDE',
+      tag: 'INDULGENT',
       amountSpent: 300,
       note: 'Lunch',
       occurredAt: 1700000000000,
@@ -53,32 +53,32 @@ describe('createMeal', () => {
   it('throws if occurredAt is missing', async () => {
     // rejects.toThrow() is how you assert that an async function throws.
     // You must await the whole expression, not just the function call.
-    await expect(createMeal('user-123', { tag: 'HOME' })).rejects.toThrow('occurredAt is required')
+    await expect(createMeal('user-123', { tag: 'CLEAN' })).rejects.toThrow('occurredAt is required')
 
     expect(Meal.create).not.toHaveBeenCalled()
   })
 
-  // Business rule: HOME meals never have a spend amount, even if the caller passes one.
+  // Business rule: CLEAN meals never have a spend amount, even if the caller passes one.
   // We use expect.objectContaining() to check only the fields we care about,
   // without listing every field in the object.
-  it('forces amountSpent to null for HOME meals regardless of input', async () => {
+  it('forces amountSpent to null for CLEAN meals regardless of input', async () => {
     Meal.create.mockResolvedValue({})
 
-    await createMeal('user-123', { tag: 'HOME', amountSpent: 500, occurredAt: 1700000000000 })
+    await createMeal('user-123', { tag: 'CLEAN', amountSpent: 500, occurredAt: 1700000000000 })
 
     expect(Meal.create).toHaveBeenCalledWith(
-      expect.objectContaining({ tag: 'HOME', amountSpent: null })
+      expect.objectContaining({ tag: 'CLEAN', amountSpent: null })
     )
   })
 
-  // Counterpart: OUTSIDE and MIXED meals pass amountSpent through unchanged.
-  it('passes amountSpent through for OUTSIDE meals', async () => {
+  // Counterpart: INDULGENT meals pass amountSpent through unchanged.
+  it('passes amountSpent through for INDULGENT meals', async () => {
     Meal.create.mockResolvedValue({})
 
-    await createMeal('user-123', { tag: 'OUTSIDE', amountSpent: 250, occurredAt: 1700000000000 })
+    await createMeal('user-123', { tag: 'INDULGENT', amountSpent: 250, occurredAt: 1700000000000 })
 
     expect(Meal.create).toHaveBeenCalledWith(
-      expect.objectContaining({ tag: 'OUTSIDE', amountSpent: 250 })
+      expect.objectContaining({ tag: 'INDULGENT', amountSpent: 250 })
     )
   })
 
@@ -86,7 +86,7 @@ describe('createMeal', () => {
   it('defaults imageUrl and note to null when omitted', async () => {
     Meal.create.mockResolvedValue({})
 
-    await createMeal('user-123', { tag: 'HOME', occurredAt: 1700000000000 })
+    await createMeal('user-123', { tag: 'CLEAN', occurredAt: 1700000000000 })
 
     expect(Meal.create).toHaveBeenCalledWith(
       expect.objectContaining({ imageUrl: null, note: null })
@@ -157,11 +157,11 @@ describe('getMealsByDate', () => {
 
 describe('updateMeal', () => {
   it('calls findOneAndUpdate with correct query, updates, and options, then returns the meal', async () => {
-    const fakeMeal = { _id: 'abc', tag: 'OUTSIDE', amountSpent: 200 }
+    const fakeMeal = { _id: 'abc', tag: 'INDULGENT', amountSpent: 200 }
     Meal.findOneAndUpdate.mockResolvedValue(fakeMeal)
 
     const result = await updateMeal('user-123', 'abc', {
-      tag: 'OUTSIDE',
+      tag: 'INDULGENT',
       amountSpent: 200,
       note: 'Dinner',
     })
@@ -170,7 +170,7 @@ describe('updateMeal', () => {
       // Filter: must scope to userId so users can't update each other's meals.
       { _id: 'abc', userId: 'user-123' },
       // Updates: the exact fields being written.
-      { tag: 'OUTSIDE', amountSpent: 200, note: 'Dinner' },
+      { tag: 'INDULGENT', amountSpent: 200, note: 'Dinner' },
       // Options: new:true returns the updated doc; runValidators re-runs schema rules.
       { new: true, runValidators: true }
     )
@@ -182,31 +182,31 @@ describe('updateMeal', () => {
   it('throws "Meal not found" when findOneAndUpdate returns null', async () => {
     Meal.findOneAndUpdate.mockResolvedValue(null)
 
-    await expect(updateMeal('user-123', 'nonexistent', { tag: 'HOME' })).rejects.toThrow(
+    await expect(updateMeal('user-123', 'nonexistent', { tag: 'CLEAN' })).rejects.toThrow(
       'Meal not found'
     )
   })
 
-  // amountSpent is optional for OUTSIDE — null is a valid value.
-  // Only HOME meals have special handling (forced to null).
-  it('allows null amountSpent for OUTSIDE meals', async () => {
-    const fakeMeal = { _id: 'abc', tag: 'OUTSIDE', amountSpent: null }
+  // amountSpent is optional for INDULGENT — null is a valid value.
+  // Only CLEAN meals have special handling (forced to null).
+  it('allows null amountSpent for INDULGENT meals', async () => {
+    const fakeMeal = { _id: 'abc', tag: 'INDULGENT', amountSpent: null }
     Meal.findOneAndUpdate.mockResolvedValue(fakeMeal)
 
-    const result = await updateMeal('user-123', 'abc', { tag: 'OUTSIDE', amountSpent: null })
+    const result = await updateMeal('user-123', 'abc', { tag: 'INDULGENT', amountSpent: null })
 
     expect(Meal.findOneAndUpdate).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ tag: 'OUTSIDE', amountSpent: null }),
+      expect.objectContaining({ tag: 'INDULGENT', amountSpent: null }),
       expect.anything()
     )
     expect(result).toBe(fakeMeal)
   })
 
-  it('forces amountSpent to null when tag is HOME', async () => {
-    Meal.findOneAndUpdate.mockResolvedValue({ _id: 'abc', tag: 'HOME', amountSpent: null })
+  it('forces amountSpent to null when tag is CLEAN', async () => {
+    Meal.findOneAndUpdate.mockResolvedValue({ _id: 'abc', tag: 'CLEAN', amountSpent: null })
 
-    await updateMeal('user-123', 'abc', { tag: 'HOME', amountSpent: 500 })
+    await updateMeal('user-123', 'abc', { tag: 'CLEAN', amountSpent: 500 })
 
     expect(Meal.findOneAndUpdate).toHaveBeenCalledWith(
       expect.anything(),

@@ -28,13 +28,13 @@ beforeEach(() => {
 
 describe('POST /meals', () => {
   it('returns 201 with the created meal', async () => {
-    const fakeMeal = { _id: 'abc', tag: 'HOME', occurredAt: 1700000000000 }
+    const fakeMeal = { _id: 'abc', tag: 'CLEAN', occurredAt: 1700000000000 }
     Meal.create.mockResolvedValue(fakeMeal)
 
     const res = await request(app)
       .post('/meals')
       .set('x-user-id', 'user-test')
-      .send({ tag: 'HOME', occurredAt: 1700000000000 })
+      .send({ tag: 'CLEAN', occurredAt: 1700000000000 })
       .expect(201)
 
     expect(res.body).toEqual({ meal: fakeMeal })
@@ -44,7 +44,7 @@ describe('POST /meals', () => {
     const res = await request(app)
       .post('/meals')
       .set('x-user-id', 'user-test')
-      .send({ tag: 'HOME' })
+      .send({ tag: 'CLEAN' })
       .expect(400)
 
     expect(res.body).toEqual({ error: 'occurredAt is required' })
@@ -53,7 +53,7 @@ describe('POST /meals', () => {
   it('returns 400 when x-user-id header is missing', async () => {
     const res = await request(app)
       .post('/meals')
-      .send({ tag: 'HOME', occurredAt: 1700000000000 })
+      .send({ tag: 'CLEAN', occurredAt: 1700000000000 })
       .expect(400)
 
     expect(res.body).toEqual({ error: 'x-user-id header is required' })
@@ -106,13 +106,13 @@ describe('GET /meals', () => {
 
 describe('PATCH /meals/:id', () => {
   it('returns 200 with the updated meal', async () => {
-    const fakeMeal = { _id: 'abc', tag: 'OUTSIDE', amountSpent: 200 }
+    const fakeMeal = { _id: 'abc', tag: 'INDULGENT', amountSpent: 200 }
     Meal.findOneAndUpdate.mockResolvedValue(fakeMeal)
 
     const res = await request(app)
       .patch('/meals/abc')
       .set('x-user-id', 'user-test')
-      .send({ tag: 'OUTSIDE', amountSpent: 200 })
+      .send({ tag: 'INDULGENT', amountSpent: 200 })
       .expect(200)
 
     expect(res.body).toEqual({ meal: fakeMeal })
@@ -124,14 +124,14 @@ describe('PATCH /meals/:id', () => {
     const res = await request(app)
       .patch('/meals/nonexistent')
       .set('x-user-id', 'user-test')
-      .send({ tag: 'HOME' })
+      .send({ tag: 'CLEAN' })
       .expect(404)
 
     expect(res.body).toEqual({ error: 'Meal not found' })
   })
 
   it('returns 400 when x-user-id header is missing', async () => {
-    const res = await request(app).patch('/meals/abc').send({ tag: 'HOME' }).expect(400)
+    const res = await request(app).patch('/meals/abc').send({ tag: 'CLEAN' }).expect(400)
 
     expect(res.body).toEqual({ error: 'x-user-id header is required' })
   })
@@ -170,7 +170,7 @@ describe('DELETE /meals/:id', () => {
 
 describe('GET /settings', () => {
   it('returns 200 with settings when a record exists', async () => {
-    const fakeSettings = { userId: 'user-test', monthlyOutsideGoal: 7 }
+    const fakeSettings = { userId: 'user-test', monthlyIndulgentLimit: 7 }
     UserSettings.findOne.mockResolvedValue(fakeSettings)
 
     const res = await request(app).get('/settings').set('x-user-id', 'user-test').expect(200)
@@ -199,7 +199,7 @@ describe('PATCH /settings', () => {
   it('returns 200 with the upserted settings', async () => {
     const fakeSettings = {
       userId: 'user-test',
-      monthlyOutsideGoal: 7,
+      monthlyIndulgentLimit: 7,
       goalUpdatedAt: 1700000000000,
     }
     UserSettings.findOne.mockResolvedValue(null)
@@ -208,38 +208,38 @@ describe('PATCH /settings', () => {
     const res = await request(app)
       .patch('/settings')
       .set('x-user-id', 'user-test')
-      .send({ monthlyOutsideGoal: 7 })
+      .send({ monthlyIndulgentLimit: 7 })
       .expect(200)
 
     expect(res.body).toEqual({ settings: fakeSettings })
   })
 
   it('stores the old goal as previousGoal when the goal changes', async () => {
-    const existing = { userId: 'user-test', monthlyOutsideGoal: 5 }
-    const updated = { userId: 'user-test', monthlyOutsideGoal: 10, previousGoal: 5 }
+    const existing = { userId: 'user-test', monthlyIndulgentLimit: 5 }
+    const updated = { userId: 'user-test', monthlyIndulgentLimit: 10, previousGoal: 5 }
     UserSettings.findOne.mockResolvedValue(existing)
     UserSettings.findOneAndUpdate.mockResolvedValue(updated)
 
     const res = await request(app)
       .patch('/settings')
       .set('x-user-id', 'user-test')
-      .send({ monthlyOutsideGoal: 10 })
+      .send({ monthlyIndulgentLimit: 10 })
       .expect(200)
 
     expect(res.body).toEqual({ settings: updated })
     const setArg = UserSettings.findOneAndUpdate.mock.calls[0][1].$set
-    expect(setArg).toMatchObject({ previousGoal: 5, monthlyOutsideGoal: 10 })
+    expect(setArg).toMatchObject({ previousGoal: 5, monthlyIndulgentLimit: 10 })
   })
 
   it('does not set previousGoal when the goal is unchanged', async () => {
-    const existing = { userId: 'user-test', monthlyOutsideGoal: 7 }
+    const existing = { userId: 'user-test', monthlyIndulgentLimit: 7 }
     UserSettings.findOne.mockResolvedValue(existing)
     UserSettings.findOneAndUpdate.mockResolvedValue(existing)
 
     await request(app)
       .patch('/settings')
       .set('x-user-id', 'user-test')
-      .send({ monthlyOutsideGoal: 7 })
+      .send({ monthlyIndulgentLimit: 7 })
       .expect(200)
 
     const setArg = UserSettings.findOneAndUpdate.mock.calls[0][1].$set
@@ -247,7 +247,7 @@ describe('PATCH /settings', () => {
   })
 
   it('returns 400 when x-user-id header is missing', async () => {
-    const res = await request(app).patch('/settings').send({ monthlyOutsideGoal: 7 }).expect(400)
+    const res = await request(app).patch('/settings').send({ monthlyIndulgentLimit: 7 }).expect(400)
 
     expect(res.body).toEqual({ error: 'x-user-id header is required' })
   })

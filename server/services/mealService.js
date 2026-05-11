@@ -9,7 +9,7 @@ async function createMeal(userId, { imageUrl, tag, amountSpent, note, occurredAt
     userId,
     imageUrl: imageUrl ?? null,
     tag,
-    amountSpent: tag === 'HOME' ? null : amountSpent,
+    amountSpent: tag === 'CLEAN' ? null : amountSpent,
     note: note ?? null,
     occurredAt,
   })
@@ -41,7 +41,7 @@ async function getMealsByDate(userId, dateString) {
 async function updateMeal(userId, mealId, { tag, amountSpent, note }) {
   const updates = {
     tag,
-    amountSpent: tag === 'HOME' ? null : amountSpent,
+    amountSpent: tag === 'CLEAN' ? null : amountSpent,
     note: note ?? null,
   }
 
