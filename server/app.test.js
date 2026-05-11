@@ -65,9 +65,7 @@ describe('GET /meals', () => {
     // getMeals() chains: Meal.find().sort() — mock both.
     Meal.find.mockReturnValue({ sort: jest.fn().mockResolvedValue(fakeMeals) })
 
-    const res = await request(app)
-      .get('/meals')
-      .expect(200)
+    const res = await request(app).get('/meals').expect(200)
 
     expect(res.body).toEqual({ meals: fakeMeals })
   })
@@ -77,20 +75,14 @@ describe('GET /meals', () => {
     Meal.find.mockReturnValue({ sort: jest.fn().mockResolvedValue(fakeMeals) })
 
     // Query params go in .query() — supertest appends them as ?date=...
-    const res = await request(app)
-      .get('/meals')
-      .query({ date: '2024-06-15' })
-      .expect(200)
+    const res = await request(app).get('/meals').query({ date: '2024-06-15' }).expect(200)
 
     expect(res.body).toEqual({ meals: fakeMeals })
   })
 
   it('returns 400 when the date format is invalid', async () => {
     // The real service validates the format — no model mock needed here.
-    const res = await request(app)
-      .get('/meals')
-      .query({ date: 'not-a-date' })
-      .expect(400)
+    const res = await request(app).get('/meals').query({ date: 'not-a-date' }).expect(400)
 
     expect(res.body).toEqual({ error: 'date must be in YYYY-MM-DD format' })
   })
@@ -117,10 +109,7 @@ describe('PATCH /meals/:id', () => {
     // findOneAndUpdate returning null triggers the 'Meal not found' error in the service.
     Meal.findOneAndUpdate.mockResolvedValue(null)
 
-    const res = await request(app)
-      .patch('/meals/nonexistent')
-      .send({ tag: 'HOME' })
-      .expect(404)
+    const res = await request(app).patch('/meals/nonexistent').send({ tag: 'HOME' }).expect(404)
 
     expect(res.body).toEqual({ error: 'Meal not found' })
   })
@@ -132,9 +121,7 @@ describe('DELETE /meals/:id', () => {
   it('returns 200 with { success: true }', async () => {
     Meal.findOneAndDelete.mockResolvedValue({ _id: 'abc' })
 
-    const res = await request(app)
-      .delete('/meals/abc')
-      .expect(200)
+    const res = await request(app).delete('/meals/abc').expect(200)
 
     expect(res.body).toEqual({ success: true })
   })
@@ -142,9 +129,7 @@ describe('DELETE /meals/:id', () => {
   it('returns 404 when the meal does not exist', async () => {
     Meal.findOneAndDelete.mockResolvedValue(null)
 
-    const res = await request(app)
-      .delete('/meals/nonexistent')
-      .expect(404)
+    const res = await request(app).delete('/meals/nonexistent').expect(404)
 
     expect(res.body).toEqual({ error: 'Meal not found' })
   })

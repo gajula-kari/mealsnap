@@ -28,7 +28,7 @@ function renderCalendar(meals = []) {
   return render(
     <MemoryRouter>
       <Calendar />
-    </MemoryRouter>,
+    </MemoryRouter>
   )
 }
 
@@ -49,9 +49,9 @@ describe('Calendar', () => {
     renderCalendar()
     const today = new Date()
     const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()
-    const dayButtons = screen.getAllByRole('button').filter((btn) =>
-      /^\d+$/.test(btn.querySelector('span')?.textContent ?? ''),
-    )
+    const dayButtons = screen
+      .getAllByRole('button')
+      .filter((btn) => /^\d+$/.test(btn.querySelector('span')?.textContent ?? ''))
     expect(dayButtons).toHaveLength(daysInMonth)
   })
 
@@ -73,7 +73,9 @@ describe('Calendar', () => {
   it('applies emerald class when latest meal is HOME', () => {
     const today = new Date()
     renderCalendar([mealOn(today.getFullYear(), today.getMonth() + 1, today.getDate(), 'HOME')])
-    expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass('bg-emerald-100')
+    expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass(
+      'bg-emerald-100'
+    )
   })
 
   it('applies rose class when latest meal is OUTSIDE', () => {
@@ -85,13 +87,17 @@ describe('Calendar', () => {
   it('applies amber class when latest meal is MIXED', () => {
     const today = new Date()
     renderCalendar([mealOn(today.getFullYear(), today.getMonth() + 1, today.getDate(), 'MIXED')])
-    expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass('bg-amber-100')
+    expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass(
+      'bg-amber-100'
+    )
   })
 
   it('applies slate class when no meals are logged today', () => {
     renderCalendar([])
     const today = new Date()
-    expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass('bg-slate-100')
+    expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass(
+      'bg-slate-100'
+    )
   })
 
   it('uses the latest meal tag when multiple meals exist on the same day', () => {

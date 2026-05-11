@@ -23,8 +23,13 @@ jest.mock('../services/mealService')
 // Now we import those same auto-mocked functions so we can control them.
 // Because jest.mock() replaced the real module, this gives us the mocked versions,
 // and because Node caches modules, the controller sees the exact same mock objects.
-const { createMeal, getMeals, getMealsByDate, updateMeal, deleteMeal } =
-  require('../services/mealService')
+const {
+  createMeal,
+  getMeals,
+  getMealsByDate,
+  updateMeal,
+  deleteMeal,
+} = require('../services/mealService')
 
 // ─── Test helpers ────────────────────────────────────────────────────────────
 

@@ -18,12 +18,16 @@ function formatLocalDate(date) {
 
 function getMealColorClass(meals, date) {
   const dateString = date.toDateString()
-  const mealsForDay = meals.filter((meal) => new Date(meal.occurredAt).toDateString() === dateString)
+  const mealsForDay = meals.filter(
+    (meal) => new Date(meal.occurredAt).toDateString() === dateString
+  )
   if (!mealsForDay.length) {
     return 'bg-slate-100 text-slate-500'
   }
 
-  const latestMeal = mealsForDay.reduce((latest, meal) => (meal.occurredAt > latest.occurredAt ? meal : latest))
+  const latestMeal = mealsForDay.reduce((latest, meal) =>
+    meal.occurredAt > latest.occurredAt ? meal : latest
+  )
 
   switch (latestMeal.tag) {
     case 'HOME':
@@ -52,7 +56,9 @@ export default function Calendar() {
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Current month</p>
-            <h1 className="mt-2 text-3xl font-semibold text-slate-900">{monthName} {year}</h1>
+            <h1 className="mt-2 text-3xl font-semibold text-slate-900">
+              {monthName} {year}
+            </h1>
           </div>
           <Link
             to="/"
@@ -66,7 +72,9 @@ export default function Calendar() {
           {days.map((day) => {
             const date = new Date(year, month, day)
             const isFuture = date > today
-            const colorClass = isFuture ? 'bg-slate-100 text-slate-300' : getMealColorClass(meals, date)
+            const colorClass = isFuture
+              ? 'bg-slate-100 text-slate-300'
+              : getMealColorClass(meals, date)
             return (
               <button
                 key={day}

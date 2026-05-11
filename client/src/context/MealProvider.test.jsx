@@ -14,7 +14,9 @@ function TestConsumer() {
       {loading && <span>loading</span>}
       <ul>
         {meals.map((m) => (
-          <li key={m.id}>{m.id}:{m.tag}</li>
+          <li key={m.id}>
+            {m.id}:{m.tag}
+          </li>
         ))}
       </ul>
       <button onClick={() => addMeal({ tag: 'OUTSIDE', occurredAt: 1 })}>Add</button>
@@ -28,7 +30,7 @@ function renderProvider() {
   return render(
     <MealProvider>
       <TestConsumer />
-    </MealProvider>,
+    </MealProvider>
   )
 }
 

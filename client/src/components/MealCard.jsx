@@ -36,7 +36,7 @@ export default function MealCard({ meal, onEdit, onDelete }) {
       await onEdit(meal.id, {
         tag,
         note: note.trim() || null,
-        amountSpent: tag === 'HOME' ? null : (amountSpent !== '' ? Number(amountSpent) : null),
+        amountSpent: tag === 'HOME' ? null : amountSpent !== '' ? Number(amountSpent) : null,
       })
       setEditing(false)
     } finally {
@@ -59,9 +59,15 @@ export default function MealCard({ meal, onEdit, onDelete }) {
       {/* Portrait image */}
       <div className="aspect-[3/4] w-full overflow-hidden bg-slate-100">
         {meal.imageUrl ? (
-          <img src={meal.imageUrl} alt={`${meal.tag} meal`} className="h-full w-full object-cover" />
+          <img
+            src={meal.imageUrl}
+            alt={`${meal.tag} meal`}
+            className="h-full w-full object-cover"
+          />
         ) : (
-          <div className="flex h-full items-center justify-center text-sm text-slate-400">No image</div>
+          <div className="flex h-full items-center justify-center text-sm text-slate-400">
+            No image
+          </div>
         )}
       </div>
 
@@ -69,7 +75,9 @@ export default function MealCard({ meal, onEdit, onDelete }) {
       <div className="space-y-3 p-4">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <span className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider ${TAG_COLOR[meal.tag] ?? 'bg-slate-100 text-slate-600'}`}>
+            <span
+              className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider ${TAG_COLOR[meal.tag] ?? 'bg-slate-100 text-slate-600'}`}
+            >
               {meal.tag}
             </span>
             <span className="text-xs text-slate-400">{timeLabel}</span>
@@ -99,9 +107,7 @@ export default function MealCard({ meal, onEdit, onDelete }) {
           )}
         </div>
 
-        {!editing && meal.note && (
-          <p className="text-sm text-slate-500">{meal.note}</p>
-        )}
+        {!editing && meal.note && <p className="text-sm text-slate-500">{meal.note}</p>}
         {!editing && meal.amountSpent != null && (
           <p className="text-sm font-medium text-slate-700">₹{meal.amountSpent}</p>
         )}

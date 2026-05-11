@@ -1,6 +1,11 @@
 const express = require('express')
 const router = express.Router()
-const { createMealController, getMealsController, updateMealController, deleteMealController } = require('../controllers/mealsController')
+const {
+  createMealController,
+  getMealsController,
+  updateMealController,
+  deleteMealController,
+} = require('../controllers/mealsController')
 
 router.get('/', getMealsController)
 router.post('/', createMealController)

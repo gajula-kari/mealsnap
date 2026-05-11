@@ -7,8 +7,7 @@
 // The service depends on the Meal model (MongoDB). We mock it so no DB is needed.
 // This is the same pattern as the controller tests — one layer down.
 
-const { createMeal, getMeals, getMealsByDate, updateMeal, deleteMeal } =
-  require('./mealService')
+const { createMeal, getMeals, getMealsByDate, updateMeal, deleteMeal } = require('./mealService')
 
 // Mock the Mongoose model. Every method (create, find, findOneAndUpdate, etc.)
 // becomes a jest.fn() automatically.
@@ -68,7 +67,7 @@ describe('createMeal', () => {
     await createMeal({ tag: 'HOME', amountSpent: 500, occurredAt: 1700000000000 })
 
     expect(Meal.create).toHaveBeenCalledWith(
-      expect.objectContaining({ tag: 'HOME', amountSpent: null }),
+      expect.objectContaining({ tag: 'HOME', amountSpent: null })
     )
   })
 
@@ -79,7 +78,7 @@ describe('createMeal', () => {
     await createMeal({ tag: 'OUTSIDE', amountSpent: 250, occurredAt: 1700000000000 })
 
     expect(Meal.create).toHaveBeenCalledWith(
-      expect.objectContaining({ tag: 'OUTSIDE', amountSpent: 250 }),
+      expect.objectContaining({ tag: 'OUTSIDE', amountSpent: 250 })
     )
   })
 
@@ -90,7 +89,7 @@ describe('createMeal', () => {
     await createMeal({ tag: 'HOME', occurredAt: 1700000000000 })
 
     expect(Meal.create).toHaveBeenCalledWith(
-      expect.objectContaining({ imageUrl: null, note: null }),
+      expect.objectContaining({ imageUrl: null, note: null })
     )
   })
 })
@@ -130,7 +129,7 @@ describe('getMealsByDate', () => {
     // This way the test stays correct even if the machine's timezone changes.
     const [year, month, day] = dateString.split('-').map(Number)
     const expectedStart = new Date(year, month - 1, day, 0, 0, 0, 0).getTime()
-    const expectedEnd   = new Date(year, month - 1, day, 23, 59, 59, 999).getTime()
+    const expectedEnd = new Date(year, month - 1, day, 23, 59, 59, 999).getTime()
 
     expect(Meal.find).toHaveBeenCalledWith({
       userId: 'user-123',
@@ -165,7 +164,7 @@ describe('updateMeal', () => {
       // Updates: the exact fields being written.
       { tag: 'OUTSIDE', amountSpent: 200, note: 'Dinner' },
       // Options: new:true returns the updated doc; runValidators re-runs schema rules.
-      { new: true, runValidators: true },
+      { new: true, runValidators: true }
     )
     expect(result).toBe(fakeMeal)
   })
@@ -189,7 +188,7 @@ describe('updateMeal', () => {
     expect(Meal.findOneAndUpdate).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({ tag: 'OUTSIDE', amountSpent: null }),
-      expect.anything(),
+      expect.anything()
     )
     expect(result).toBe(fakeMeal)
   })
@@ -202,7 +201,7 @@ describe('updateMeal', () => {
     expect(Meal.findOneAndUpdate).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({ amountSpent: null }),
-      expect.anything(),
+      expect.anything()
     )
   })
 })

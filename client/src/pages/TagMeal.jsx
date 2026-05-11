@@ -26,7 +26,7 @@ export default function TagMeal() {
   const location = useLocation()
   const navigate = useNavigate()
   const imageFile = location.state?.image
-  const dateFromState = location.state?.date  // 'YYYY-MM-DD' if coming from a past day
+  const dateFromState = location.state?.date // 'YYYY-MM-DD' if coming from a past day
   const [preview, setPreview] = useState(null)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState(null)
@@ -52,9 +52,13 @@ export default function TagMeal() {
     if (!imageFile) return
     let cancelled = false
     const reader = new FileReader()
-    reader.onload = () => { if (!cancelled) setPreview(reader.result) }
+    reader.onload = () => {
+      if (!cancelled) setPreview(reader.result)
+    }
     reader.readAsDataURL(imageFile)
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [imageFile])
 
   const mealTagOptions = useMemo(() => ['HOME', 'OUTSIDE', 'MIXED'], [])
@@ -76,7 +80,7 @@ export default function TagMeal() {
         setSaving(false)
       }
     },
-    [preview, saving, occurredAt, addMeal, dateFromState, navigate],
+    [preview, saving, occurredAt, addMeal, dateFromState, navigate]
   )
 
   if (!imageFile) {
@@ -106,7 +110,9 @@ export default function TagMeal() {
           {preview ? (
             <img src={preview} alt="Selected meal" className="h-72 w-full object-cover" />
           ) : (
-            <div className="flex h-72 items-center justify-center text-slate-500">Loading preview…</div>
+            <div className="flex h-72 items-center justify-center text-slate-500">
+              Loading preview…
+            </div>
           )}
         </div>
 

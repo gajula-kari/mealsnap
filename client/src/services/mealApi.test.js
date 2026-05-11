@@ -70,7 +70,7 @@ describe('createMeal', () => {
         method: 'POST',
         body: JSON.stringify(payload),
         headers: { 'Content-Type': 'application/json' },
-      }),
+      })
     )
     // The returned meal must have id (from _id).
     expect(result).toMatchObject({ id: 'xyz', tag: 'HOME' })
@@ -91,7 +91,7 @@ describe('updateMeal', () => {
       expect.objectContaining({
         method: 'PATCH',
         body: JSON.stringify(payload),
-      }),
+      })
     )
     expect(result).toMatchObject({ id: 'abc', tag: 'OUTSIDE' })
   })
@@ -107,7 +107,7 @@ describe('deleteMeal', () => {
 
     expect(fetch).toHaveBeenCalledWith(
       '/api/meals/abc',
-      expect.objectContaining({ method: 'DELETE' }),
+      expect.objectContaining({ method: 'DELETE' })
     )
   })
 

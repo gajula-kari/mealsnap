@@ -4,7 +4,8 @@ export const homeMeals = [
   {
     id: 'meal-1',
     userId: 'user-123',
-    imageUrl: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=800&q=80',
+    imageUrl:
+      'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=800&q=80',
     tag: 'HOME',
     amountSpent: null,
     note: 'Quick homemade dinner',
@@ -16,7 +17,8 @@ export const homeMeals = [
   {
     id: 'meal-2',
     userId: 'user-123',
-    imageUrl: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80',
+    imageUrl:
+      'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80',
     tag: 'OUTSIDE',
     amountSpent: 320,
     note: 'Lunch at the cafe',
@@ -28,7 +30,8 @@ export const homeMeals = [
   {
     id: 'meal-3',
     userId: 'user-123',
-    imageUrl: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=800&q=80',
+    imageUrl:
+      'https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=800&q=80',
     tag: 'HOME',
     amountSpent: null,
     note: 'Breakfast smoothie',

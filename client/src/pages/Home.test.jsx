@@ -24,7 +24,7 @@ function renderHome() {
   return render(
     <MemoryRouter>
       <Home />
-    </MemoryRouter>,
+    </MemoryRouter>
   )
 }
 
@@ -144,14 +144,23 @@ describe('calendar grid', () => {
     return {
       id: tag,
       tag,
-      occurredAt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12, 0, 0).getTime(),
+      occurredAt: new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate(),
+        12,
+        0,
+        0
+      ).getTime(),
     }
   }
 
   it('applies emerald class to today when the latest meal is HOME', () => {
     useMealContext.mockReturnValue({ meals: [mealToday('HOME')], loading: false, error: null })
     renderHome()
-    expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass('bg-emerald-100')
+    expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass(
+      'bg-emerald-100'
+    )
   })
 
   it('applies rose class to today when the latest meal is OUTSIDE', () => {
@@ -163,13 +172,17 @@ describe('calendar grid', () => {
   it('applies amber class to today when the latest meal is MIXED', () => {
     useMealContext.mockReturnValue({ meals: [mealToday('MIXED')], loading: false, error: null })
     renderHome()
-    expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass('bg-amber-100')
+    expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass(
+      'bg-amber-100'
+    )
   })
 
   it('applies slate class to today when no meals are logged', () => {
     useMealContext.mockReturnValue({ meals: [], loading: false, error: null })
     renderHome()
-    expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass('bg-slate-100')
+    expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass(
+      'bg-slate-100'
+    )
   })
 
   it("clicking today's day button navigates to /day/YYYY-MM-DD", async () => {

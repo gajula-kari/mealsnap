@@ -85,7 +85,13 @@ describe('edit flow', () => {
 
   it('hides the amount field in the edit form when tag is HOME', async () => {
     const user = userEvent.setup()
-    render(<MealCard meal={{ ...meal, tag: 'HOME', amountSpent: null }} onEdit={vi.fn()} onDelete={vi.fn()} />)
+    render(
+      <MealCard
+        meal={{ ...meal, tag: 'HOME', amountSpent: null }}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+      />
+    )
 
     await user.click(screen.getByRole('button', { name: 'Edit' }))
 
@@ -105,14 +111,20 @@ describe('edit flow', () => {
     const user = userEvent.setup()
     const onEdit = vi.fn().mockResolvedValue()
     // Start with HOME tag — amount field hidden, so amountSpent must come out null.
-    render(<MealCard meal={{ ...meal, tag: 'HOME', amountSpent: null }} onEdit={onEdit} onDelete={vi.fn()} />)
+    render(
+      <MealCard
+        meal={{ ...meal, tag: 'HOME', amountSpent: null }}
+        onEdit={onEdit}
+        onDelete={vi.fn()}
+      />
+    )
 
     await user.click(screen.getByRole('button', { name: 'Edit' }))
     await user.click(screen.getByRole('button', { name: 'Save' }))
 
     expect(onEdit).toHaveBeenCalledWith(
       meal.id,
-      expect.objectContaining({ tag: 'HOME', amountSpent: null }),
+      expect.objectContaining({ tag: 'HOME', amountSpent: null })
     )
   })
 
@@ -130,10 +142,7 @@ describe('edit flow', () => {
 
     await user.click(screen.getByRole('button', { name: 'Save' }))
 
-    expect(onEdit).toHaveBeenCalledWith(
-      meal.id,
-      expect.objectContaining({ note: 'Dinner' }),
-    )
+    expect(onEdit).toHaveBeenCalledWith(meal.id, expect.objectContaining({ note: 'Dinner' }))
   })
 
   it('saves note as null when the note field is empty', async () => {
@@ -146,10 +155,7 @@ describe('edit flow', () => {
     await user.click(screen.getByRole('button', { name: 'Save' }))
 
     // Empty string after trim → null (the `|| null` in handleSave).
-    expect(onEdit).toHaveBeenCalledWith(
-      meal.id,
-      expect.objectContaining({ note: null }),
-    )
+    expect(onEdit).toHaveBeenCalledWith(meal.id, expect.objectContaining({ note: null }))
   })
 })
 
@@ -208,7 +214,13 @@ describe('tag switching in edit form', () => {
 
   it('switching tag from HOME to OUTSIDE shows the amount field', async () => {
     const user = userEvent.setup()
-    render(<MealCard meal={{ ...meal, tag: 'HOME', amountSpent: null }} onEdit={vi.fn()} onDelete={vi.fn()} />)
+    render(
+      <MealCard
+        meal={{ ...meal, tag: 'HOME', amountSpent: null }}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+      />
+    )
 
     await user.click(screen.getByRole('button', { name: 'Edit' }))
     expect(screen.queryByPlaceholderText('Amount spent')).not.toBeInTheDocument()

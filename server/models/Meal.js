@@ -9,7 +9,7 @@ const mealSchema = new Schema(
     note: { type: String, default: null },
     occurredAt: { type: Number, required: true },
   },
-  { timestamps: true },
+  { timestamps: true }
 )
 
 module.exports = model('Meal', mealSchema)

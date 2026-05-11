@@ -8,7 +8,8 @@ export function MealProvider({ children }) {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    api.fetchMeals()
+    api
+      .fetchMeals()
       .then(setMeals)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false))
@@ -33,7 +34,7 @@ export function MealProvider({ children }) {
 
   const value = useMemo(
     () => ({ meals, loading, error, addMeal, updateMeal, deleteMeal }),
-    [meals, loading, error, addMeal, updateMeal, deleteMeal],
+    [meals, loading, error, addMeal, updateMeal, deleteMeal]
   )
 
   return <MealContext.Provider value={value}>{children}</MealContext.Provider>

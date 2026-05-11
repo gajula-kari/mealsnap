@@ -52,7 +52,7 @@ function renderDayDetail() {
   return render(
     <MemoryRouter>
       <DayDetail />
-    </MemoryRouter>,
+    </MemoryRouter>
   )
 }
 
@@ -75,11 +75,7 @@ describe('DayDetail', () => {
 
   it('renders only the meals that match the URL date', () => {
     useMealContext.mockReturnValue({
-      meals: [
-        mealOnDate('match-1'),
-        mealOnDate('match-2'),
-        mealOffDate('no-match'),
-      ],
+      meals: [mealOnDate('match-1'), mealOnDate('match-2'), mealOffDate('no-match')],
       updateMeal: vi.fn(),
       deleteMeal: vi.fn(),
     })

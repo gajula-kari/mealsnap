@@ -1,4 +1,10 @@
-const { createMeal, getMeals, getMealsByDate, updateMeal, deleteMeal } = require('../services/mealService')
+const {
+  createMeal,
+  getMeals,
+  getMealsByDate,
+  updateMeal,
+  deleteMeal,
+} = require('../services/mealService')
 
 async function createMealController(req, res) {
   try {
@@ -43,4 +49,9 @@ async function deleteMealController(req, res) {
   }
 }
 
-module.exports = { createMealController, getMealsController, updateMealController, deleteMealController }
+module.exports = {
+  createMealController,
+  getMealsController,
+  updateMealController,
+  deleteMealController,
+}

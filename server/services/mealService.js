@@ -47,11 +47,10 @@ async function updateMeal(mealId, { tag, amountSpent, note }) {
     note: note ?? null,
   }
 
-  const meal = await Meal.findOneAndUpdate(
-    { _id: mealId, userId: HARDCODED_USER_ID },
-    updates,
-    { new: true, runValidators: true },
-  )
+  const meal = await Meal.findOneAndUpdate({ _id: mealId, userId: HARDCODED_USER_ID }, updates, {
+    new: true,
+    runValidators: true,
+  })
 
   if (!meal) {
     throw new Error('Meal not found')

@@ -9,5 +9,5 @@ createRoot(document.getElementById('root')).render(
     <MealProvider>
       <App />
     </MealProvider>
-  </StrictMode>,
+  </StrictMode>
 )

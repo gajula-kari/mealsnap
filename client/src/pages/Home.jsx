@@ -11,22 +11,26 @@ function formatLocalDate(date) {
 
 function getMealColorClass(meals, date) {
   const dateString = date.toDateString()
-  const mealsForDay = meals.filter((meal) => new Date(meal.occurredAt).toDateString() === dateString)
+  const mealsForDay = meals.filter(
+    (meal) => new Date(meal.occurredAt).toDateString() === dateString
+  )
   if (!mealsForDay.length) return 'bg-slate-100 text-slate-500'
 
   const latest = mealsForDay.reduce((a, b) => (a.occurredAt > b.occurredAt ? a : b))
   switch (latest.tag) {
-    case 'HOME': return 'bg-emerald-100 text-emerald-700'
-    case 'OUTSIDE': return 'bg-rose-100 text-rose-700'
-    case 'MIXED': return 'bg-amber-100 text-amber-700'
-    default: return 'bg-slate-100 text-slate-500'
+    case 'HOME':
+      return 'bg-emerald-100 text-emerald-700'
+    case 'OUTSIDE':
+      return 'bg-rose-100 text-rose-700'
+    case 'MIXED':
+      return 'bg-amber-100 text-amber-700'
+    default:
+      return 'bg-slate-100 text-slate-500'
   }
 }
 
 function calculateStreak(meals) {
-  const uniqueDays = Array.from(
-    new Set(meals.map((m) => new Date(m.occurredAt).toDateString())),
-  )
+  const uniqueDays = Array.from(new Set(meals.map((m) => new Date(m.occurredAt).toDateString())))
   uniqueDays.sort((a, b) => new Date(b) - new Date(a))
 
   const todayString = new Date().toDateString()
@@ -75,7 +79,9 @@ export default function Home() {
 
       <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-900">{monthName} {year}</h2>
+          <h2 className="text-lg font-semibold text-slate-900">
+            {monthName} {year}
+          </h2>
           <div className="flex gap-3 text-[10px]">
             <span className="rounded-xl bg-emerald-100 px-2 py-1 text-emerald-700">HOME</span>
             <span className="rounded-xl bg-rose-100 px-2 py-1 text-rose-700">OUTSIDE</span>
@@ -88,7 +94,9 @@ export default function Home() {
             const date = new Date(year, month, day)
             const isFuture = date > today
             const isToday = date.toDateString() === today.toDateString()
-            const colorClass = isFuture ? 'bg-slate-100 text-slate-300' : getMealColorClass(meals, date)
+            const colorClass = isFuture
+              ? 'bg-slate-100 text-slate-300'
+              : getMealColorClass(meals, date)
             return (
               <button
                 key={day}
@@ -107,13 +115,30 @@ export default function Home() {
         </div>
       </section>
 
-      <input ref={fileInputRef} type="file" accept="image/*" capture="environment" onChange={handleFileChange} className="hidden" />
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        onChange={handleFileChange}
+        className="hidden"
+      />
       <button
         type="button"
         onClick={() => fileInputRef.current?.click()}
         className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 flex items-center gap-2 rounded-full bg-slate-900 px-6 py-4 text-sm font-semibold text-white shadow-2xl shadow-slate-900/25 transition hover:bg-slate-700"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
           <circle cx="12" cy="13" r="4" />
         </svg>

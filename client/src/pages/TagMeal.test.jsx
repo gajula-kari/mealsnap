@@ -36,7 +36,7 @@ describe('TagMeal', () => {
     render(
       <MemoryRouter>
         <TagMeal />
-      </MemoryRouter>,
+      </MemoryRouter>
     )
 
     expect(screen.getByText('No image found. Please capture an image first.')).toBeInTheDocument()
@@ -49,7 +49,7 @@ describe('TagMeal', () => {
     render(
       <MemoryRouter>
         <TagMeal />
-      </MemoryRouter>,
+      </MemoryRouter>
     )
 
     // The tag buttons (HOME / OUTSIDE / MIXED) must not appear in the fallback view.
@@ -85,7 +85,11 @@ describe('TagMeal with image', () => {
   it('renders the tag buttons once the preview loads', async () => {
     useLocation.mockReturnValue({ state: { image: imageFile() } })
 
-    render(<MemoryRouter><TagMeal /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <TagMeal />
+      </MemoryRouter>
+    )
 
     await screen.findByAltText('Selected meal')
 
@@ -101,7 +105,11 @@ describe('TagMeal with image', () => {
     useMealContext.mockReturnValue({ addMeal })
     useLocation.mockReturnValue({ state: { image: imageFile() } })
 
-    render(<MemoryRouter><TagMeal /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <TagMeal />
+      </MemoryRouter>
+    )
     await screen.findByAltText('Selected meal')
 
     await userEvent.click(screen.getByRole('button', { name: 'HOME' }))
@@ -119,7 +127,11 @@ describe('TagMeal with image', () => {
     useMealContext.mockReturnValue({ addMeal })
     useLocation.mockReturnValue({ state: { image: imageFile(), date: '2024-06-15' } })
 
-    render(<MemoryRouter><TagMeal /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <TagMeal />
+      </MemoryRouter>
+    )
     await screen.findByAltText('Selected meal')
 
     await userEvent.click(screen.getByRole('button', { name: 'OUTSIDE' }))
@@ -128,7 +140,7 @@ describe('TagMeal with image', () => {
       expect.objectContaining({
         tag: 'OUTSIDE',
         occurredAt: new Date(2024, 5, 15, 12, 0, 0, 0).getTime(),
-      }),
+      })
     )
   })
 
@@ -139,7 +151,11 @@ describe('TagMeal with image', () => {
     useMealContext.mockReturnValue({ addMeal })
     useLocation.mockReturnValue({ state: { image: imageFile(), date: '2024-06-15' } })
 
-    render(<MemoryRouter><TagMeal /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <TagMeal />
+      </MemoryRouter>
+    )
     await screen.findByAltText('Selected meal')
 
     await userEvent.click(screen.getByRole('button', { name: 'MIXED' }))
@@ -153,7 +169,11 @@ describe('TagMeal with image', () => {
     })
     useLocation.mockReturnValue({ state: { image: imageFile() } })
 
-    render(<MemoryRouter><TagMeal /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <TagMeal />
+      </MemoryRouter>
+    )
     await screen.findByAltText('Selected meal')
 
     await userEvent.click(screen.getByRole('button', { name: 'HOME' }))
@@ -166,7 +186,11 @@ describe('TagMeal with image', () => {
     useNavigate.mockReturnValue(navigate)
     useLocation.mockReturnValue({ state: { image: imageFile() } })
 
-    render(<MemoryRouter><TagMeal /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <TagMeal />
+      </MemoryRouter>
+    )
 
     await userEvent.click(screen.getByRole('button', { name: 'Cancel' }))
 

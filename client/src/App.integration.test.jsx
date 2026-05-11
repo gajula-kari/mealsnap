@@ -48,7 +48,7 @@ function renderApp() {
   return render(
     <MealProvider>
       <App />
-    </MealProvider>,
+    </MealProvider>
   )
 }
 
