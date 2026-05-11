@@ -17,6 +17,7 @@
 // We wrap with MealProvider to mirror how main.jsx composes the tree.
 
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MealProvider } from './context/MealProvider.jsx'
 import App from './App'
 
@@ -26,6 +27,9 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  // BrowserRouter reads window.location, which persists across tests in jsdom.
+  // Reset to / so each test starts on the home route.
+  window.history.pushState({}, '', '/')
 })
 
 // Builds a fake successful fetch response.
@@ -65,7 +69,8 @@ describe('App integration', () => {
     renderApp()
 
     // Immediately after render, MealProvider is still fetching — loading=true.
-    expect(screen.getByText('—')).toBeInTheDocument()
+    // Streak + all three stat counters each show "—".
+    expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(1)
 
     // findByText is the async RTL query: it polls the DOM until the text appears
     // or the timeout (1s default) expires. This handles the async fetch + state update.
@@ -105,5 +110,20 @@ describe('App integration', () => {
 
     // fetch was called with the correct endpoint — proves MealProvider wired mealApi correctly.
     expect(fetch).toHaveBeenCalledWith('/meals', expect.anything())
+  })
+})
+
+// ─── Header navigation ────────────────────────────────────────────────────────
+
+describe('Header', () => {
+  it('shows back arrow and "Settings" title after navigating to /settings', async () => {
+    mockFetch([])
+    renderApp()
+
+    await screen.findByText('0 days')
+    await userEvent.click(screen.getByRole('button', { name: 'Settings' }))
+
+    expect(await screen.findByRole('button', { name: 'Back' })).toBeInTheDocument()
+    expect(screen.getByText('Settings')).toBeInTheDocument()
   })
 })

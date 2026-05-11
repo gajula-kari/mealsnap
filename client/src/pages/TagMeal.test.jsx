@@ -82,7 +82,7 @@ describe('TagMeal with image', () => {
     return new File(['img'], 'photo.jpg', { type: 'image/jpeg' })
   }
 
-  it('renders the tag buttons once the preview loads', async () => {
+  it('renders only HOME and OUTSIDE tag buttons once the preview loads', async () => {
     useLocation.mockReturnValue({ state: { image: imageFile() } })
 
     render(
@@ -95,7 +95,7 @@ describe('TagMeal with image', () => {
 
     expect(screen.getByRole('button', { name: 'HOME' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'OUTSIDE' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'MIXED' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'MIXED' })).not.toBeInTheDocument()
   })
 
   it('calls addMeal with the chosen tag and navigates to the day detail', async () => {
@@ -158,7 +158,7 @@ describe('TagMeal with image', () => {
     )
     await screen.findByAltText('Selected meal')
 
-    await userEvent.click(screen.getByRole('button', { name: 'MIXED' }))
+    await userEvent.click(screen.getByRole('button', { name: 'OUTSIDE' }))
 
     expect(navigate).toHaveBeenCalledWith('/day/2024-06-15')
   })

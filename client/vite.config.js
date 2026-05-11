@@ -7,6 +7,7 @@ export default defineConfig({
     proxy: {
       '/meals': 'http://localhost:3000',
       '/health': 'http://localhost:3000',
+      '/settings': 'http://localhost:3000',
     },
   },
   test: {
