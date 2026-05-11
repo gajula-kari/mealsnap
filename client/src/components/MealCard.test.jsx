@@ -187,3 +187,35 @@ describe('delete flow', () => {
     expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument()
   })
 })
+
+// ─── Tag switching in edit form ───────────────────────────────────────────────
+
+describe('tag switching in edit form', () => {
+  it('switching tag to HOME hides the amount field', async () => {
+    const user = userEvent.setup()
+    render(<MealCard meal={meal} onEdit={vi.fn()} onDelete={vi.fn()} />)
+
+    await user.click(screen.getByRole('button', { name: 'Edit' }))
+    expect(screen.getByPlaceholderText('Amount spent')).toBeInTheDocument()
+
+    // The edit form renders tag option buttons (HOME, OUTSIDE, MIXED).
+    // Clicking HOME should hide the amount field since HOME meals never have a spend.
+    const tagButtons = screen.getAllByRole('button', { name: 'HOME' })
+    await user.click(tagButtons[tagButtons.length - 1]) // last HOME button is the tag option
+
+    expect(screen.queryByPlaceholderText('Amount spent')).not.toBeInTheDocument()
+  })
+
+  it('switching tag from HOME to OUTSIDE shows the amount field', async () => {
+    const user = userEvent.setup()
+    render(<MealCard meal={{ ...meal, tag: 'HOME', amountSpent: null }} onEdit={vi.fn()} onDelete={vi.fn()} />)
+
+    await user.click(screen.getByRole('button', { name: 'Edit' }))
+    expect(screen.queryByPlaceholderText('Amount spent')).not.toBeInTheDocument()
+
+    const tagButtons = screen.getAllByRole('button', { name: 'OUTSIDE' })
+    await user.click(tagButtons[tagButtons.length - 1])
+
+    expect(screen.getByPlaceholderText('Amount spent')).toBeInTheDocument()
+  })
+})

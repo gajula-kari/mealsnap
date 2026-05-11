@@ -6,11 +6,18 @@
 // useMealContext is mocked so we control exactly what data the component sees.
 
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import Home from './Home'
 
 vi.mock('../hooks/useMealContext.js')
+vi.mock('react-router-dom', async (importOriginal) => {
+  const actual = await importOriginal()
+  return { ...actual, useNavigate: vi.fn(() => vi.fn()) }
+})
+
 import { useMealContext } from '../hooks/useMealContext.js'
+import { useNavigate } from 'react-router-dom'
 
 // Renders Home inside MemoryRouter so useNavigate doesn't throw.
 function renderHome() {
@@ -125,5 +132,74 @@ describe('calculateStreak (via rendered streak text)', () => {
     renderHome()
 
     expect(screen.getByText('1 day')).toBeInTheDocument()
+  })
+})
+
+// ─── Calendar grid ────────────────────────────────────────────────────────────
+
+describe('calendar grid', () => {
+  const today = new Date()
+
+  function mealToday(tag) {
+    return {
+      id: tag,
+      tag,
+      occurredAt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12, 0, 0).getTime(),
+    }
+  }
+
+  it('applies emerald class to today when the latest meal is HOME', () => {
+    useMealContext.mockReturnValue({ meals: [mealToday('HOME')], loading: false, error: null })
+    renderHome()
+    expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass('bg-emerald-100')
+  })
+
+  it('applies rose class to today when the latest meal is OUTSIDE', () => {
+    useMealContext.mockReturnValue({ meals: [mealToday('OUTSIDE')], loading: false, error: null })
+    renderHome()
+    expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass('bg-rose-100')
+  })
+
+  it('applies amber class to today when the latest meal is MIXED', () => {
+    useMealContext.mockReturnValue({ meals: [mealToday('MIXED')], loading: false, error: null })
+    renderHome()
+    expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass('bg-amber-100')
+  })
+
+  it('applies slate class to today when no meals are logged', () => {
+    useMealContext.mockReturnValue({ meals: [], loading: false, error: null })
+    renderHome()
+    expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass('bg-slate-100')
+  })
+
+  it("clicking today's day button navigates to /day/YYYY-MM-DD", async () => {
+    const navigate = vi.fn()
+    useNavigate.mockReturnValue(navigate)
+    useMealContext.mockReturnValue({ meals: [], loading: false, error: null })
+    renderHome()
+
+    await userEvent.click(screen.getByRole('button', { name: String(today.getDate()) }))
+
+    const y = today.getFullYear()
+    const m = String(today.getMonth() + 1).padStart(2, '0')
+    const d = String(today.getDate()).padStart(2, '0')
+    expect(navigate).toHaveBeenCalledWith(`/day/${y}-${m}-${d}`)
+  })
+})
+
+// ─── FAB file input ───────────────────────────────────────────────────────────
+
+describe('FAB file input', () => {
+  it('navigates to /tag with the selected file when a file is chosen', async () => {
+    const navigate = vi.fn()
+    useNavigate.mockReturnValue(navigate)
+    useMealContext.mockReturnValue({ meals: [], loading: false, error: null })
+    renderHome()
+
+    const file = new File(['img'], 'meal.jpg', { type: 'image/jpeg' })
+    const input = document.querySelector('input[type="file"]')
+    await userEvent.upload(input, file)
+
+    expect(navigate).toHaveBeenCalledWith('/tag', { state: { image: file } })
   })
 })

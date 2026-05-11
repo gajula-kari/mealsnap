@@ -5,6 +5,7 @@
 // MemoryRouter satisfies useNavigate.
 
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import DayDetail from './DayDetail'
 
@@ -13,13 +14,13 @@ vi.mock('react-router-dom', async (importOriginal) => {
   const actual = await importOriginal()
   return {
     ...actual,
-    // Override only useParams — everything else (MemoryRouter, useNavigate, etc.) stays real.
     useParams: vi.fn(),
+    useNavigate: vi.fn(() => vi.fn()),
   }
 })
 
 import { useMealContext } from '../hooks/useMealContext.js'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 
 const DATE = '2024-06-15'
 
@@ -96,5 +97,29 @@ describe('DayDetail', () => {
 
     // new Date(2024, 5, 15).toLocaleDateString('en-US', { weekday: 'long', ... })
     expect(screen.getByText(/Saturday, June 15, 2024/)).toBeInTheDocument()
+  })
+
+  it('Back button navigates to /', async () => {
+    const navigate = vi.fn()
+    useNavigate.mockReturnValue(navigate)
+    useMealContext.mockReturnValue({ meals: [], updateMeal: vi.fn(), deleteMeal: vi.fn() })
+    renderDayDetail()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Back' }))
+
+    expect(navigate).toHaveBeenCalledWith('/')
+  })
+
+  it('navigates to /tag with the file and date when a file is selected', async () => {
+    const navigate = vi.fn()
+    useNavigate.mockReturnValue(navigate)
+    useMealContext.mockReturnValue({ meals: [], updateMeal: vi.fn(), deleteMeal: vi.fn() })
+    renderDayDetail()
+
+    const file = new File(['img'], 'meal.jpg', { type: 'image/jpeg' })
+    const input = document.querySelector('input[type="file"]')
+    await userEvent.upload(input, file)
+
+    expect(navigate).toHaveBeenCalledWith('/tag', { state: { image: file, date: DATE } })
   })
 })

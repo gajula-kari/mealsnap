@@ -7,6 +7,7 @@
 // without going through the image picker.
 
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import TagMeal from './TagMeal'
 
@@ -21,7 +22,7 @@ vi.mock('react-router-dom', async (importOriginal) => {
 })
 
 import { useMealContext } from '../hooks/useMealContext.js'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -53,5 +54,122 @@ describe('TagMeal', () => {
 
     // The tag buttons (HOME / OUTSIDE / MIXED) must not appear in the fallback view.
     expect(screen.queryByRole('button', { name: 'HOME' })).not.toBeInTheDocument()
+  })
+})
+
+// ─── With image ───────────────────────────────────────────────────────────────
+
+describe('TagMeal with image', () => {
+  // FileReader is async in real browsers. This mock fires onload via queueMicrotask
+  // so RTL's findBy* queries can await the preview state update.
+  class MockFileReader {
+    readAsDataURL() {
+      this.result = 'data:image/jpeg;base64,fake'
+      queueMicrotask(() => this.onload())
+    }
+  }
+
+  beforeEach(() => {
+    vi.stubGlobal('FileReader', MockFileReader)
+    useMealContext.mockReturnValue({ addMeal: vi.fn() })
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  function imageFile() {
+    return new File(['img'], 'photo.jpg', { type: 'image/jpeg' })
+  }
+
+  it('renders the tag buttons once the preview loads', async () => {
+    useLocation.mockReturnValue({ state: { image: imageFile() } })
+
+    render(<MemoryRouter><TagMeal /></MemoryRouter>)
+
+    await screen.findByAltText('Selected meal')
+
+    expect(screen.getByRole('button', { name: 'HOME' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'OUTSIDE' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'MIXED' })).toBeInTheDocument()
+  })
+
+  it('calls addMeal with the chosen tag and navigates to the day detail', async () => {
+    const navigate = vi.fn()
+    useNavigate.mockReturnValue(navigate)
+    const addMeal = vi.fn().mockResolvedValue({})
+    useMealContext.mockReturnValue({ addMeal })
+    useLocation.mockReturnValue({ state: { image: imageFile() } })
+
+    render(<MemoryRouter><TagMeal /></MemoryRouter>)
+    await screen.findByAltText('Selected meal')
+
+    await userEvent.click(screen.getByRole('button', { name: 'HOME' }))
+
+    expect(addMeal).toHaveBeenCalledWith(expect.objectContaining({ tag: 'HOME' }))
+    const today = new Date()
+    const y = today.getFullYear()
+    const m = String(today.getMonth() + 1).padStart(2, '0')
+    const d = String(today.getDate()).padStart(2, '0')
+    expect(navigate).toHaveBeenCalledWith(`/day/${y}-${m}-${d}`)
+  })
+
+  it('uses noon of dateFromState as occurredAt when coming from a past day', async () => {
+    const addMeal = vi.fn().mockResolvedValue({})
+    useMealContext.mockReturnValue({ addMeal })
+    useLocation.mockReturnValue({ state: { image: imageFile(), date: '2024-06-15' } })
+
+    render(<MemoryRouter><TagMeal /></MemoryRouter>)
+    await screen.findByAltText('Selected meal')
+
+    await userEvent.click(screen.getByRole('button', { name: 'OUTSIDE' }))
+
+    expect(addMeal).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tag: 'OUTSIDE',
+        occurredAt: new Date(2024, 5, 15, 12, 0, 0, 0).getTime(),
+      }),
+    )
+  })
+
+  it('navigates to the dateFromState day after tagging', async () => {
+    const navigate = vi.fn()
+    useNavigate.mockReturnValue(navigate)
+    const addMeal = vi.fn().mockResolvedValue({})
+    useMealContext.mockReturnValue({ addMeal })
+    useLocation.mockReturnValue({ state: { image: imageFile(), date: '2024-06-15' } })
+
+    render(<MemoryRouter><TagMeal /></MemoryRouter>)
+    await screen.findByAltText('Selected meal')
+
+    await userEvent.click(screen.getByRole('button', { name: 'MIXED' }))
+
+    expect(navigate).toHaveBeenCalledWith('/day/2024-06-15')
+  })
+
+  it('shows a save error when addMeal throws', async () => {
+    useMealContext.mockReturnValue({
+      addMeal: vi.fn().mockRejectedValue(new Error('Network error')),
+    })
+    useLocation.mockReturnValue({ state: { image: imageFile() } })
+
+    render(<MemoryRouter><TagMeal /></MemoryRouter>)
+    await screen.findByAltText('Selected meal')
+
+    await userEvent.click(screen.getByRole('button', { name: 'HOME' }))
+
+    expect(await screen.findByText('Network error')).toBeInTheDocument()
+  })
+
+  it('Cancel button navigates back when image is present', async () => {
+    const navigate = vi.fn()
+    useNavigate.mockReturnValue(navigate)
+    useLocation.mockReturnValue({ state: { image: imageFile() } })
+
+    render(<MemoryRouter><TagMeal /></MemoryRouter>)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+
+    expect(navigate).toHaveBeenCalledWith(-1)
   })
 })
