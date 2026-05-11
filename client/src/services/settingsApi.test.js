@@ -1,3 +1,5 @@
+vi.mock('../utils/deviceId.js', () => ({ getDeviceId: () => 'test-device-id' }))
+
 import { fetchSettings, saveSettings } from './settingsApi'
 
 beforeEach(() => {
@@ -61,7 +63,7 @@ describe('saveSettings', () => {
       expect.objectContaining({
         method: 'PATCH',
         body: JSON.stringify({ monthlyOutsideGoal: 10 }),
-        headers: { 'Content-Type': 'application/json' },
+        headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
       })
     )
     expect(result).toEqual(fakeSettings)

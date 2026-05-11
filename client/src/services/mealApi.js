@@ -1,3 +1,5 @@
+import { getDeviceId } from '../utils/deviceId.js'
+
 const ROOT = import.meta.env.VITE_API_URL ?? ''
 const BASE = `${ROOT}/meals`
 
@@ -11,7 +13,7 @@ function normalize(meal) {
 
 async function request(url, options = {}) {
   const res = await fetch(url, {
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'x-user-id': getDeviceId() },
     ...options,
   })
   const data = await res.json()

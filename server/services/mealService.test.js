@@ -25,7 +25,7 @@ describe('createMeal', () => {
     const fakeMeal = { _id: '123', tag: 'OUTSIDE', amountSpent: 300, occurredAt: 1700000000000 }
     Meal.create.mockResolvedValue(fakeMeal)
 
-    const result = await createMeal({
+    const result = await createMeal('user-123', {
       imageUrl: 'https://example.com/img.jpg',
       tag: 'OUTSIDE',
       amountSpent: 300,
@@ -53,7 +53,7 @@ describe('createMeal', () => {
   it('throws if occurredAt is missing', async () => {
     // rejects.toThrow() is how you assert that an async function throws.
     // You must await the whole expression, not just the function call.
-    await expect(createMeal({ tag: 'HOME' })).rejects.toThrow('occurredAt is required')
+    await expect(createMeal('user-123', { tag: 'HOME' })).rejects.toThrow('occurredAt is required')
 
     expect(Meal.create).not.toHaveBeenCalled()
   })
@@ -64,7 +64,7 @@ describe('createMeal', () => {
   it('forces amountSpent to null for HOME meals regardless of input', async () => {
     Meal.create.mockResolvedValue({})
 
-    await createMeal({ tag: 'HOME', amountSpent: 500, occurredAt: 1700000000000 })
+    await createMeal('user-123', { tag: 'HOME', amountSpent: 500, occurredAt: 1700000000000 })
 
     expect(Meal.create).toHaveBeenCalledWith(
       expect.objectContaining({ tag: 'HOME', amountSpent: null })
@@ -75,7 +75,7 @@ describe('createMeal', () => {
   it('passes amountSpent through for OUTSIDE meals', async () => {
     Meal.create.mockResolvedValue({})
 
-    await createMeal({ tag: 'OUTSIDE', amountSpent: 250, occurredAt: 1700000000000 })
+    await createMeal('user-123', { tag: 'OUTSIDE', amountSpent: 250, occurredAt: 1700000000000 })
 
     expect(Meal.create).toHaveBeenCalledWith(
       expect.objectContaining({ tag: 'OUTSIDE', amountSpent: 250 })
@@ -86,7 +86,7 @@ describe('createMeal', () => {
   it('defaults imageUrl and note to null when omitted', async () => {
     Meal.create.mockResolvedValue({})
 
-    await createMeal({ tag: 'HOME', occurredAt: 1700000000000 })
+    await createMeal('user-123', { tag: 'HOME', occurredAt: 1700000000000 })
 
     expect(Meal.create).toHaveBeenCalledWith(
       expect.objectContaining({ imageUrl: null, note: null })
@@ -106,7 +106,7 @@ describe('getMeals', () => {
     const mockSort = jest.fn().mockResolvedValue(fakeMeals)
     Meal.find.mockReturnValue({ sort: mockSort })
 
-    const result = await getMeals()
+    const result = await getMeals('user-123')
 
     expect(Meal.find).toHaveBeenCalledWith({ userId: 'user-123' })
     expect(mockSort).toHaveBeenCalledWith({ occurredAt: -1 })
@@ -123,7 +123,7 @@ describe('getMealsByDate', () => {
     Meal.find.mockReturnValue({ sort: mockSort })
 
     const dateString = '2024-06-15'
-    const result = await getMealsByDate(dateString)
+    const result = await getMealsByDate('user-123', dateString)
 
     // Compute the expected range using the same logic as the service.
     // This way the test stays correct even if the machine's timezone changes.
@@ -142,8 +142,12 @@ describe('getMealsByDate', () => {
   // The service uses a regex /^\d{4}-\d{2}-\d{2}$/ to validate the format.
   // Both of these strings fail it — we test two shapes to cover the rule, not just one.
   it('throws if the date string is not in YYYY-MM-DD format', async () => {
-    await expect(getMealsByDate('15-06-2024')).rejects.toThrow('date must be in YYYY-MM-DD format')
-    await expect(getMealsByDate('not-a-date')).rejects.toThrow('date must be in YYYY-MM-DD format')
+    await expect(getMealsByDate('user-123', '15-06-2024')).rejects.toThrow(
+      'date must be in YYYY-MM-DD format'
+    )
+    await expect(getMealsByDate('user-123', 'not-a-date')).rejects.toThrow(
+      'date must be in YYYY-MM-DD format'
+    )
 
     expect(Meal.find).not.toHaveBeenCalled()
   })
@@ -156,7 +160,11 @@ describe('updateMeal', () => {
     const fakeMeal = { _id: 'abc', tag: 'OUTSIDE', amountSpent: 200 }
     Meal.findOneAndUpdate.mockResolvedValue(fakeMeal)
 
-    const result = await updateMeal('abc', { tag: 'OUTSIDE', amountSpent: 200, note: 'Dinner' })
+    const result = await updateMeal('user-123', 'abc', {
+      tag: 'OUTSIDE',
+      amountSpent: 200,
+      note: 'Dinner',
+    })
 
     expect(Meal.findOneAndUpdate).toHaveBeenCalledWith(
       // Filter: must scope to userId so users can't update each other's meals.
@@ -174,7 +182,9 @@ describe('updateMeal', () => {
   it('throws "Meal not found" when findOneAndUpdate returns null', async () => {
     Meal.findOneAndUpdate.mockResolvedValue(null)
 
-    await expect(updateMeal('nonexistent', { tag: 'HOME' })).rejects.toThrow('Meal not found')
+    await expect(updateMeal('user-123', 'nonexistent', { tag: 'HOME' })).rejects.toThrow(
+      'Meal not found'
+    )
   })
 
   // amountSpent is optional for OUTSIDE — null is a valid value.
@@ -183,7 +193,7 @@ describe('updateMeal', () => {
     const fakeMeal = { _id: 'abc', tag: 'OUTSIDE', amountSpent: null }
     Meal.findOneAndUpdate.mockResolvedValue(fakeMeal)
 
-    const result = await updateMeal('abc', { tag: 'OUTSIDE', amountSpent: null })
+    const result = await updateMeal('user-123', 'abc', { tag: 'OUTSIDE', amountSpent: null })
 
     expect(Meal.findOneAndUpdate).toHaveBeenCalledWith(
       expect.anything(),
@@ -196,7 +206,7 @@ describe('updateMeal', () => {
   it('forces amountSpent to null when tag is HOME', async () => {
     Meal.findOneAndUpdate.mockResolvedValue({ _id: 'abc', tag: 'HOME', amountSpent: null })
 
-    await updateMeal('abc', { tag: 'HOME', amountSpent: 500 })
+    await updateMeal('user-123', 'abc', { tag: 'HOME', amountSpent: 500 })
 
     expect(Meal.findOneAndUpdate).toHaveBeenCalledWith(
       expect.anything(),
@@ -212,7 +222,7 @@ describe('deleteMeal', () => {
   it('calls findOneAndDelete with the correct filter and returns true', async () => {
     Meal.findOneAndDelete.mockResolvedValue({ _id: 'abc' })
 
-    const result = await deleteMeal('abc')
+    const result = await deleteMeal('user-123', 'abc')
 
     // userId scope is critical — same security concern as update.
     expect(Meal.findOneAndDelete).toHaveBeenCalledWith({ _id: 'abc', userId: 'user-123' })
@@ -225,6 +235,6 @@ describe('deleteMeal', () => {
   it('throws "Meal not found" when findOneAndDelete returns null', async () => {
     Meal.findOneAndDelete.mockResolvedValue(null)
 
-    await expect(deleteMeal('nonexistent')).rejects.toThrow('Meal not found')
+    await expect(deleteMeal('user-123', 'nonexistent')).rejects.toThrow('Meal not found')
   })
 })
