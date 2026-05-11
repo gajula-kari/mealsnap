@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Home from './pages/Home.jsx'
-import Camera from './pages/Camera.jsx'
 import TagMeal from './pages/TagMeal.jsx'
 import DayDetail from './pages/DayDetail.jsx'
 
@@ -24,7 +23,6 @@ export default function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/camera" element={<Camera />} />
           <Route path="/tag" element={<TagMeal />} />
           <Route path="/day/:date" element={<DayDetail />} />
         </Routes>
