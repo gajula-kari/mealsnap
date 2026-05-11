@@ -2,18 +2,31 @@ import { useState } from 'react'
 
 const TAG_OPTIONS = ['HOME', 'OUTSIDE', 'MIXED']
 
+const TAG_COLOR = {
+  HOME: 'bg-emerald-100 text-emerald-700',
+  OUTSIDE: 'bg-rose-100 text-rose-700',
+  MIXED: 'bg-amber-100 text-amber-700',
+}
+
 export default function MealCard({ meal, onEdit, onDelete }) {
   const [editing, setEditing] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const [tag, setTag] = useState(meal.tag)
   const [note, setNote] = useState(meal.note ?? '')
   const [amountSpent, setAmountSpent] = useState(meal.amountSpent ?? '')
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
+  const timeLabel = new Date(meal.occurredAt).toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+
   function openEdit() {
     setTag(meal.tag)
     setNote(meal.note ?? '')
     setAmountSpent(meal.amountSpent ?? '')
+    setConfirmDelete(false)
     setEditing(true)
   }
 
@@ -37,27 +50,34 @@ export default function MealCard({ meal, onEdit, onDelete }) {
       await onDelete(meal.id)
     } finally {
       setDeleting(false)
+      setConfirmDelete(false)
     }
   }
 
   return (
-    <article className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-      <div className="h-48 w-full overflow-hidden bg-slate-100">
+    <article className="overflow-hidden rounded-3xl bg-white shadow-md">
+      {/* Portrait image */}
+      <div className="aspect-[3/4] w-full overflow-hidden bg-slate-100">
         {meal.imageUrl ? (
           <img src={meal.imageUrl} alt={`${meal.tag} meal`} className="h-full w-full object-cover" />
         ) : (
-          <div className="flex h-full items-center justify-center text-sm text-slate-500">No image</div>
+          <div className="flex h-full items-center justify-center text-sm text-slate-400">No image</div>
         )}
       </div>
 
+      {/* Footer */}
       <div className="space-y-3 p-4">
         <div className="flex items-center justify-between gap-2">
-          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-600">
-            {meal.tag}
-          </span>
-          {(onEdit || onDelete) && (
+          <div className="flex items-center gap-2">
+            <span className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider ${TAG_COLOR[meal.tag] ?? 'bg-slate-100 text-slate-600'}`}>
+              {meal.tag}
+            </span>
+            <span className="text-xs text-slate-400">{timeLabel}</span>
+          </div>
+
+          {(onEdit || onDelete) && !editing && !confirmDelete && (
             <div className="flex gap-2">
-              {onEdit && !editing && (
+              {onEdit && (
                 <button
                   type="button"
                   onClick={openEdit}
@@ -69,11 +89,10 @@ export default function MealCard({ meal, onEdit, onDelete }) {
               {onDelete && (
                 <button
                   type="button"
-                  onClick={handleDelete}
-                  disabled={deleting}
-                  className="rounded-xl border border-rose-200 px-3 py-1 text-xs text-rose-500 transition hover:bg-rose-50 disabled:opacity-50"
+                  onClick={() => setConfirmDelete(true)}
+                  className="rounded-xl border border-rose-200 px-3 py-1 text-xs text-rose-500 transition hover:bg-rose-50"
                 >
-                  {deleting ? '…' : 'Delete'}
+                  Delete
                 </button>
               )}
             </div>
@@ -87,6 +106,31 @@ export default function MealCard({ meal, onEdit, onDelete }) {
           <p className="text-sm font-medium text-slate-700">₹{meal.amountSpent}</p>
         )}
 
+        {/* Delete confirmation */}
+        {confirmDelete && (
+          <div className="flex items-center justify-between gap-2 rounded-2xl bg-rose-50 px-4 py-3">
+            <p className="text-sm text-rose-700">Delete this meal?</p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={deleting}
+                className="rounded-xl bg-rose-600 px-3 py-1 text-xs font-semibold text-white disabled:opacity-50"
+              >
+                {deleting ? '…' : 'Yes'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(false)}
+                className="rounded-xl border border-rose-200 px-3 py-1 text-xs text-rose-600 hover:bg-rose-100"
+              >
+                No
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Edit form */}
         {editing && (
           <div className="space-y-3 border-t border-slate-100 pt-3">
             <div className="grid grid-cols-3 gap-2">

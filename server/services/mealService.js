@@ -2,10 +2,10 @@ const Meal = require('../models/Meal')
 
 const HARDCODED_USER_ID = 'user-123'
 
-async function createMeal({ imageUrl, tag, amountSpent, note }) {
-  // if (tag === 'OUTSIDE' && amountSpent == null) {
-  //   throw new Error('amountSpent is required for OUTSIDE meals')
-  // }
+async function createMeal({ imageUrl, tag, amountSpent, note, occurredAt }) {
+  if (!occurredAt) {
+    throw new Error('occurredAt is required')
+  }
 
   const meal = await Meal.create({
     userId: HARDCODED_USER_ID,
@@ -13,7 +13,7 @@ async function createMeal({ imageUrl, tag, amountSpent, note }) {
     tag,
     amountSpent: tag === 'HOME' ? null : amountSpent,
     note: note ?? null,
-    occurredAt: Date.now(),
+    occurredAt,
   })
 
   return meal
