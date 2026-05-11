@@ -3,6 +3,7 @@ import Home from './pages/Home.jsx'
 import TagMeal from './pages/TagMeal.jsx'
 import DayDetail from './pages/DayDetail.jsx'
 import Settings from './pages/Settings.jsx'
+import ErrorBoundary from './components/ErrorBoundary.jsx'
 
 function Header() {
   const navigate = useNavigate()
@@ -75,7 +76,9 @@ function Layout({ children }) {
     <div className="h-screen overflow-hidden bg-slate-50 text-slate-900">
       <div className="mx-auto flex h-full w-full max-w-[480px] flex-col px-4 py-4">
         <Header />
-        <main className="flex-1 overflow-y-auto pb-24">{children}</main>
+        <main className="flex-1 overflow-y-auto pb-24">
+          <ErrorBoundary>{children}</ErrorBoundary>
+        </main>
       </div>
     </div>
   )
