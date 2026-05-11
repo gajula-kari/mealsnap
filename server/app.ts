@@ -1,0 +1,16 @@
+import express, { type Request, type Response } from 'express'
+import cors from 'cors'
+import mealsRouter from './routes/meals'
+import settingsRouter from './routes/settings'
+
+const app = express()
+
+app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }))
+app.use(express.json({ limit: '10mb' }))
+
+app.get('/health', (_req: Request, res: Response) => res.json({ status: 'ok' }))
+
+app.use('/meals', mealsRouter)
+app.use('/settings', settingsRouter)
+
+export default app

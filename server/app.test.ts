@@ -1,35 +1,20 @@
-// Integration tests using supertest.
-//
-// What's different from unit tests:
-//   - We import the real Express app and send actual HTTP requests through it.
-//   - The full stack runs: supertest → app → router → controller → service → model.
-//   - We only mock at the bottom (Meal/UserSettings models) — everything above is real.
-//
-// This catches wiring bugs that unit tests can't:
-//   - Wrong HTTP method or route path
-//   - Missing middleware (e.g. body not parsed so req.body is empty)
-//   - Wrong status code at the route level
-//   - req.params.id / x-user-id not reaching the service correctly
-
-const request = require('supertest')
-const app = require('./app')
+import request from 'supertest'
+import app from './app'
 
 jest.mock('./models/Meal')
-const Meal = require('./models/Meal')
+import Meal from './models/Meal'
 
 jest.mock('./models/UserSettings')
-const UserSettings = require('./models/UserSettings')
+import UserSettings from './models/UserSettings'
 
 beforeEach(() => {
   jest.clearAllMocks()
 })
 
-// ─── POST /meals ──────────────────────────────────────────────────────────────
-
 describe('POST /meals', () => {
   it('returns 201 with the created meal', async () => {
     const fakeMeal = { _id: 'abc', tag: 'HOME', occurredAt: 1700000000000 }
-    Meal.create.mockResolvedValue(fakeMeal)
+    jest.mocked(Meal.create).mockResolvedValue(fakeMeal as any)
 
     const res = await request(app)
       .post('/meals')
@@ -60,12 +45,10 @@ describe('POST /meals', () => {
   })
 })
 
-// ─── GET /meals ───────────────────────────────────────────────────────────────
-
 describe('GET /meals', () => {
   it('returns 200 with all meals when no date query param', async () => {
     const fakeMeals = [{ _id: '1' }, { _id: '2' }]
-    Meal.find.mockReturnValue({ sort: jest.fn().mockResolvedValue(fakeMeals) })
+    jest.mocked(Meal.find).mockReturnValue({ sort: jest.fn().mockResolvedValue(fakeMeals) } as any)
 
     const res = await request(app).get('/meals').set('x-user-id', 'user-test').expect(200)
 
@@ -74,7 +57,7 @@ describe('GET /meals', () => {
 
   it('returns 200 with filtered meals when date query param is given', async () => {
     const fakeMeals = [{ _id: '3' }]
-    Meal.find.mockReturnValue({ sort: jest.fn().mockResolvedValue(fakeMeals) })
+    jest.mocked(Meal.find).mockReturnValue({ sort: jest.fn().mockResolvedValue(fakeMeals) } as any)
 
     const res = await request(app)
       .get('/meals')
@@ -102,12 +85,10 @@ describe('GET /meals', () => {
   })
 })
 
-// ─── PATCH /meals/:id ─────────────────────────────────────────────────────────
-
 describe('PATCH /meals/:id', () => {
   it('returns 200 with the updated meal', async () => {
     const fakeMeal = { _id: 'abc', tag: 'OUTSIDE', amountSpent: 200 }
-    Meal.findOneAndUpdate.mockResolvedValue(fakeMeal)
+    jest.mocked(Meal.findOneAndUpdate).mockResolvedValue(fakeMeal as any)
 
     const res = await request(app)
       .patch('/meals/abc')
@@ -119,7 +100,7 @@ describe('PATCH /meals/:id', () => {
   })
 
   it('returns 404 when the meal does not exist', async () => {
-    Meal.findOneAndUpdate.mockResolvedValue(null)
+    jest.mocked(Meal.findOneAndUpdate).mockResolvedValue(null)
 
     const res = await request(app)
       .patch('/meals/nonexistent')
@@ -137,11 +118,9 @@ describe('PATCH /meals/:id', () => {
   })
 })
 
-// ─── DELETE /meals/:id ────────────────────────────────────────────────────────
-
 describe('DELETE /meals/:id', () => {
   it('returns 200 with { success: true }', async () => {
-    Meal.findOneAndDelete.mockResolvedValue({ _id: 'abc' })
+    jest.mocked(Meal.findOneAndDelete).mockResolvedValue({ _id: 'abc' } as any)
 
     const res = await request(app).delete('/meals/abc').set('x-user-id', 'user-test').expect(200)
 
@@ -149,7 +128,7 @@ describe('DELETE /meals/:id', () => {
   })
 
   it('returns 404 when the meal does not exist', async () => {
-    Meal.findOneAndDelete.mockResolvedValue(null)
+    jest.mocked(Meal.findOneAndDelete).mockResolvedValue(null)
 
     const res = await request(app)
       .delete('/meals/nonexistent')
@@ -166,12 +145,10 @@ describe('DELETE /meals/:id', () => {
   })
 })
 
-// ─── GET /settings ────────────────────────────────────────────────────────────
-
 describe('GET /settings', () => {
   it('returns 200 with settings when a record exists', async () => {
     const fakeSettings = { userId: 'user-test', monthlyOutsideGoal: 7 }
-    UserSettings.findOne.mockResolvedValue(fakeSettings)
+    jest.mocked(UserSettings.findOne).mockResolvedValue(fakeSettings as any)
 
     const res = await request(app).get('/settings').set('x-user-id', 'user-test').expect(200)
 
@@ -179,7 +156,7 @@ describe('GET /settings', () => {
   })
 
   it('returns 200 with null when no settings have been saved yet', async () => {
-    UserSettings.findOne.mockResolvedValue(null)
+    jest.mocked(UserSettings.findOne).mockResolvedValue(null)
 
     const res = await request(app).get('/settings').set('x-user-id', 'user-test').expect(200)
 
@@ -193,8 +170,6 @@ describe('GET /settings', () => {
   })
 })
 
-// ─── PATCH /settings ──────────────────────────────────────────────────────────
-
 describe('PATCH /settings', () => {
   it('returns 200 with the upserted settings', async () => {
     const fakeSettings = {
@@ -202,8 +177,8 @@ describe('PATCH /settings', () => {
       monthlyOutsideGoal: 7,
       goalUpdatedAt: 1700000000000,
     }
-    UserSettings.findOne.mockResolvedValue(null)
-    UserSettings.findOneAndUpdate.mockResolvedValue(fakeSettings)
+    jest.mocked(UserSettings.findOne).mockResolvedValue(null)
+    jest.mocked(UserSettings.findOneAndUpdate).mockResolvedValue(fakeSettings as any)
 
     const res = await request(app)
       .patch('/settings')
@@ -217,8 +192,8 @@ describe('PATCH /settings', () => {
   it('stores the old goal as previousGoal when the goal changes', async () => {
     const existing = { userId: 'user-test', monthlyOutsideGoal: 5 }
     const updated = { userId: 'user-test', monthlyOutsideGoal: 10, previousGoal: 5 }
-    UserSettings.findOne.mockResolvedValue(existing)
-    UserSettings.findOneAndUpdate.mockResolvedValue(updated)
+    jest.mocked(UserSettings.findOne).mockResolvedValue(existing as any)
+    jest.mocked(UserSettings.findOneAndUpdate).mockResolvedValue(updated as any)
 
     const res = await request(app)
       .patch('/settings')
@@ -227,14 +202,14 @@ describe('PATCH /settings', () => {
       .expect(200)
 
     expect(res.body).toEqual({ settings: updated })
-    const setArg = UserSettings.findOneAndUpdate.mock.calls[0][1].$set
+    const setArg = (jest.mocked(UserSettings.findOneAndUpdate).mock.calls[0]?.[1] as any)?.$set
     expect(setArg).toMatchObject({ previousGoal: 5, monthlyOutsideGoal: 10 })
   })
 
   it('does not set previousGoal when the goal is unchanged', async () => {
     const existing = { userId: 'user-test', monthlyOutsideGoal: 7 }
-    UserSettings.findOne.mockResolvedValue(existing)
-    UserSettings.findOneAndUpdate.mockResolvedValue(existing)
+    jest.mocked(UserSettings.findOne).mockResolvedValue(existing as any)
+    jest.mocked(UserSettings.findOneAndUpdate).mockResolvedValue(existing as any)
 
     await request(app)
       .patch('/settings')
@@ -242,7 +217,7 @@ describe('PATCH /settings', () => {
       .send({ monthlyOutsideGoal: 7 })
       .expect(200)
 
-    const setArg = UserSettings.findOneAndUpdate.mock.calls[0][1].$set
+    const setArg = (jest.mocked(UserSettings.findOneAndUpdate).mock.calls[0]?.[1] as any)?.$set
     expect(setArg).not.toHaveProperty('previousGoal')
   })
 
