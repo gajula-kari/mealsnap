@@ -46,7 +46,7 @@ export default function DayDetail() {
       </section>
 
       {selectedMeals.length > 0 ? (
-        <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-3">
           {selectedMeals.map((meal) => (
             <MealCard
               key={meal.id}
