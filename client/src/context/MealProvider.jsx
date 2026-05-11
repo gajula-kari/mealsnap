@@ -2,12 +2,36 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { MealContext } from './MealContext.js'
 import * as api from '../services/mealApi.js'
 
+const CACHE_KEY = 'mealsnap_meals'
+
+function readCache() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
+}
+
+function writeCache(meals) {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(meals))
+  } catch {
+    // localStorage unavailable (private browsing quota) — silently skip
+  }
+}
+
 export function MealProvider({ children }) {
-  const [meals, setMeals] = useState([])
+  const [meals, setMeals] = useState(() => readCache() ?? [])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
+    writeCache(meals)
+  }, [meals])
+
+  useEffect(() => {
+    api.ping()
     api
       .fetchMeals()
       .then(setMeals)

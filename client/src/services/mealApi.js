@@ -1,4 +1,9 @@
-const BASE = `${import.meta.env.VITE_API_URL ?? ''}/meals`
+const ROOT = import.meta.env.VITE_API_URL ?? ''
+const BASE = `${ROOT}/meals`
+
+export function ping() {
+  fetch(`${ROOT}/health`).catch(() => {})
+}
 
 function normalize(meal) {
   return { ...meal, id: meal._id }

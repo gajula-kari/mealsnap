@@ -36,6 +36,7 @@ function renderProvider() {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  localStorage.clear()
 })
 
 describe('MealProvider', () => {
@@ -86,5 +87,33 @@ describe('MealProvider', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Delete' }))
 
     expect(screen.queryByRole('listitem')).not.toBeInTheDocument()
+  })
+
+  it('seeds state from localStorage cache so UI shows instantly before fetch', () => {
+    localStorage.setItem('mealsnap_meals', JSON.stringify([{ id: 'cached-1', tag: 'HOME' }]))
+    api.fetchMeals.mockResolvedValue([{ id: 'cached-1', tag: 'HOME' }])
+
+    renderProvider()
+
+    // Cache is loaded synchronously — visible before any async work completes.
+    expect(screen.getByText('cached-1:HOME')).toBeInTheDocument()
+  })
+
+  it('writes fresh meals to localStorage after fetch', async () => {
+    api.fetchMeals.mockResolvedValue([{ id: 'id-1', tag: 'OUTSIDE' }])
+
+    renderProvider()
+    await waitFor(() => expect(screen.queryByText('loading')).not.toBeInTheDocument())
+
+    const cached = JSON.parse(localStorage.getItem('mealsnap_meals'))
+    expect(cached).toEqual([{ id: 'id-1', tag: 'OUTSIDE' }])
+  })
+
+  it('calls api.ping on mount to wake the server', () => {
+    api.fetchMeals.mockResolvedValue([])
+
+    renderProvider()
+
+    expect(api.ping).toHaveBeenCalledTimes(1)
   })
 })
