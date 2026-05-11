@@ -1,6 +1,6 @@
-import { useContext, useRef } from 'react'
+import { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { MealContext } from '../context/MealContext.jsx'
+import { useMealContext } from '../hooks/useMealContext.js'
 
 function formatLocalDate(date) {
   const y = date.getFullYear()
@@ -46,7 +46,7 @@ function calculateStreak(meals) {
 }
 
 export default function Home() {
-  const { meals, loading, error } = useContext(MealContext)
+  const { meals, loading, error } = useMealContext()
   const navigate = useNavigate()
   const fileInputRef = useRef(null)
 

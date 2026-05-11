@@ -1,14 +1,6 @@
-import { createContext, useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { MealContext } from './MealContext.js'
 import * as api from '../services/mealApi.js'
-
-export const MealContext = createContext({
-  meals: [],
-  loading: false,
-  error: null,
-  addMeal: async () => {},
-  updateMeal: async () => {},
-  deleteMeal: async () => {},
-})
 
 export function MealProvider({ children }) {
   const [meals, setMeals] = useState([])

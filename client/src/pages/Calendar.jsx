@@ -1,6 +1,5 @@
-import { useContext } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { MealContext } from '../context/MealContext.jsx'
+import { useMealContext } from '../hooks/useMealContext.js'
 
 function getMonthDays() {
   const today = new Date()
@@ -39,7 +38,7 @@ function getMealColorClass(meals, date) {
 }
 
 export default function Calendar() {
-  const { meals } = useContext(MealContext)
+  const { meals } = useMealContext()
   const navigate = useNavigate()
   const today = new Date()
   const year = today.getFullYear()

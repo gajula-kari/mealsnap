@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState, useContext } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { MealContext } from '../context/MealContext.jsx'
+import { useMealContext } from '../hooks/useMealContext.js'
 
 function formatDateLabel(date, includeTime) {
   const dateStr = date.toLocaleDateString('en-US', {
@@ -22,7 +22,7 @@ function formatLocalDate(date) {
 }
 
 export default function TagMeal() {
-  const { addMeal } = useContext(MealContext)
+  const { addMeal } = useMealContext()
   const location = useLocation()
   const navigate = useNavigate()
   const imageFile = location.state?.image
@@ -30,7 +30,7 @@ export default function TagMeal() {
   const [preview, setPreview] = useState(null)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState(null)
-  const mountedAt = useRef(Date.now())
+  const [mountedAt] = useState(() => Date.now())
 
   const { occurredAt, dateLabel } = useMemo(() => {
     if (dateFromState) {
@@ -41,12 +41,12 @@ export default function TagMeal() {
         dateLabel: formatDateLabel(noon, false),
       }
     }
-    const now = new Date(mountedAt.current)
+    const now = new Date(mountedAt)
     return {
       occurredAt: null, // will use Date.now() at save time for today
       dateLabel: formatDateLabel(now, true),
     }
-  }, [dateFromState])
+  }, [dateFromState, mountedAt])
 
   useEffect(() => {
     if (!imageFile) return
@@ -59,22 +59,25 @@ export default function TagMeal() {
 
   const mealTagOptions = useMemo(() => ['HOME', 'OUTSIDE', 'MIXED'], [])
 
-  async function handleTag(tag) {
-    if (!preview || saving) return
+  const handleTag = useCallback(
+    async (tag) => {
+      if (!preview || saving) return
 
-    setSaving(true)
-    setSaveError(null)
-    try {
-      const finalOccurredAt = occurredAt ?? Date.now()
-      await addMeal({ imageUrl: preview, tag, occurredAt: finalOccurredAt })
+      setSaving(true)
+      setSaveError(null)
+      try {
+        const finalOccurredAt = occurredAt ?? Date.now()
+        await addMeal({ imageUrl: preview, tag, occurredAt: finalOccurredAt })
 
-      const targetDate = dateFromState ?? formatLocalDate(new Date())
-      navigate(`/day/${targetDate}`)
-    } catch (err) {
-      setSaveError(err.message)
-      setSaving(false)
-    }
-  }
+        const targetDate = dateFromState ?? formatLocalDate(new Date())
+        navigate(`/day/${targetDate}`)
+      } catch (err) {
+        setSaveError(err.message)
+        setSaving(false)
+      }
+    },
+    [preview, saving, occurredAt, addMeal, dateFromState, navigate],
+  )
 
   if (!imageFile) {
     return (

@@ -1,11 +1,11 @@
-import { useContext, useRef } from 'react'
+import { useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { MealContext } from '../context/MealContext.jsx'
+import { useMealContext } from '../hooks/useMealContext.js'
 import MealCard from '../components/MealCard.jsx'
 
 export default function DayDetail() {
   const { date } = useParams()
-  const { meals, updateMeal, deleteMeal } = useContext(MealContext)
+  const { meals, updateMeal, deleteMeal } = useMealContext()
   const navigate = useNavigate()
   const fileInputRef = useRef(null)
 
