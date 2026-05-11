@@ -61,7 +61,7 @@ export default function TagMeal() {
     }
   }, [imageFile])
 
-  const mealTagOptions = useMemo(() => ['HOME', 'OUTSIDE', 'MIXED'], [])
+  const mealTagOptions = useMemo(() => ['HOME', 'OUTSIDE'], [])
 
   const handleTag = useCallback(
     async (tag) => {
@@ -122,7 +122,7 @@ export default function TagMeal() {
           <p className="rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-600">{saveError}</p>
         )}
 
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 grid-cols-2">
           {mealTagOptions.map((tag) => (
             <button
               key={tag}

@@ -65,7 +65,8 @@ describe('App integration', () => {
     renderApp()
 
     // Immediately after render, MealProvider is still fetching — loading=true.
-    expect(screen.getByText('—')).toBeInTheDocument()
+    // Streak + all three stat counters each show "—".
+    expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(1)
 
     // findByText is the async RTL query: it polls the DOM until the text appears
     // or the timeout (1s default) expires. This handles the async fetch + state update.

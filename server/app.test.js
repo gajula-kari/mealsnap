@@ -22,6 +22,9 @@ const app = require('./app')
 jest.mock('./models/Meal')
 const Meal = require('./models/Meal')
 
+jest.mock('./models/UserSettings')
+const UserSettings = require('./models/UserSettings')
+
 beforeEach(() => {
   jest.clearAllMocks()
 })
@@ -132,5 +135,70 @@ describe('DELETE /meals/:id', () => {
     const res = await request(app).delete('/meals/nonexistent').expect(404)
 
     expect(res.body).toEqual({ error: 'Meal not found' })
+  })
+})
+
+// ─── GET /settings ────────────────────────────────────────────────────────────
+
+describe('GET /settings', () => {
+  it('returns 200 with settings when a record exists', async () => {
+    const fakeSettings = { userId: 'user-123', monthlyOutsideGoal: 7 }
+    UserSettings.findOne.mockResolvedValue(fakeSettings)
+
+    const res = await request(app).get('/settings').expect(200)
+
+    expect(res.body).toEqual({ settings: fakeSettings })
+  })
+
+  it('returns 200 with null when no settings have been saved yet', async () => {
+    UserSettings.findOne.mockResolvedValue(null)
+
+    const res = await request(app).get('/settings').expect(200)
+
+    expect(res.body).toEqual({ settings: null })
+  })
+})
+
+// ─── PATCH /settings ──────────────────────────────────────────────────────────
+
+describe('PATCH /settings', () => {
+  it('returns 200 with the upserted settings', async () => {
+    const fakeSettings = { userId: 'user-123', monthlyOutsideGoal: 7, goalUpdatedAt: 1700000000000 }
+    UserSettings.findOne.mockResolvedValue(null)
+    UserSettings.findOneAndUpdate.mockResolvedValue(fakeSettings)
+
+    const res = await request(app)
+      .patch('/settings')
+      .send({ monthlyOutsideGoal: 7 })
+      .expect(200)
+
+    expect(res.body).toEqual({ settings: fakeSettings })
+  })
+
+  it('stores the old goal as previousGoal when the goal changes', async () => {
+    const existing = { userId: 'user-123', monthlyOutsideGoal: 5 }
+    const updated = { userId: 'user-123', monthlyOutsideGoal: 10, previousGoal: 5 }
+    UserSettings.findOne.mockResolvedValue(existing)
+    UserSettings.findOneAndUpdate.mockResolvedValue(updated)
+
+    const res = await request(app)
+      .patch('/settings')
+      .send({ monthlyOutsideGoal: 10 })
+      .expect(200)
+
+    expect(res.body).toEqual({ settings: updated })
+    const setArg = UserSettings.findOneAndUpdate.mock.calls[0][1].$set
+    expect(setArg).toMatchObject({ previousGoal: 5, monthlyOutsideGoal: 10 })
+  })
+
+  it('does not set previousGoal when the goal is unchanged', async () => {
+    const existing = { userId: 'user-123', monthlyOutsideGoal: 7 }
+    UserSettings.findOne.mockResolvedValue(existing)
+    UserSettings.findOneAndUpdate.mockResolvedValue(existing)
+
+    await request(app).patch('/settings').send({ monthlyOutsideGoal: 7 }).expect(200)
+
+    const setArg = UserSettings.findOneAndUpdate.mock.calls[0][1].$set
+    expect(setArg).not.toHaveProperty('previousGoal')
   })
 })

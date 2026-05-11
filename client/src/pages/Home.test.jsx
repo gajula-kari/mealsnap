@@ -11,12 +11,14 @@ import { MemoryRouter } from 'react-router-dom'
 import Home from './Home'
 
 vi.mock('../hooks/useMealContext.js')
+vi.mock('../services/settingsApi.js')
 vi.mock('react-router-dom', async (importOriginal) => {
   const actual = await importOriginal()
   return { ...actual, useNavigate: vi.fn(() => vi.fn()) }
 })
 
 import { useMealContext } from '../hooks/useMealContext.js'
+import { fetchSettings } from '../services/settingsApi.js'
 import { useNavigate } from 'react-router-dom'
 
 // Renders Home inside MemoryRouter so useNavigate doesn't throw.
@@ -43,6 +45,7 @@ function daysAgo(n) {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  fetchSettings.mockResolvedValue(null)
 })
 
 // ─── Loading and error states ─────────────────────────────────────────────────
@@ -52,8 +55,8 @@ describe('loading and error states', () => {
     useMealContext.mockReturnValue({ meals: [], loading: true, error: null })
     renderHome()
 
-    // The streak section renders "—" instead of a number during load.
-    expect(screen.getByText('—')).toBeInTheDocument()
+    // Streak + all three stat counters show "—" while loading.
+    expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(1)
   })
 
   it('shows the error message when loading fails', () => {
@@ -169,11 +172,45 @@ describe('calendar grid', () => {
     expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass('bg-rose-100')
   })
 
-  it('applies amber class to today when the latest meal is MIXED', () => {
+  it('applies amber class to today when the only meal has legacy MIXED tag', () => {
     useMealContext.mockReturnValue({ meals: [mealToday('MIXED')], loading: false, error: null })
     renderHome()
     expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass(
       'bg-amber-100'
+    )
+  })
+
+  it('applies amber class to today when there are both HOME and OUTSIDE meals', () => {
+    useMealContext.mockReturnValue({
+      meals: [mealToday('HOME'), mealToday('OUTSIDE')],
+      loading: false,
+      error: null,
+    })
+    renderHome()
+    expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass(
+      'bg-amber-100'
+    )
+  })
+
+  it('applies rose class when all meals today are OUTSIDE', () => {
+    useMealContext.mockReturnValue({
+      meals: [mealToday('OUTSIDE'), mealToday('OUTSIDE')],
+      loading: false,
+      error: null,
+    })
+    renderHome()
+    expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass('bg-rose-100')
+  })
+
+  it('applies emerald class when all meals today are HOME', () => {
+    useMealContext.mockReturnValue({
+      meals: [mealToday('HOME'), mealToday('HOME')],
+      loading: false,
+      error: null,
+    })
+    renderHome()
+    expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass(
+      'bg-emerald-100'
     )
   })
 
@@ -197,6 +234,99 @@ describe('calendar grid', () => {
     const m = String(today.getMonth() + 1).padStart(2, '0')
     const d = String(today.getDate()).padStart(2, '0')
     expect(navigate).toHaveBeenCalledWith(`/day/${y}-${m}-${d}`)
+  })
+})
+
+// ─── Stats card ──────────────────────────────────────────────────────────────
+
+describe('stats card', () => {
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = today.getMonth()
+
+  function mealThisMonth(tag, dayOffset = 0) {
+    return {
+      id: `${tag}-${dayOffset}`,
+      tag,
+      occurredAt: new Date(year, month, 1 + dayOffset, 12, 0, 0).getTime(),
+    }
+  }
+
+  it('shows Home days, Outside days, Both days labels', () => {
+    useMealContext.mockReturnValue({ meals: [], loading: false, error: null })
+    renderHome()
+
+    expect(screen.getByText('Home days')).toBeInTheDocument()
+    expect(screen.getByText('Outside days')).toBeInTheDocument()
+    expect(screen.getByText('Both days')).toBeInTheDocument()
+  })
+
+  it('counts a day with only HOME meals as a home day', () => {
+    useMealContext.mockReturnValue({
+      meals: [mealThisMonth('HOME', 0), mealThisMonth('HOME', 0)],
+      loading: false,
+      error: null,
+    })
+    renderHome()
+
+    expect(screen.getByText('Home days').previousSibling.textContent).toBe('1')
+  })
+
+  it('counts a day with HOME + OUTSIDE meals as a both day, not an outside day', () => {
+    useMealContext.mockReturnValue({
+      meals: [mealThisMonth('HOME', 0), mealThisMonth('OUTSIDE', 0)],
+      loading: false,
+      error: null,
+    })
+    renderHome()
+
+    expect(screen.getByText('Both days').previousSibling.textContent).toBe('1')
+    expect(screen.getByText('Home days').previousSibling.textContent).toBe('0')
+  })
+
+  it('counts both-days toward the outside total for goal comparison', async () => {
+    fetchSettings.mockResolvedValue({ monthlyOutsideGoal: 1 })
+    // Day 1: HOME only. Day 2: HOME + OUTSIDE (counts as "both" → outside total = 1, not over goal).
+    // Day 3: purely OUTSIDE (outside total = 2, now over goal = 1).
+    useMealContext.mockReturnValue({
+      meals: [
+        mealThisMonth('HOME', 0),
+        mealThisMonth('HOME', 1),
+        mealThisMonth('OUTSIDE', 1),
+        mealThisMonth('OUTSIDE', 2),
+      ],
+      loading: false,
+      error: null,
+    })
+    renderHome()
+
+    expect(await screen.findByText('Outside eating limit reached')).toBeInTheDocument()
+  })
+
+  it('does not show the goal banner when outside total is within the limit', async () => {
+    fetchSettings.mockResolvedValue({ monthlyOutsideGoal: 5 })
+    useMealContext.mockReturnValue({
+      meals: [mealThisMonth('OUTSIDE', 0)],
+      loading: false,
+      error: null,
+    })
+    renderHome()
+
+    // Wait for settings to load, then confirm banner is absent.
+    await screen.findByText('Outside days')
+    expect(screen.queryByText('Outside eating limit reached')).not.toBeInTheDocument()
+  })
+
+  it('does not show the goal banner when no goal is set', () => {
+    fetchSettings.mockResolvedValue(null)
+    useMealContext.mockReturnValue({
+      meals: [mealThisMonth('OUTSIDE', 0), mealThisMonth('OUTSIDE', 1), mealThisMonth('OUTSIDE', 2)],
+      loading: false,
+      error: null,
+    })
+    renderHome()
+
+    expect(screen.queryByText('Outside eating limit reached')).not.toBeInTheDocument()
   })
 })
 
