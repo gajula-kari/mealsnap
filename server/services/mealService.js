@@ -1,14 +1,12 @@
 const Meal = require('../models/Meal')
 
-const HARDCODED_USER_ID = 'user-123'
-
-async function createMeal({ imageUrl, tag, amountSpent, note, occurredAt }) {
+async function createMeal(userId, { imageUrl, tag, amountSpent, note, occurredAt }) {
   if (!occurredAt) {
     throw new Error('occurredAt is required')
   }
 
   const meal = await Meal.create({
-    userId: HARDCODED_USER_ID,
+    userId,
     imageUrl: imageUrl ?? null,
     tag,
     amountSpent: tag === 'HOME' ? null : amountSpent,
@@ -19,11 +17,11 @@ async function createMeal({ imageUrl, tag, amountSpent, note, occurredAt }) {
   return meal
 }
 
-async function getMeals() {
-  return Meal.find({ userId: HARDCODED_USER_ID }).sort({ occurredAt: -1 })
+async function getMeals(userId) {
+  return Meal.find({ userId }).sort({ occurredAt: -1 })
 }
 
-async function getMealsByDate(dateString) {
+async function getMealsByDate(userId, dateString) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
     throw new Error('date must be in YYYY-MM-DD format')
   }
@@ -33,21 +31,21 @@ async function getMealsByDate(dateString) {
   const end = new Date(year, month - 1, day, 23, 59, 59, 999).getTime()
 
   const meals = await Meal.find({
-    userId: HARDCODED_USER_ID,
+    userId,
     occurredAt: { $gte: start, $lte: end },
   }).sort({ occurredAt: -1 })
 
   return meals
 }
 
-async function updateMeal(mealId, { tag, amountSpent, note }) {
+async function updateMeal(userId, mealId, { tag, amountSpent, note }) {
   const updates = {
     tag,
     amountSpent: tag === 'HOME' ? null : amountSpent,
     note: note ?? null,
   }
 
-  const meal = await Meal.findOneAndUpdate({ _id: mealId, userId: HARDCODED_USER_ID }, updates, {
+  const meal = await Meal.findOneAndUpdate({ _id: mealId, userId }, updates, {
     new: true,
     runValidators: true,
   })
@@ -59,8 +57,8 @@ async function updateMeal(mealId, { tag, amountSpent, note }) {
   return meal
 }
 
-async function deleteMeal(mealId) {
-  const meal = await Meal.findOneAndDelete({ _id: mealId, userId: HARDCODED_USER_ID })
+async function deleteMeal(userId, mealId) {
+  const meal = await Meal.findOneAndDelete({ _id: mealId, userId })
   if (!meal) {
     throw new Error('Meal not found')
   }
