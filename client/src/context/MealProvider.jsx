@@ -17,7 +17,7 @@ function writeCache(meals) {
   try {
     // imageUrl is a base64 string — too large for localStorage quota.
     // Tags and timestamps are all we need for streak and calendar colours.
-    const slim = meals.map(({ imageUrl: _imageUrl, ...rest }) => rest)
+    const slim = meals.map(({ imageUrl: _, ...rest }) => rest)
     localStorage.setItem(CACHE_KEY, JSON.stringify(slim))
   } catch {
     // localStorage unavailable (private browsing quota) — silently skip
