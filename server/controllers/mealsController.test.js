@@ -204,7 +204,7 @@ describe('updateMealController', () => {
 
   // Any other service error (validation, DB) must fall through to 400.
   it('responds 400 for any other service error', async () => {
-    updateMeal.mockRejectedValue(new Error('amountSpent is required for OUTSIDE meals'))
+    updateMeal.mockRejectedValue(new Error('DB connection lost'))
 
     const req = makeReq({ params: { id: 'abc' }, body: { tag: 'OUTSIDE' } })
     const res = makeRes()
@@ -212,9 +212,7 @@ describe('updateMealController', () => {
     await updateMealController(req, res)
 
     expect(res.status).toHaveBeenCalledWith(400)
-    expect(res.json).toHaveBeenCalledWith({
-      error: 'amountSpent is required for OUTSIDE meals',
-    })
+    expect(res.json).toHaveBeenCalledWith({ error: 'DB connection lost' })
   })
 })
 

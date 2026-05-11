@@ -41,10 +41,6 @@ async function getMealsByDate(dateString) {
 }
 
 async function updateMeal(mealId, { tag, amountSpent, note }) {
-  if (tag === 'OUTSIDE' && amountSpent == null) {
-    throw new Error('amountSpent is required for OUTSIDE meals')
-  }
-
   const updates = {
     tag,
     amountSpent: tag === 'HOME' ? null : amountSpent,
