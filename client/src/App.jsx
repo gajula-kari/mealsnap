@@ -5,10 +5,11 @@ import DayDetail from './pages/DayDetail.jsx'
 
 function Layout({ children }) {
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <div className="mx-auto flex h-screen w-full max-w-[480px] flex-col px-4 py-4">
+    <div className="h-screen overflow-hidden bg-slate-50 text-slate-900">
+      <div className="mx-auto flex h-full w-full max-w-[480px] flex-col px-4 py-4">
         <header className="mb-4 rounded-3xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
           <div className="text-lg font-semibold text-slate-900">MealSnap</div>
+          <p className="text-xs text-slate-400 tracking-wide">Your daily meal journal.</p>
         </header>
 
         <main className="flex-1 overflow-y-auto pb-24">{children}</main>
