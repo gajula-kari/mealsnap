@@ -23,24 +23,6 @@ function renderHome() {
   )
 }
 
-function mealOn(date: Date): Meal {
-  return {
-    id: String(date.getTime()),
-    tag: 'CLEAN',
-    imageUrl: null,
-    amountSpent: null,
-    note: null,
-    occurredAt: date.getTime(),
-  }
-}
-
-function daysAgo(n: number): Date {
-  const d = new Date()
-  d.setDate(d.getDate() - n)
-  d.setHours(12, 0, 0, 0)
-  return d
-}
-
 beforeEach(() => {
   vi.clearAllMocks()
   vi.mocked(fetchSettings).mockResolvedValue(null)
@@ -73,93 +55,6 @@ describe('loading and error states', () => {
     renderHome()
 
     expect(screen.getByText('Failed to load')).toBeInTheDocument()
-  })
-})
-
-describe('calculateStreak (via rendered streak text)', () => {
-  it('shows "0 days" when no meals are logged', () => {
-    vi.mocked(useMealContext).mockReturnValue({
-      meals: [],
-      loading: false,
-      error: null,
-      addMeal: vi.fn(),
-      updateMeal: vi.fn(),
-      deleteMeal: vi.fn(),
-    })
-    renderHome()
-
-    expect(screen.getByText('0 days')).toBeInTheDocument()
-  })
-
-  it('shows "0 days" when the most recent meal is not today', () => {
-    vi.mocked(useMealContext).mockReturnValue({
-      meals: [mealOn(daysAgo(1))],
-      loading: false,
-      error: null,
-      addMeal: vi.fn(),
-      updateMeal: vi.fn(),
-      deleteMeal: vi.fn(),
-    })
-    renderHome()
-
-    expect(screen.getByText('0 days')).toBeInTheDocument()
-  })
-
-  it('shows "1 day" (singular) when only today is logged', () => {
-    vi.mocked(useMealContext).mockReturnValue({
-      meals: [mealOn(daysAgo(0))],
-      loading: false,
-      error: null,
-      addMeal: vi.fn(),
-      updateMeal: vi.fn(),
-      deleteMeal: vi.fn(),
-    })
-    renderHome()
-
-    expect(screen.getByText('1 day')).toBeInTheDocument()
-    expect(screen.queryByText('1 days')).not.toBeInTheDocument()
-  })
-
-  it('shows "2 days" for today + yesterday', () => {
-    vi.mocked(useMealContext).mockReturnValue({
-      meals: [mealOn(daysAgo(0)), mealOn(daysAgo(1))],
-      loading: false,
-      error: null,
-      addMeal: vi.fn(),
-      updateMeal: vi.fn(),
-      deleteMeal: vi.fn(),
-    })
-    renderHome()
-
-    expect(screen.getByText('2 days')).toBeInTheDocument()
-  })
-
-  it('breaks the streak on a gap — counts only the unbroken run', () => {
-    vi.mocked(useMealContext).mockReturnValue({
-      meals: [mealOn(daysAgo(0)), mealOn(daysAgo(2))],
-      loading: false,
-      error: null,
-      addMeal: vi.fn(),
-      updateMeal: vi.fn(),
-      deleteMeal: vi.fn(),
-    })
-    renderHome()
-
-    expect(screen.getByText('1 day')).toBeInTheDocument()
-  })
-
-  it('counts multiple meals on the same day as one streak day', () => {
-    vi.mocked(useMealContext).mockReturnValue({
-      meals: [mealOn(daysAgo(0)), mealOn(daysAgo(0)), mealOn(daysAgo(0))],
-      loading: false,
-      error: null,
-      addMeal: vi.fn(),
-      updateMeal: vi.fn(),
-      deleteMeal: vi.fn(),
-    })
-    renderHome()
-
-    expect(screen.getByText('1 day')).toBeInTheDocument()
   })
 })
 
@@ -256,7 +151,7 @@ describe('calendar grid', () => {
     })
     renderHome()
 
-    await screen.findByText('OVER')
+    await screen.findByText('OVER LIMIT')
     expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass('bg-rose-100')
   })
 
@@ -372,14 +267,44 @@ describe('stats card', () => {
     expect(screen.getByText('Clean days').previousSibling?.textContent).toBe('0')
   })
 
-  it('shows banner when indulgent days exceed the limit', async () => {
+  it('shows "You\'ve reached your limit" when exactly at limit', async () => {
+    vi.mocked(fetchSettings).mockResolvedValue({ monthlyIndulgentLimit: 2 })
+    vi.mocked(useMealContext).mockReturnValue({
+      meals: [mealThisMonth('INDULGENT', 0), mealThisMonth('INDULGENT', 1)],
+      loading: false,
+      error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
+    })
+    renderHome()
+
+    expect(await screen.findByText("You've reached your limit")).toBeInTheDocument()
+  })
+
+  it('shows "You\'ve gone over your limit" when over by 1', async () => {
+    vi.mocked(fetchSettings).mockResolvedValue({ monthlyIndulgentLimit: 1 })
+    vi.mocked(useMealContext).mockReturnValue({
+      meals: [mealThisMonth('INDULGENT', 0), mealThisMonth('INDULGENT', 1)],
+      loading: false,
+      error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
+    })
+    renderHome()
+
+    expect(await screen.findByText("You've gone over your limit")).toBeInTheDocument()
+  })
+
+  it('shows "You\'re N days over your limit" when over by more than 1', async () => {
     vi.mocked(fetchSettings).mockResolvedValue({ monthlyIndulgentLimit: 1 })
     vi.mocked(useMealContext).mockReturnValue({
       meals: [
-        mealThisMonth('CLEAN', 0),
-        mealThisMonth('CLEAN', 1),
+        mealThisMonth('INDULGENT', 0),
         mealThisMonth('INDULGENT', 1),
         mealThisMonth('INDULGENT', 2),
+        mealThisMonth('INDULGENT', 3),
       ],
       loading: false,
       error: null,
@@ -389,10 +314,10 @@ describe('stats card', () => {
     })
     renderHome()
 
-    expect(await screen.findByText('Indulgent day limit reached')).toBeInTheDocument()
+    expect(await screen.findByText("You're 3 days over your limit")).toBeInTheDocument()
   })
 
-  it('does not show the banner when indulgent total is within the limit', async () => {
+  it('does not show a limit message when indulgent total is within the limit', async () => {
     vi.mocked(fetchSettings).mockResolvedValue({ monthlyIndulgentLimit: 5 })
     vi.mocked(useMealContext).mockReturnValue({
       meals: [mealThisMonth('INDULGENT', 0)],
@@ -405,10 +330,10 @@ describe('stats card', () => {
     renderHome()
 
     await screen.findByText('Indulgent days')
-    expect(screen.queryByText('Indulgent day limit reached')).not.toBeInTheDocument()
+    expect(screen.queryByText(/reached your limit|over your limit/)).not.toBeInTheDocument()
   })
 
-  it('does not show the banner when no limit is set', () => {
+  it('does not show a limit message when no limit is set', () => {
     vi.mocked(fetchSettings).mockResolvedValue(null)
     vi.mocked(useMealContext).mockReturnValue({
       meals: [
@@ -424,7 +349,7 @@ describe('stats card', () => {
     })
     renderHome()
 
-    expect(screen.queryByText('Indulgent day limit reached')).not.toBeInTheDocument()
+    expect(screen.queryByText(/reached your limit|over your limit/)).not.toBeInTheDocument()
   })
 })
 
@@ -446,6 +371,9 @@ describe('FAB file input', () => {
     const input = document.querySelector('input[type="file"]') as HTMLInputElement
     await userEvent.upload(input, file)
 
-    expect(navigate).toHaveBeenCalledWith('/tag', { replace: true, state: { image: file } })
+    expect(navigate).toHaveBeenCalledWith('/tag', {
+      replace: true,
+      state: { image: file, source: 'camera' },
+    })
   })
 })

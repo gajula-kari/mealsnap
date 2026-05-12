@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import exifr from 'exifr'
 import { useMealContext } from '../hooks/useMealContext'
 import Spinner from '../components/Spinner'
 import type { Meal, MealTag } from '../types'
@@ -8,6 +9,14 @@ interface TagMealLocationState {
   image?: File
   date?: string
   meal?: Meal
+  source?: 'camera' | 'gallery'
+}
+
+function formatTimeDisplay(time: string): string {
+  const [hh, mm] = time.split(':').map(Number)
+  const d = new Date()
+  d.setHours(hh, mm, 0, 0)
+  return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
 }
 
 function formatDateLabel(date: Date, includeTime: boolean): string {
@@ -40,6 +49,7 @@ export default function TagMeal() {
   const imageFile = state?.image
   const dateFromState = state?.date
   const existingMeal = state?.meal
+  const source = state?.source
 
   const [preview, setPreview] = useState<string | null>(existingMeal?.imageUrl ?? null)
   const [saving, setSaving] = useState(false)
@@ -48,20 +58,49 @@ export default function TagMeal() {
   const [selectedTag, setSelectedTag] = useState<MealTag>(existingMeal?.tag ?? 'CLEAN')
   const [note, setNote] = useState(existingMeal?.note ?? '')
   const [amountSpent, setAmountSpent] = useState<number | string>(existingMeal?.amountSpent ?? '')
+  const [selectedTime, setSelectedTime] = useState<string | null>(() => {
+    if (state?.source !== 'camera' || state?.meal) return null
+    const d = new Date()
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+  })
+  const [timeSource, setTimeSource] = useState<'auto' | 'manual' | null>(() =>
+    state?.source === 'camera' && !state?.meal ? 'auto' : null
+  )
+  const [showTimePicker, setShowTimePicker] = useState(false)
 
   const { occurredAt, dateLabel } = useMemo(() => {
     if (existingMeal) {
       const d = new Date(existingMeal.occurredAt)
       return { occurredAt: existingMeal.occurredAt, dateLabel: formatDateLabel(d, true) }
     }
-    if (dateFromState) {
-      const [y, m, d] = dateFromState.split('-').map(Number)
-      const noon = new Date(y, m - 1, d, 12, 0, 0, 0)
-      return { occurredAt: noon.getTime(), dateLabel: formatDateLabel(noon, false) }
+
+    const base = dateFromState
+      ? (() => {
+          const [y, m, d] = dateFromState.split('-').map(Number)
+          return new Date(y, m - 1, d)
+        })()
+      : new Date(mountedAt)
+
+    const dateLabel = formatDateLabel(base, false)
+
+    if (selectedTime) {
+      const [hh, mm] = selectedTime.split(':').map(Number)
+      const d = new Date(base)
+      d.setHours(hh, mm, 0, 0)
+      return { occurredAt: d.getTime(), dateLabel }
     }
-    const now = new Date(mountedAt)
-    return { occurredAt: null as number | null, dateLabel: formatDateLabel(now, true) }
-  }, [existingMeal, dateFromState, mountedAt])
+
+    if (source === 'camera') {
+      const mounted = new Date(mountedAt)
+      const d = new Date(base)
+      d.setHours(mounted.getHours(), mounted.getMinutes(), mounted.getSeconds(), 0)
+      return { occurredAt: d.getTime(), dateLabel }
+    }
+
+    const noon = new Date(base)
+    noon.setHours(12, 0, 0, 0)
+    return { occurredAt: noon.getTime(), dateLabel }
+  }, [existingMeal, dateFromState, mountedAt, selectedTime, source])
 
   useEffect(() => {
     if (existingMeal?.imageUrl) return
@@ -76,6 +115,27 @@ export default function TagMeal() {
       cancelled = true
     }
   }, [imageFile, existingMeal])
+
+  useEffect(() => {
+    if (source !== 'gallery' || !imageFile || existingMeal) return
+    let cancelled = false
+    exifr
+      .parse(imageFile, ['DateTimeOriginal'])
+      .then((data) => {
+        if (cancelled) return
+        const exifDate = data?.DateTimeOriginal
+        if (exifDate instanceof Date && !isNaN(exifDate.getTime())) {
+          const hh = String(exifDate.getHours()).padStart(2, '0')
+          const mm = String(exifDate.getMinutes()).padStart(2, '0')
+          setSelectedTime(`${hh}:${mm}`)
+          setTimeSource('auto')
+        }
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [source, imageFile, existingMeal])
 
   const backTarget = useMemo(() => {
     if (existingMeal) return `/day/${formatLocalDate(new Date(existingMeal.occurredAt))}`
@@ -152,6 +212,44 @@ export default function TagMeal() {
         </div>
 
         <p className="text-sm text-slate-500">{dateLabel}</p>
+
+        {!existingMeal && (
+          <div className="mt-1">
+            {showTimePicker ? (
+              <input
+                type="time"
+                value={selectedTime ?? ''}
+                autoFocus
+                onChange={(e) => {
+                  setSelectedTime(e.target.value || null)
+                  setTimeSource('manual')
+                  setShowTimePicker(false)
+                }}
+                onBlur={() => setShowTimePicker(false)}
+                className="rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-700 outline-none focus:border-slate-400"
+              />
+            ) : selectedTime ? (
+              <button
+                type="button"
+                onClick={() => setShowTimePicker(true)}
+                className="text-sm text-slate-600 transition hover:text-slate-900"
+              >
+                {formatTimeDisplay(selectedTime)}
+                {timeSource === 'auto' && (
+                  <span className="ml-1.5 text-xs text-slate-400">· tap to edit</span>
+                )}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowTimePicker(true)}
+                className="text-xs text-slate-400 transition hover:text-slate-600"
+              >
+                + Add time (optional)
+              </button>
+            )}
+          </div>
+        )}
 
         {saveError && (
           <p className="rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-600">{saveError}</p>

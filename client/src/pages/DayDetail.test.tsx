@@ -135,7 +135,7 @@ describe('DayDetail', () => {
 
     expect(navigate).toHaveBeenCalledWith('/tag', {
       replace: true,
-      state: { image: file, date: DATE },
+      state: { image: file, date: DATE, source: 'gallery' },
     })
   })
 })

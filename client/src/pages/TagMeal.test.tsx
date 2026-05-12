@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom'
 import TagMeal from './TagMeal'
 
 vi.mock('../hooks/useMealContext')
+vi.mock('exifr', () => ({ default: { parse: vi.fn().mockResolvedValue(null) } }))
 vi.mock('react-router-dom', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react-router-dom')>()
   return {
