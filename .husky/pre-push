@@ -9,6 +9,9 @@ npm run lint
 echo "→ client: prettier"
 npx prettier --check src
 
+echo "→ client: typecheck"
+npm run typecheck
+
 echo "→ client: tests + coverage"
 npx vitest run --coverage
 
@@ -18,6 +21,9 @@ npm run lint
 
 echo "→ server: prettier"
 npx prettier --check .
+
+echo "→ server: typecheck"
+npm run typecheck
 
 echo "→ server: tests"
 npm test

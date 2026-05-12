@@ -21,9 +21,11 @@ export interface Settings {
 }
 
 export interface CreateMealPayload {
-  imageUrl: string
+  image: File
   tag: MealTag
   occurredAt: number
+  note?: string | null
+  amountSpent?: number | null
 }
 
 export interface UpdateMealPayload {

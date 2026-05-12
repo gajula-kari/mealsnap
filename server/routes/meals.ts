@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import multer from 'multer'
 import {
   createMealController,
   getMealsController,
@@ -7,9 +8,10 @@ import {
 } from '../controllers/mealsController'
 
 const router = Router()
+const upload = multer({ storage: multer.memoryStorage() })
 
 router.get('/', getMealsController)
-router.post('/', createMealController)
+router.post('/', upload.single('image'), createMealController)
 router.patch('/:id', updateMealController)
 router.delete('/:id', deleteMealController)
 

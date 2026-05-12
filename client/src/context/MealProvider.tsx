@@ -16,8 +16,7 @@ function readCache(): Meal[] | null {
 
 function writeCache(meals: Meal[]): void {
   try {
-    // imageUrl is a base64 string — too large for localStorage quota.
-    // Tags and timestamps are all we need for streak and calendar colours.
+    // imageUrl excluded — not needed for streak/calendar and keeps the cache small.
     const slim = meals.map(({ imageUrl: _, ...rest }) => rest)
     localStorage.setItem(CACHE_KEY, JSON.stringify(slim))
   } catch {

@@ -18,7 +18,11 @@ function TestConsumer() {
           </li>
         ))}
       </ul>
-      <button onClick={() => addMeal({ tag: 'INDULGENT', occurredAt: 1, imageUrl: '' })}>
+      <button
+        onClick={() =>
+          addMeal({ tag: 'INDULGENT', occurredAt: 1, image: new File([], 'photo.jpg') })
+        }
+      >
         Add
       </button>
       <button onClick={() => updateMeal('id-1', { tag: 'INDULGENT' })}>Update</button>

@@ -45,6 +45,9 @@ Server needs `server/.env`:
 ```
 PORT=3000
 MONGODB_URI=<MongoDB Atlas connection string>
+CLOUDINARY_CLOUD_NAME=<your cloud name>
+CLOUDINARY_API_KEY=<your api key>
+CLOUDINARY_API_SECRET=<your api secret>
 ```
 
 ## Architecture
