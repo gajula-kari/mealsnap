@@ -48,11 +48,11 @@ describe('Header on sub-pages', () => {
     expect(screen.getByText('Settings')).toBeInTheDocument()
   })
 
-  it('shows back arrow and "MealSnap" title on other sub-pages', () => {
+  it('shows back arrow and "Aaharya" title on other sub-pages', () => {
     initialPath = '/day/2024-01-01'
     renderApp()
 
     expect(screen.getAllByRole('button', { name: 'Back' }).length).toBeGreaterThanOrEqual(1)
-    expect(screen.getByText('MealSnap')).toBeInTheDocument()
+    expect(screen.getByText('Aaharya')).toBeInTheDocument()
   })
 })

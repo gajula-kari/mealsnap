@@ -16,8 +16,8 @@ function Header() {
       {isHome ? (
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-lg font-semibold text-slate-900">MealSnap</div>
-            <p className="text-xs text-slate-400 tracking-wide">Snap. Tag. Stay consistent.</p>
+            <div className="text-lg font-semibold text-slate-900">Aaharya</div>
+            <p className="text-xs text-slate-400 tracking-wide">Indulge with intention.</p>
           </div>
           <button
             type="button"
@@ -64,7 +64,7 @@ function Header() {
             </svg>
           </button>
           <div className="text-lg font-semibold text-slate-900">
-            {location.pathname === '/settings' ? 'Settings' : 'MealSnap'}
+            {location.pathname === '/settings' ? 'Settings' : 'Aaharya'}
           </div>
         </div>
       )}
