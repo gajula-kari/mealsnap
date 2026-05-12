@@ -73,7 +73,7 @@ describe('MealsByTag', () => {
     ])
     renderPage()
 
-    expect(screen.getAllByText('CLEAN')).toHaveLength(2)
+    expect(screen.getAllByRole('article')).toHaveLength(2)
     expect(screen.queryByText(/no clean meals/i)).not.toBeInTheDocument()
   })
 
@@ -82,6 +82,6 @@ describe('MealsByTag', () => {
     mockContext([meal('m1', 'INDULGENT'), meal('m2', 'CLEAN')])
     renderPage()
 
-    expect(screen.getAllByText('INDULGENT')).toHaveLength(1)
+    expect(screen.getAllByRole('article')).toHaveLength(1)
   })
 })

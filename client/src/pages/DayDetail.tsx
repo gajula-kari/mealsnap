@@ -6,7 +6,7 @@ import Spinner from '../components/Spinner'
 
 export default function DayDetail() {
   const { date } = useParams<{ date: string }>()
-  const { meals, loading, updateMeal, deleteMeal } = useMealContext()
+  const { meals, loading, deleteMeal } = useMealContext()
   const navigate = useNavigate()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -56,9 +56,14 @@ export default function DayDetail() {
       </section>
 
       {selectedMeals.length > 0 ? (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="columns-2 gap-3">
           {selectedMeals.map((meal) => (
-            <MealCard key={meal.id} meal={meal} onEdit={updateMeal} onDelete={deleteMeal} />
+            <MealCard
+              key={meal.id}
+              meal={meal}
+              onTap={() => navigate('/tag', { replace: true, state: { meal } })}
+              onDelete={deleteMeal}
+            />
           ))}
         </div>
       ) : (
