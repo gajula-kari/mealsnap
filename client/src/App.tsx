@@ -89,11 +89,16 @@ function AppContent() {
     <>
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50"
-        style={{ animation: 'splash-fade 2s ease forwards' }}
+        className="pointer-events-none fixed inset-0 z-[100] bg-slate-50"
+        style={{ animation: 'splash-bg 2.2s ease forwards' }}
       >
-        <p className="text-lg font-semibold text-slate-900">Aaharya</p>
-        <p className="text-xs tracking-wide text-slate-400">Indulge with intention.</p>
+        <div
+          className="flex h-full flex-col items-center justify-center"
+          style={{ animation: 'splash-rise 2.2s ease forwards' }}
+        >
+          <p className="text-lg font-semibold text-slate-900">Aaharya</p>
+          <p className="text-xs tracking-wide text-slate-400">Indulge with intention.</p>
+        </div>
       </div>
 
       {!isOnboarded ? (

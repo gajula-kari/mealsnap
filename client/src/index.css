@@ -1,11 +1,23 @@
 @import 'tailwindcss';
 
-@keyframes splash-fade {
+@keyframes splash-bg {
   0%,
-  75% {
+  68% {
     opacity: 1;
   }
   100% {
+    opacity: 0;
+  }
+}
+
+@keyframes splash-rise {
+  0%,
+  60% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-45vh);
     opacity: 0;
   }
 }
