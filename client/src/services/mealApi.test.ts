@@ -79,6 +79,15 @@ describe('createMeal', () => {
     expect(form.get('amountSpent')).toBe('350')
   })
 
+  it('throws "Request failed" when server sends no error field', async () => {
+    const file = new File(['img'], 'photo.jpg', { type: 'image/jpeg' })
+    mockFetch({}, false)
+
+    await expect(createMeal({ image: file, tag: 'CLEAN', occurredAt: 0 })).rejects.toThrow(
+      'Request failed'
+    )
+  })
+
   it('omits note and amountSpent when null', async () => {
     const file = new File(['img'], 'photo.jpg', { type: 'image/jpeg' })
     mockFetch({ meal: { _id: 'xyz', tag: 'CLEAN', occurredAt: 0, imageUrl: null } })

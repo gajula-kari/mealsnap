@@ -121,6 +121,7 @@ export default function TagMeal() {
     selectedTag,
     amountSpent,
     existingMeal,
+    imageFile,
     preview,
     occurredAt,
     updateMeal,
