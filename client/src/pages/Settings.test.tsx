@@ -91,6 +91,14 @@ describe('quick-pick chips', () => {
     expect(screen.getByRole('spinbutton')).toHaveValue(7)
   })
 
+  it('typing a custom number directly into the input updates the value', async () => {
+    renderSettings()
+    const input = screen.getByRole('spinbutton')
+    await userEvent.clear(input)
+    await userEvent.type(input, '12')
+    expect(input).toHaveValue(12)
+  })
+
   it('the selected chip gets a dark background class', async () => {
     renderSettings()
     const chip = screen.getByRole('button', { name: '10' })
@@ -109,7 +117,7 @@ describe('saving', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Save' }))
 
     expect(saveSettings).toHaveBeenCalledWith(7)
-    expect(navigate).toHaveBeenCalledWith('/')
+    expect(navigate).toHaveBeenCalledWith('/', { replace: true })
   })
 
   it('shows a validation error when saving with no value entered', async () => {

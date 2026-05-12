@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react'
-import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import Home from './pages/Home'
 import TagMeal from './pages/TagMeal'
 import DayDetail from './pages/DayDetail'
@@ -21,7 +21,7 @@ function Header() {
           </div>
           <button
             type="button"
-            onClick={() => navigate('/settings')}
+            onClick={() => navigate('/settings', { replace: true })}
             className="rounded-2xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
             aria-label="Settings"
           >
@@ -45,7 +45,13 @@ function Header() {
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={() => navigate(-1)}
+            onClick={() => {
+              if (location.pathname === '/settings' || location.pathname === '/tag') {
+                navigate('/', { replace: true })
+              } else {
+                navigate(-1)
+              }
+            }}
             className="rounded-2xl p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
             aria-label="Back"
           >
@@ -94,6 +100,7 @@ export default function App() {
           <Route path="/tag" element={<TagMeal />} />
           <Route path="/day/:date" element={<DayDetail />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Layout>
     </BrowserRouter>

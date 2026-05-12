@@ -12,8 +12,8 @@
   "license": "ISC",
   "type": "commonjs",
   "lint-staged": {
-    "client/**/*.{js,jsx}": "prettier --write",
-    "server/**/*.js": "prettier --write"
+    "client/**/*.{js,jsx,ts,tsx}": "prettier --write",
+    "server/**/*.{js,ts}": "prettier --write"
   },
   "devDependencies": {
     "husky": "^9.1.7",

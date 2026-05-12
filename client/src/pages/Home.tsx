@@ -60,7 +60,7 @@ export default function Home() {
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
-    if (file) navigate('/tag', { state: { image: file } })
+    if (file) navigate('/tag', { replace: true, state: { image: file } })
   }
 
   const today = new Date()
