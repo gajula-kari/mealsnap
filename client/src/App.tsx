@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { useMealContext } from './hooks/useMealContext'
 import { calculateStreak } from './utils/streak'
@@ -7,6 +7,7 @@ import TagMeal from './pages/TagMeal'
 import DayDetail from './pages/DayDetail'
 import Settings from './pages/Settings'
 import MealsByTag from './pages/MealsByTag'
+import Onboard from './pages/Onboard'
 import ErrorBoundary from './components/ErrorBoundary'
 
 function Header() {
@@ -81,19 +82,36 @@ function Layout({ children }: { children: ReactNode }) {
   )
 }
 
+function AppContent() {
+  const [isOnboarded, setIsOnboarded] = useState(() => !!localStorage.getItem('aaharya_onboarded'))
+
+  if (!isOnboarded) {
+    return (
+      <Routes>
+        <Route path="/onboard" element={<Onboard onComplete={() => setIsOnboarded(true)} />} />
+        <Route path="*" element={<Navigate to="/onboard" replace />} />
+      </Routes>
+    )
+  }
+
+  return (
+    <Layout>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/tag" element={<TagMeal />} />
+        <Route path="/day/:date" element={<DayDetail />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/meals/:tag" element={<MealsByTag />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Layout>
+  )
+}
+
 export default function App() {
   return (
     <BrowserRouter>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/tag" element={<TagMeal />} />
-          <Route path="/day/:date" element={<DayDetail />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/meals/:tag" element={<MealsByTag />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Layout>
+      <AppContent />
     </BrowserRouter>
   )
 }

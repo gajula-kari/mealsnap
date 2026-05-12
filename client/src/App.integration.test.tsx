@@ -5,6 +5,7 @@ import { SettingsProvider } from './context/SettingsProvider'
 import App from './App'
 
 beforeEach(() => {
+  localStorage.setItem('aaharya_onboarded', 'true')
   vi.stubGlobal('fetch', vi.fn())
 })
 

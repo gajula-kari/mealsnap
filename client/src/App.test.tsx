@@ -22,6 +22,7 @@ import { useNavigate } from 'react-router-dom'
 
 beforeEach(() => {
   initialPath = '/'
+  localStorage.setItem('aaharya_onboarded', 'true')
   vi.stubGlobal(
     'fetch',
     vi.fn().mockResolvedValue({
