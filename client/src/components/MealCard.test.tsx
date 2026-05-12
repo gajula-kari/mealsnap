@@ -13,200 +13,87 @@ const meal: Meal = {
 }
 
 describe('display', () => {
-  it('renders the tag badge, note, and amount', () => {
+  it('renders the meal image with correct src', () => {
     render(<MealCard meal={meal} />)
+    expect(screen.getByRole('img')).toHaveAttribute('src', meal.imageUrl)
+  })
 
-    expect(screen.getByText('INDULGENT')).toBeInTheDocument()
+  it('shows note and amount in footer', () => {
+    render(<MealCard meal={meal} />)
     expect(screen.getByText('Lunch')).toBeInTheDocument()
     expect(screen.getByText('₹200')).toBeInTheDocument()
   })
 
-  it('renders the meal image with correct src', () => {
-    render(<MealCard meal={meal} />)
-
-    expect(screen.getByRole('img')).toHaveAttribute('src', meal.imageUrl)
-  })
-
-  it('shows "No image" placeholder when imageUrl is null', () => {
-    render(<MealCard meal={{ ...meal, imageUrl: null }} />)
-
-    expect(screen.getByText('No image')).toBeInTheDocument()
-    expect(screen.queryByRole('img')).not.toBeInTheDocument()
-  })
-
-  it('hides note and amount when both are null', () => {
+  it('hides footer when note and amount are both null', () => {
     render(<MealCard meal={{ ...meal, note: null, amountSpent: null }} />)
-
     expect(screen.queryByText('Lunch')).not.toBeInTheDocument()
     expect(screen.queryByText(/₹/)).not.toBeInTheDocument()
   })
 
-  it('hides Edit and Delete buttons when handlers are not provided', () => {
-    render(<MealCard meal={meal} />)
+  it('shows "No image" placeholder when imageUrl is null', () => {
+    render(<MealCard meal={{ ...meal, imageUrl: null }} />)
+    expect(screen.getByText('No image')).toBeInTheDocument()
+    expect(screen.queryByRole('img')).not.toBeInTheDocument()
+  })
 
-    expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument()
+  it('shows dustbin when onDelete is provided', () => {
+    render(<MealCard meal={meal} onDelete={vi.fn()} />)
+    expect(screen.getByRole('button', { name: 'Delete meal' })).toBeInTheDocument()
+  })
+
+  it('hides dustbin when onDelete is not provided', () => {
+    render(<MealCard meal={meal} />)
+    expect(screen.queryByRole('button', { name: 'Delete meal' })).not.toBeInTheDocument()
   })
 })
 
-describe('edit flow', () => {
-  it('opens the edit form when Edit is clicked', async () => {
+describe('tap', () => {
+  it('calls onTap when image is clicked', async () => {
     const user = userEvent.setup()
-    render(<MealCard meal={meal} onEdit={vi.fn()} onDelete={vi.fn()} />)
+    const onTap = vi.fn()
+    render(<MealCard meal={meal} onTap={onTap} />)
 
-    await user.click(screen.getByRole('button', { name: 'Edit' }))
-
-    expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument()
+    await user.click(screen.getByRole('img'))
+    expect(onTap).toHaveBeenCalled()
   })
 
-  it('closes the edit form when Cancel is clicked', async () => {
+  it('does not call onTap when dustbin is clicked', async () => {
     const user = userEvent.setup()
-    render(<MealCard meal={meal} onEdit={vi.fn()} onDelete={vi.fn()} />)
+    const onTap = vi.fn()
+    render(<MealCard meal={meal} onTap={onTap} onDelete={vi.fn()} />)
 
-    await user.click(screen.getByRole('button', { name: 'Edit' }))
-    await user.click(screen.getByRole('button', { name: 'Cancel' }))
-
-    expect(screen.queryByRole('button', { name: 'Save' })).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument()
-  })
-
-  it('hides the amount field in the edit form when tag is HOME', async () => {
-    const user = userEvent.setup()
-    render(
-      <MealCard
-        meal={{ ...meal, tag: 'CLEAN', amountSpent: null }}
-        onEdit={vi.fn()}
-        onDelete={vi.fn()}
-      />
-    )
-
-    await user.click(screen.getByRole('button', { name: 'Edit' }))
-
-    expect(screen.queryByPlaceholderText('Amount spent')).not.toBeInTheDocument()
-  })
-
-  it('shows the amount field in the edit form when tag is INDULGENT', async () => {
-    const user = userEvent.setup()
-    render(<MealCard meal={meal} onEdit={vi.fn()} onDelete={vi.fn()} />)
-
-    await user.click(screen.getByRole('button', { name: 'Edit' }))
-
-    expect(screen.getByPlaceholderText('Amount spent')).toBeInTheDocument()
-  })
-
-  it('calls onEdit with amountSpent=null when tag is CLEAN', async () => {
-    const user = userEvent.setup()
-    const onEdit = vi.fn().mockResolvedValue(meal)
-    render(
-      <MealCard
-        meal={{ ...meal, tag: 'CLEAN', amountSpent: null }}
-        onEdit={onEdit}
-        onDelete={vi.fn()}
-      />
-    )
-
-    await user.click(screen.getByRole('button', { name: 'Edit' }))
-    await user.click(screen.getByRole('button', { name: 'Save' }))
-
-    expect(onEdit).toHaveBeenCalledWith(
-      meal.id,
-      expect.objectContaining({ tag: 'CLEAN', amountSpent: null })
-    )
-  })
-
-  it('trims whitespace from the note before saving', async () => {
-    const user = userEvent.setup()
-    const onEdit = vi.fn().mockResolvedValue(meal)
-    render(<MealCard meal={meal} onEdit={onEdit} onDelete={vi.fn()} />)
-
-    await user.click(screen.getByRole('button', { name: 'Edit' }))
-
-    const noteField = screen.getByPlaceholderText('Note (optional)')
-    await user.clear(noteField)
-    await user.type(noteField, '  Dinner  ')
-
-    await user.click(screen.getByRole('button', { name: 'Save' }))
-
-    expect(onEdit).toHaveBeenCalledWith(meal.id, expect.objectContaining({ note: 'Dinner' }))
-  })
-
-  it('saves note as null when the note field is empty', async () => {
-    const user = userEvent.setup()
-    const onEdit = vi.fn().mockResolvedValue(meal)
-    render(<MealCard meal={meal} onEdit={onEdit} onDelete={vi.fn()} />)
-
-    await user.click(screen.getByRole('button', { name: 'Edit' }))
-    await user.clear(screen.getByPlaceholderText('Note (optional)'))
-    await user.click(screen.getByRole('button', { name: 'Save' }))
-
-    expect(onEdit).toHaveBeenCalledWith(meal.id, expect.objectContaining({ note: null }))
+    await user.click(screen.getByRole('button', { name: 'Delete meal' }))
+    expect(onTap).not.toHaveBeenCalled()
   })
 })
 
 describe('delete flow', () => {
-  it('shows a confirmation prompt when Delete is clicked', async () => {
+  it('shows confirmation when dustbin is clicked', async () => {
     const user = userEvent.setup()
-    render(<MealCard meal={meal} onEdit={vi.fn()} onDelete={vi.fn()} />)
+    render(<MealCard meal={meal} onDelete={vi.fn()} />)
 
-    await user.click(screen.getByRole('button', { name: 'Delete' }))
-
+    await user.click(screen.getByRole('button', { name: 'Delete meal' }))
     expect(screen.getByText('Delete this meal?')).toBeInTheDocument()
   })
 
-  it('calls onDelete with meal.id when deletion is confirmed', async () => {
+  it('calls onDelete when confirmed', async () => {
     const user = userEvent.setup()
     const onDelete = vi.fn().mockResolvedValue(undefined)
-    render(<MealCard meal={meal} onEdit={vi.fn()} onDelete={onDelete} />)
+    render(<MealCard meal={meal} onDelete={onDelete} />)
 
-    await user.click(screen.getByRole('button', { name: 'Delete' }))
-    await user.click(screen.getByRole('button', { name: 'Yes' }))
-
+    await user.click(screen.getByRole('button', { name: 'Delete meal' }))
+    await user.click(screen.getByRole('button', { name: 'Yes, delete' }))
     expect(onDelete).toHaveBeenCalledWith(meal.id)
   })
 
-  it('dismisses the confirmation when No is clicked', async () => {
+  it('dismisses confirmation on Cancel', async () => {
     const user = userEvent.setup()
-    render(<MealCard meal={meal} onEdit={vi.fn()} onDelete={vi.fn()} />)
+    render(<MealCard meal={meal} onDelete={vi.fn()} />)
 
-    await user.click(screen.getByRole('button', { name: 'Delete' }))
-    await user.click(screen.getByRole('button', { name: 'No' }))
+    await user.click(screen.getByRole('button', { name: 'Delete meal' }))
+    await user.click(screen.getByRole('button', { name: 'Cancel' }))
 
     expect(screen.queryByText('Delete this meal?')).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument()
-  })
-})
-
-describe('tag switching in edit form', () => {
-  it('switching tag to CLEAN hides the amount field', async () => {
-    const user = userEvent.setup()
-    render(<MealCard meal={meal} onEdit={vi.fn()} onDelete={vi.fn()} />)
-
-    await user.click(screen.getByRole('button', { name: 'Edit' }))
-    expect(screen.getByPlaceholderText('Amount spent')).toBeInTheDocument()
-
-    const tagButtons = screen.getAllByRole('button', { name: 'CLEAN' })
-    await user.click(tagButtons[tagButtons.length - 1])
-
-    expect(screen.queryByPlaceholderText('Amount spent')).not.toBeInTheDocument()
-  })
-
-  it('switching tag from CLEAN to INDULGENT shows the amount field', async () => {
-    const user = userEvent.setup()
-    render(
-      <MealCard
-        meal={{ ...meal, tag: 'CLEAN', amountSpent: null }}
-        onEdit={vi.fn()}
-        onDelete={vi.fn()}
-      />
-    )
-
-    await user.click(screen.getByRole('button', { name: 'Edit' }))
-    expect(screen.queryByPlaceholderText('Amount spent')).not.toBeInTheDocument()
-
-    const tagButtons = screen.getAllByRole('button', { name: 'INDULGENT' })
-    await user.click(tagButtons[tagButtons.length - 1])
-
-    expect(screen.getByPlaceholderText('Amount spent')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Delete meal' })).toBeInTheDocument()
   })
 })

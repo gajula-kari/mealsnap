@@ -113,7 +113,7 @@ describe('TagMeal with image', () => {
       </MemoryRouter>
     )
 
-    await screen.findByAltText('Selected meal')
+    await screen.findByAltText('Meal')
 
     expect(screen.getByRole('button', { name: '✓ Clean' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '⚠ Indulgent' })).toBeInTheDocument()
@@ -145,16 +145,12 @@ describe('TagMeal with image', () => {
         <TagMeal />
       </MemoryRouter>
     )
-    await screen.findByAltText('Selected meal')
+    await screen.findByAltText('Meal')
 
     await userEvent.click(screen.getByRole('button', { name: 'Save' }))
 
     expect(addMeal).toHaveBeenCalledWith(expect.objectContaining({ tag: 'CLEAN' }))
-    const today = new Date()
-    const y = today.getFullYear()
-    const m = String(today.getMonth() + 1).padStart(2, '0')
-    const d = String(today.getDate()).padStart(2, '0')
-    expect(navigate).toHaveBeenCalledWith(`/day/${y}-${m}-${d}`, { replace: true })
+    expect(navigate).toHaveBeenCalledWith('/', { replace: true })
   })
 
   it('uses noon of dateFromState as occurredAt when coming from a past day', async () => {
@@ -180,7 +176,7 @@ describe('TagMeal with image', () => {
         <TagMeal />
       </MemoryRouter>
     )
-    await screen.findByAltText('Selected meal')
+    await screen.findByAltText('Meal')
 
     await userEvent.click(screen.getByRole('button', { name: '⚠ Indulgent' }))
     await userEvent.click(screen.getByRole('button', { name: 'Save' }))
@@ -218,7 +214,7 @@ describe('TagMeal with image', () => {
         <TagMeal />
       </MemoryRouter>
     )
-    await screen.findByAltText('Selected meal')
+    await screen.findByAltText('Meal')
 
     await userEvent.click(screen.getByRole('button', { name: 'Save' }))
 
@@ -247,7 +243,7 @@ describe('TagMeal with image', () => {
         <TagMeal />
       </MemoryRouter>
     )
-    await screen.findByAltText('Selected meal')
+    await screen.findByAltText('Meal')
 
     await userEvent.click(screen.getByRole('button', { name: 'Save' }))
 
@@ -320,7 +316,7 @@ describe('TagMeal with image', () => {
         <TagMeal />
       </MemoryRouter>
     )
-    await screen.findByAltText('Selected meal')
+    await screen.findByAltText('Meal')
 
     await userEvent.click(screen.getByRole('button', { name: 'Save' }))
 

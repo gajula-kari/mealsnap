@@ -2,11 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useMealContext } from '../hooks/useMealContext'
 import Spinner from '../components/Spinner'
-import type { MealTag } from '../types'
+import type { Meal, MealTag } from '../types'
 
 interface TagMealLocationState {
   image?: File
   date?: string
+  meal?: Meal
 }
 
 function formatDateLabel(date: Date, includeTime: boolean): string {
@@ -28,36 +29,42 @@ function formatLocalDate(date: Date): string {
   return `${y}-${m}-${d}`
 }
 
+const TAG_OPTIONS: MealTag[] = ['CLEAN', 'INDULGENT']
+
 export default function TagMeal() {
-  const { addMeal } = useMealContext()
+  const { addMeal, updateMeal } = useMealContext()
   const location = useLocation()
   const navigate = useNavigate()
   const state = location.state as TagMealLocationState | null
+
   const imageFile = state?.image
   const dateFromState = state?.date
-  const [preview, setPreview] = useState<string | null>(null)
+  const existingMeal = state?.meal
+
+  const [preview, setPreview] = useState<string | null>(existingMeal?.imageUrl ?? null)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
   const [mountedAt] = useState(() => Date.now())
-  const [selectedTag, setSelectedTag] = useState<MealTag>('CLEAN')
+  const [selectedTag, setSelectedTag] = useState<MealTag>(existingMeal?.tag ?? 'CLEAN')
+  const [note, setNote] = useState(existingMeal?.note ?? '')
+  const [amountSpent, setAmountSpent] = useState<number | string>(existingMeal?.amountSpent ?? '')
 
   const { occurredAt, dateLabel } = useMemo(() => {
+    if (existingMeal) {
+      const d = new Date(existingMeal.occurredAt)
+      return { occurredAt: existingMeal.occurredAt, dateLabel: formatDateLabel(d, true) }
+    }
     if (dateFromState) {
       const [y, m, d] = dateFromState.split('-').map(Number)
       const noon = new Date(y, m - 1, d, 12, 0, 0, 0)
-      return {
-        occurredAt: noon.getTime(),
-        dateLabel: formatDateLabel(noon, false),
-      }
+      return { occurredAt: noon.getTime(), dateLabel: formatDateLabel(noon, false) }
     }
     const now = new Date(mountedAt)
-    return {
-      occurredAt: null as number | null,
-      dateLabel: formatDateLabel(now, true),
-    }
-  }, [dateFromState, mountedAt])
+    return { occurredAt: null as number | null, dateLabel: formatDateLabel(now, true) }
+  }, [existingMeal, dateFromState, mountedAt])
 
   useEffect(() => {
+    if (existingMeal?.imageUrl) return
     if (!imageFile) return
     let cancelled = false
     const reader = new FileReader()
@@ -68,39 +75,68 @@ export default function TagMeal() {
     return () => {
       cancelled = true
     }
-  }, [imageFile])
+  }, [imageFile, existingMeal])
 
-  const mealTagOptions = useMemo<MealTag[]>(() => ['CLEAN', 'INDULGENT'], [])
+  const backTarget = useMemo(() => {
+    if (existingMeal) return `/day/${formatLocalDate(new Date(existingMeal.occurredAt))}`
+    if (dateFromState) return `/day/${dateFromState}`
+    return '/'
+  }, [existingMeal, dateFromState])
 
   const handleSave = useCallback(async () => {
-    if (!preview || saving) return
+    if (saving) return
 
     setSaving(true)
     setSaveError(null)
     try {
-      const finalOccurredAt = occurredAt ?? Date.now()
-      await addMeal({ imageUrl: preview, tag: selectedTag, occurredAt: finalOccurredAt })
+      const trimmedNote = note.trim() || null
+      const parsedAmount =
+        selectedTag === 'CLEAN' ? null : amountSpent !== '' ? Number(amountSpent) : null
 
-      const targetDate = dateFromState ?? formatLocalDate(new Date())
-      navigate(`/day/${targetDate}`, { replace: true })
+      if (existingMeal) {
+        await updateMeal(existingMeal.id, {
+          tag: selectedTag,
+          note: trimmedNote,
+          amountSpent: parsedAmount,
+        })
+      } else {
+        if (!preview) return
+        await addMeal({ imageUrl: preview, tag: selectedTag, occurredAt: occurredAt ?? Date.now() })
+      }
+
+      navigate(backTarget, { replace: true })
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Unknown error')
       setSaving(false)
     }
-  }, [preview, saving, selectedTag, occurredAt, addMeal, dateFromState, navigate])
+  }, [
+    saving,
+    note,
+    selectedTag,
+    amountSpent,
+    existingMeal,
+    preview,
+    occurredAt,
+    updateMeal,
+    addMeal,
+    navigate,
+    backTarget,
+  ])
 
-  if (!imageFile) {
+  if (!imageFile && !existingMeal) {
     return <Navigate to="/" replace />
   }
 
   return (
     <div className="p-6">
       <div className="mx-auto max-w-xl space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h1 className="text-3xl font-bold text-slate-900">Tag Meal</h1>
+        <h1 className="text-3xl font-bold text-slate-900">
+          {existingMeal ? 'Edit Meal' : 'Tag Meal'}
+        </h1>
 
         <div className="overflow-hidden rounded-3xl bg-slate-100">
           {preview ? (
-            <img src={preview} alt="Selected meal" className="h-72 w-full object-cover" />
+            <img src={preview} alt="Meal" className="h-72 w-full object-cover" />
           ) : (
             <div className="flex h-72 items-center justify-center">
               <Spinner />
@@ -115,7 +151,7 @@ export default function TagMeal() {
         )}
 
         <div className="grid grid-cols-2 gap-3">
-          {mealTagOptions.map((tag) => (
+          {TAG_OPTIONS.map((tag) => (
             <button
               key={tag}
               type="button"
@@ -131,6 +167,24 @@ export default function TagMeal() {
             </button>
           ))}
         </div>
+
+        {selectedTag !== 'CLEAN' && (
+          <input
+            type="number"
+            placeholder="Amount spent (optional)"
+            value={amountSpent}
+            onChange={(e) => setAmountSpent(e.target.value)}
+            className="w-full rounded-3xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-slate-400"
+          />
+        )}
+
+        <textarea
+          placeholder="Note (optional)"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          rows={2}
+          className="w-full resize-none rounded-3xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-slate-400"
+        />
 
         <button
           type="button"
@@ -149,7 +203,7 @@ export default function TagMeal() {
 
         <button
           type="button"
-          onClick={() => navigate(dateFromState ? `/day/${dateFromState}` : '/', { replace: true })}
+          onClick={() => navigate(backTarget, { replace: true })}
           className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-600 transition hover:bg-slate-50"
         >
           Cancel

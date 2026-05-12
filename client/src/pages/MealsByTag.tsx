@@ -47,7 +47,7 @@ export default function MealsByTag() {
           No {TAG_LABEL[normalised].toLowerCase()} meals this month.
         </p>
       ) : (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="columns-2 gap-3">
           {filtered.map((meal) => (
             <MealCard key={meal.id} meal={meal} />
           ))}

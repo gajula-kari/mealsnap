@@ -80,7 +80,7 @@ describe('DayDetail', () => {
     })
     renderDayDetail()
 
-    expect(screen.getAllByText('CLEAN')).toHaveLength(2)
+    expect(screen.getAllByRole('article')).toHaveLength(2)
     expect(screen.queryByText('No meals logged')).not.toBeInTheDocument()
   })
 
