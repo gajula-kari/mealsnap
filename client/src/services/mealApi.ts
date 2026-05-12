@@ -41,10 +41,20 @@ export async function fetchMeals(): Promise<Meal[]> {
 }
 
 export async function createMeal(payload: CreateMealPayload): Promise<Meal> {
-  const data = (await request(BASE, {
+  const form = new FormData()
+  form.append('image', payload.image)
+  form.append('tag', payload.tag)
+  form.append('occurredAt', String(payload.occurredAt))
+  if (payload.note != null) form.append('note', payload.note)
+  if (payload.amountSpent != null) form.append('amountSpent', String(payload.amountSpent))
+
+  const res = await fetch(BASE, {
     method: 'POST',
-    body: JSON.stringify(payload),
-  })) as { meal: RawMeal }
+    headers: { 'x-user-id': getDeviceId() },
+    body: form,
+  })
+  const data = (await res.json()) as { error?: string; meal: RawMeal }
+  if (!res.ok) throw new Error(data.error || 'Request failed')
   return normalize(data.meal)
 }
 

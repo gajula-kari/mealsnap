@@ -41,21 +41,53 @@ describe('fetchMeals', () => {
 })
 
 describe('createMeal', () => {
-  it('POSTs to /api/meals with JSON body and returns the normalized meal', async () => {
-    const payload = { tag: 'CLEAN' as const, occurredAt: 1700000000000, imageUrl: 'data:img' }
-    mockFetch({ meal: { _id: 'xyz', ...payload } })
+  it('POSTs to /meals as FormData and returns the normalized meal', async () => {
+    const file = new File(['img'], 'photo.jpg', { type: 'image/jpeg' })
+    const payload = { image: file, tag: 'CLEAN' as const, occurredAt: 1700000000000 }
+    mockFetch({ meal: { _id: 'xyz', tag: 'CLEAN', occurredAt: 1700000000000, imageUrl: null } })
 
     const result = await createMeal(payload)
 
-    expect(fetch).toHaveBeenCalledWith(
-      '/meals',
-      expect.objectContaining({
-        method: 'POST',
-        body: JSON.stringify(payload),
-        headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
-      })
-    )
+    const [url, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit]
+    expect(url).toBe('/meals')
+    expect(options.method).toBe('POST')
+    expect(options.body).toBeInstanceOf(FormData)
+    expect((options.headers as Record<string, string>)['x-user-id']).toBe('test-device-id')
+    expect((options.headers as Record<string, string>)['Content-Type']).toBeUndefined()
+
+    const form = options.body as FormData
+    expect(form.get('tag')).toBe('CLEAN')
+    expect(form.get('occurredAt')).toBe('1700000000000')
+    expect(form.get('image')).toBe(file)
     expect(result).toMatchObject({ id: 'xyz', tag: 'CLEAN' })
+  })
+
+  it('appends note and amountSpent when provided', async () => {
+    const file = new File(['img'], 'photo.jpg', { type: 'image/jpeg' })
+    mockFetch({ meal: { _id: 'xyz', tag: 'INDULGENT', occurredAt: 0, imageUrl: null } })
+
+    await createMeal({
+      image: file,
+      tag: 'INDULGENT',
+      occurredAt: 0,
+      note: 'Lunch',
+      amountSpent: 350,
+    })
+
+    const form = (vi.mocked(fetch).mock.calls[0] as [string, RequestInit])[1].body as FormData
+    expect(form.get('note')).toBe('Lunch')
+    expect(form.get('amountSpent')).toBe('350')
+  })
+
+  it('omits note and amountSpent when null', async () => {
+    const file = new File(['img'], 'photo.jpg', { type: 'image/jpeg' })
+    mockFetch({ meal: { _id: 'xyz', tag: 'CLEAN', occurredAt: 0, imageUrl: null } })
+
+    await createMeal({ image: file, tag: 'CLEAN', occurredAt: 0, note: null, amountSpent: null })
+
+    const form = (vi.mocked(fetch).mock.calls[0] as [string, RequestInit])[1].body as FormData
+    expect(form.get('note')).toBeNull()
+    expect(form.get('amountSpent')).toBeNull()
   })
 })
 

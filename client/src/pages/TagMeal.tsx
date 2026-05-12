@@ -100,8 +100,14 @@ export default function TagMeal() {
           amountSpent: parsedAmount,
         })
       } else {
-        if (!preview) return
-        await addMeal({ imageUrl: preview, tag: selectedTag, occurredAt: occurredAt ?? Date.now() })
+        if (!imageFile || !preview) return
+        await addMeal({
+          image: imageFile,
+          tag: selectedTag,
+          occurredAt: occurredAt ?? Date.now(),
+          note: trimmedNote,
+          amountSpent: parsedAmount,
+        })
       }
 
       navigate(backTarget, { replace: true })

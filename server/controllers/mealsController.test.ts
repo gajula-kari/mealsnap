@@ -60,7 +60,7 @@ describe('createMealController', () => {
 
     const req = makeReq({
       headers: withUser,
-      body: { tag: 'CLEAN', occurredAt: 1700000000000 },
+      body: { tag: 'CLEAN', occurredAt: '1700000000000', note: 'Lunch', amountSpent: '' },
       file: fakeFile,
     })
     const res = makeRes()
@@ -71,10 +71,27 @@ describe('createMealController', () => {
     expect(createMeal).toHaveBeenCalledWith(USER_ID, {
       tag: 'CLEAN',
       occurredAt: 1700000000000,
+      note: 'Lunch',
+      amountSpent: undefined,
       imageUrl: UPLOADED_URL,
     })
     expect(res.status).toHaveBeenCalledWith(201)
     expect(res.json).toHaveBeenCalledWith({ meal: fakeMeal })
+  })
+
+  it('parses amountSpent as a number when provided', async () => {
+    jest.mocked(createMeal).mockResolvedValue({} as any)
+
+    const req = makeReq({
+      headers: withUser,
+      body: { tag: 'INDULGENT', occurredAt: '1700000000000', amountSpent: '350' },
+      file: fakeFile,
+    })
+    const res = makeRes()
+
+    await createMealController(req, res as unknown as Response)
+
+    expect(createMeal).toHaveBeenCalledWith(USER_ID, expect.objectContaining({ amountSpent: 350 }))
   })
 
   it('sets imageUrl to null when no file is uploaded', async () => {

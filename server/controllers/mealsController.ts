@@ -22,7 +22,16 @@ export async function createMealController(req: Request, res: Response): Promise
   if (!userId) return
   try {
     const imageUrl = req.file ? await uploadImage(req.file.buffer) : null
-    const meal = await createMeal(userId, { ...req.body, imageUrl })
+    const meal = await createMeal(userId, {
+      tag: req.body.tag,
+      occurredAt: Number(req.body.occurredAt),
+      note: req.body.note || null,
+      amountSpent:
+        req.body.amountSpent != null && req.body.amountSpent !== ''
+          ? Number(req.body.amountSpent)
+          : undefined,
+      imageUrl,
+    })
     res.status(201).json({ meal })
   } catch (err) {
     res.status(400).json({ error: (err as Error).message })
