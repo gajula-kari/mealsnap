@@ -7,6 +7,7 @@ import {
 } from './mealsController'
 
 jest.mock('../services/mealService')
+jest.mock('../services/uploadService')
 import {
   createMeal,
   getMeals,
@@ -14,6 +15,7 @@ import {
   updateMeal,
   deleteMeal,
 } from '../services/mealService'
+import { uploadImage } from '../services/uploadService'
 
 type MockRes = { status: jest.Mock; json: jest.Mock }
 
@@ -23,10 +25,11 @@ function makeReq(
     params?: Record<string, string>
     query?: Record<string, string>
     headers?: Record<string, string>
+    file?: Express.Multer.File
   } = {}
 ): Request {
-  const { body = {}, params = {}, query = {}, headers = {} } = options
-  return { body, params, query, headers } as unknown as Request
+  const { body = {}, params = {}, query = {}, headers = {}, file } = options
+  return { body, params, query, headers, file } as unknown as Request
 }
 
 function makeRes(): MockRes {
@@ -44,24 +47,68 @@ beforeEach(() => {
 })
 
 describe('createMealController', () => {
+  const fakeFile = { buffer: Buffer.from('img') } as Express.Multer.File
+  const UPLOADED_URL = 'https://res.cloudinary.com/test/image/upload/aaharya/abc.jpg'
+
+  beforeEach(() => {
+    jest.mocked(uploadImage).mockResolvedValue(UPLOADED_URL)
+  })
+
   it('responds 201 with the created meal on success', async () => {
     const fakeMeal = { _id: 'abc', tag: 'CLEAN', occurredAt: 1700000000000 }
     jest.mocked(createMeal).mockResolvedValue(fakeMeal as any)
+
+    const req = makeReq({
+      headers: withUser,
+      body: { tag: 'CLEAN', occurredAt: 1700000000000 },
+      file: fakeFile,
+    })
+    const res = makeRes()
+
+    await createMealController(req, res as unknown as Response)
+
+    expect(uploadImage).toHaveBeenCalledWith(fakeFile.buffer)
+    expect(createMeal).toHaveBeenCalledWith(USER_ID, {
+      tag: 'CLEAN',
+      occurredAt: 1700000000000,
+      imageUrl: UPLOADED_URL,
+    })
+    expect(res.status).toHaveBeenCalledWith(201)
+    expect(res.json).toHaveBeenCalledWith({ meal: fakeMeal })
+  })
+
+  it('sets imageUrl to null when no file is uploaded', async () => {
+    jest.mocked(createMeal).mockResolvedValue({} as any)
 
     const req = makeReq({ headers: withUser, body: { tag: 'CLEAN', occurredAt: 1700000000000 } })
     const res = makeRes()
 
     await createMealController(req, res as unknown as Response)
 
-    expect(createMeal).toHaveBeenCalledWith(USER_ID, req.body)
-    expect(res.status).toHaveBeenCalledWith(201)
-    expect(res.json).toHaveBeenCalledWith({ meal: fakeMeal })
+    expect(uploadImage).not.toHaveBeenCalled()
+    expect(createMeal).toHaveBeenCalledWith(USER_ID, expect.objectContaining({ imageUrl: null }))
+  })
+
+  it('responds 400 when the upload throws', async () => {
+    jest.mocked(uploadImage).mockRejectedValue(new Error('Upload failed'))
+
+    const req = makeReq({
+      headers: withUser,
+      body: { tag: 'CLEAN', occurredAt: 1700000000000 },
+      file: fakeFile,
+    })
+    const res = makeRes()
+
+    await createMealController(req, res as unknown as Response)
+
+    expect(res.status).toHaveBeenCalledWith(400)
+    expect(res.json).toHaveBeenCalledWith({ error: 'Upload failed' })
   })
 
   it('responds 400 with the error message when the service throws', async () => {
     jest.mocked(createMeal).mockRejectedValue(new Error('occurredAt is required'))
 
-    const req = makeReq({ headers: withUser, body: {} })
+    const req = makeReq({ headers: withUser, body: {}, file: fakeFile })
     const res = makeRes()
 
     await createMealController(req, res as unknown as Response)

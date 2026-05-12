@@ -6,7 +6,7 @@ import settingsRouter from './routes/settings'
 const app = express()
 
 app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }))
-app.use(express.json({ limit: '10mb' }))
+app.use(express.json())
 
 app.get('/health', (_req: Request, res: Response) => res.json({ status: 'ok' }))
 

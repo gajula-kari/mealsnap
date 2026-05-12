@@ -6,6 +6,7 @@ import {
   updateMeal,
   deleteMeal,
 } from '../services/mealService'
+import { uploadImage } from '../services/uploadService'
 
 function getUserId(req: Request, res: Response): string | null {
   const userId = req.headers['x-user-id']
@@ -20,7 +21,8 @@ export async function createMealController(req: Request, res: Response): Promise
   const userId = getUserId(req, res)
   if (!userId) return
   try {
-    const meal = await createMeal(userId, req.body)
+    const imageUrl = req.file ? await uploadImage(req.file.buffer) : null
+    const meal = await createMeal(userId, { ...req.body, imageUrl })
     res.status(201).json({ meal })
   } catch (err) {
     res.status(400).json({ error: (err as Error).message })
