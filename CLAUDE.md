@@ -87,9 +87,8 @@ Types only: `feat` · `fix` · `refactor` · `style` · `chore` · `docs`. One c
 **Before every push:**
 1. `git pull origin main`
 2. If the work added or changed routes, models, services, or dev commands — review and update this file
-3. Check if the branch name still reflects the work — rename if not:
+3. Check if the branch name still reflects the work. **Never rename an existing branch** — it has commits tied to its original purpose. If the name no longer fits, create a new branch from current HEAD:
 ```bash
-git branch -m <old> <new>
-git push origin -u <new>
-git push origin --delete <old>
+git checkout -b <new-name>
+git push origin -u <new-name>
 ```
