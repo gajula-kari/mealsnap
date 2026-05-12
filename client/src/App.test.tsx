@@ -43,42 +43,29 @@ function renderApp() {
 }
 
 describe('Header on sub-pages', () => {
-  it('shows back arrow and "Settings" title on /settings', () => {
+  it('shows "Aaharya" button and no back arrow on /settings', () => {
     initialPath = '/settings'
     renderApp()
 
-    expect(screen.getByRole('button', { name: 'Back' })).toBeInTheDocument()
-    expect(screen.getByText('Settings')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Aaharya' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Back' })).not.toBeInTheDocument()
   })
 
-  it('shows back arrow and "Aaharya" title on other sub-pages', () => {
+  it('shows "Aaharya" button on other sub-pages', () => {
     initialPath = '/day/2024-01-01'
     renderApp()
 
-    expect(screen.getAllByRole('button', { name: 'Back' }).length).toBeGreaterThanOrEqual(1)
-    expect(screen.getByText('Aaharya')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Aaharya' })).toBeInTheDocument()
   })
 
-  it('back button on /settings navigates to / with replace', async () => {
+  it('"Aaharya" button navigates to / with replace', async () => {
     const navigate = vi.fn()
     vi.mocked(useNavigate).mockReturnValue(navigate)
     initialPath = '/settings'
     renderApp()
 
-    await userEvent.click(screen.getByRole('button', { name: 'Back' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Aaharya' }))
 
     expect(navigate).toHaveBeenCalledWith('/', { replace: true })
-  })
-
-  it('back button on /day/:date calls navigate(-1)', async () => {
-    const navigate = vi.fn()
-    vi.mocked(useNavigate).mockReturnValue(navigate)
-    initialPath = '/day/2024-01-01'
-    renderApp()
-
-    const backButtons = screen.getAllByRole('button', { name: 'Back' })
-    await userEvent.click(backButtons[0])
-
-    expect(navigate).toHaveBeenCalledWith(-1)
   })
 })

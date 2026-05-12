@@ -97,3 +97,54 @@ describe('delete flow', () => {
     expect(screen.getByRole('button', { name: 'Delete meal' })).toBeInTheDocument()
   })
 })
+
+describe('lightbox', () => {
+  it('opens when image is clicked in readonly mode', async () => {
+    const user = userEvent.setup()
+    render(<MealCard meal={meal} />)
+
+    await user.click(screen.getByRole('img'))
+
+    expect(screen.getByRole('dialog', { name: 'Meal image' })).toBeInTheDocument()
+  })
+
+  it('closes when backdrop is clicked', async () => {
+    const user = userEvent.setup()
+    render(<MealCard meal={meal} />)
+
+    await user.click(screen.getByRole('img'))
+    await user.click(screen.getByRole('dialog', { name: 'Meal image' }))
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('closes on Escape key', async () => {
+    const user = userEvent.setup()
+    render(<MealCard meal={meal} />)
+
+    await user.click(screen.getByRole('img'))
+    await user.keyboard('{Escape}')
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('does not open lightbox when onTap is provided', async () => {
+    const user = userEvent.setup()
+    const onTap = vi.fn()
+    render(<MealCard meal={meal} onTap={onTap} />)
+
+    await user.click(screen.getByRole('img'))
+
+    expect(onTap).toHaveBeenCalled()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('does not open lightbox when there is no image', async () => {
+    const user = userEvent.setup()
+    render(<MealCard meal={{ ...meal, imageUrl: null }} />)
+
+    await user.click(screen.getByText('No image'))
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+})

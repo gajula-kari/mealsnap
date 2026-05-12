@@ -75,14 +75,14 @@ describe('App integration', () => {
 })
 
 describe('Header', () => {
-  it('shows back arrow and "Settings" title after navigating to /settings', async () => {
+  it('shows "Aaharya" button and no back arrow after navigating to /settings', async () => {
     mockFetch([])
     renderApp()
 
     await screen.findByText('0 days')
     await userEvent.click(screen.getByRole('button', { name: 'Settings' }))
 
-    expect(await screen.findByRole('button', { name: 'Back' })).toBeInTheDocument()
-    expect(screen.getByText('Settings')).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Aaharya' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Back' })).not.toBeInTheDocument()
   })
 })
