@@ -109,7 +109,7 @@ describe('saving', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Save' }))
 
     expect(saveSettings).toHaveBeenCalledWith(7)
-    expect(navigate).toHaveBeenCalledWith('/')
+    expect(navigate).toHaveBeenCalledWith('/', { replace: true })
   })
 
   it('shows a validation error when saving with no value entered', async () => {

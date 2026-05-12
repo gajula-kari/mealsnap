@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useMealContext } from '../hooks/useMealContext'
 import type { MealTag } from '../types'
 
@@ -81,7 +81,7 @@ export default function TagMeal() {
       await addMeal({ imageUrl: preview, tag: selectedTag, occurredAt: finalOccurredAt })
 
       const targetDate = dateFromState ?? formatLocalDate(new Date())
-      navigate(`/day/${targetDate}`)
+      navigate(`/day/${targetDate}`, { replace: true })
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Unknown error')
       setSaving(false)
@@ -89,21 +89,7 @@ export default function TagMeal() {
   }, [preview, saving, selectedTag, occurredAt, addMeal, dateFromState, navigate])
 
   if (!imageFile) {
-    return (
-      <div className="p-6">
-        <div className="mx-auto max-w-xl space-y-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h1 className="text-3xl font-bold text-slate-900">Tag Meal</h1>
-          <p className="text-slate-600">No image found. Please capture an image first.</p>
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="inline-flex rounded-2xl border border-slate-900 px-4 py-3 text-slate-900 transition hover:bg-slate-100"
-          >
-            Go Back
-          </button>
-        </div>
-      </div>
-    )
+    return <Navigate to="/" replace />
   }
 
   return (
@@ -156,7 +142,9 @@ export default function TagMeal() {
 
         <button
           type="button"
-          onClick={() => navigate(-1)}
+          onClick={() =>
+            navigate(dateFromState ? `/day/${dateFromState}` : '/', { replace: true })
+          }
           className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-600 transition hover:bg-slate-50"
         >
           Cancel

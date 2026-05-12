@@ -45,7 +45,7 @@ export default function Settings() {
       const updated = await saveSettings(parsed)
       setPreviousGoal(updated.previousGoal)
       setGoalUpdatedAt(updated.goalUpdatedAt)
-      navigate('/')
+      navigate('/', { replace: true })
     } catch {
       setError('Failed to save. Try again.')
     } finally {

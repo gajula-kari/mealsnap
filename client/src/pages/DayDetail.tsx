@@ -11,7 +11,7 @@ export default function DayDetail() {
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
-    if (file) navigate('/tag', { state: { image: file, date } })
+    if (file) navigate('/tag', { replace: true, state: { image: file, date } })
   }
 
   const [y, m, d] = (date ?? '').split('-').map(Number)

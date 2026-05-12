@@ -446,6 +446,6 @@ describe('FAB file input', () => {
     const input = document.querySelector('input[type="file"]') as HTMLInputElement
     await userEvent.upload(input, file)
 
-    expect(navigate).toHaveBeenCalledWith('/tag', { state: { image: file } })
+    expect(navigate).toHaveBeenCalledWith('/tag', { replace: true, state: { image: file } })
   })
 })
