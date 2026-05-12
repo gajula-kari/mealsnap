@@ -133,6 +133,9 @@ describe('DayDetail', () => {
     const input = document.querySelector('input[type="file"]') as HTMLInputElement
     await userEvent.upload(input, file)
 
-    expect(navigate).toHaveBeenCalledWith('/tag', { replace: true, state: { image: file, date: DATE } })
+    expect(navigate).toHaveBeenCalledWith('/tag', {
+      replace: true,
+      state: { image: file, date: DATE },
+    })
   })
 })

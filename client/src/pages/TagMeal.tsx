@@ -142,9 +142,7 @@ export default function TagMeal() {
 
         <button
           type="button"
-          onClick={() =>
-            navigate(dateFromState ? `/day/${dateFromState}` : '/', { replace: true })
-          }
+          onClick={() => navigate(dateFromState ? `/day/${dateFromState}` : '/', { replace: true })}
           className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-600 transition hover:bg-slate-50"
         >
           Cancel
