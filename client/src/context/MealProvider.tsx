@@ -3,7 +3,7 @@ import { MealContext } from './MealContext'
 import * as api from '../services/mealApi'
 import type { Meal } from '../types'
 
-const CACHE_KEY = 'mealsnap_meals'
+const CACHE_KEY = 'aaharya_meals'
 
 function readCache(): Meal[] | null {
   try {

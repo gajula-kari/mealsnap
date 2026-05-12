@@ -55,7 +55,7 @@ describe('MealProvider', () => {
 
   it('skips loading state on repeat visit when cache has meals', () => {
     localStorage.setItem(
-      'mealsnap_meals',
+      'aaharya_meals',
       JSON.stringify([
         { id: 'id-1', tag: 'CLEAN', imageUrl: null, amountSpent: null, note: null, occurredAt: 0 },
       ])
@@ -71,7 +71,7 @@ describe('MealProvider', () => {
   })
 
   it('shows loading state when cache exists but is empty', () => {
-    localStorage.setItem('mealsnap_meals', JSON.stringify([]))
+    localStorage.setItem('aaharya_meals', JSON.stringify([]))
     vi.mocked(api.fetchMeals).mockResolvedValue([])
 
     renderProvider()
@@ -140,7 +140,7 @@ describe('MealProvider', () => {
 
   it('seeds state from localStorage cache so UI shows instantly before fetch', () => {
     localStorage.setItem(
-      'mealsnap_meals',
+      'aaharya_meals',
       JSON.stringify([
         {
           id: 'cached-1',
@@ -183,7 +183,7 @@ describe('MealProvider', () => {
     renderProvider()
     await waitFor(() => expect(screen.queryByText('loading')).not.toBeInTheDocument())
 
-    const cached = JSON.parse(localStorage.getItem('mealsnap_meals') ?? '[]')
+    const cached = JSON.parse(localStorage.getItem('aaharya_meals') ?? '[]')
     expect(cached).toEqual([
       { id: 'id-1', tag: 'INDULGENT', amountSpent: null, note: null, occurredAt: 0 },
     ])

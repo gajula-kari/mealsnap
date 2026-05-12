@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'mealsnap_device_id'
+const STORAGE_KEY = 'aaharya_device_id'
 
 export function getDeviceId(): string {
   let id = localStorage.getItem(STORAGE_KEY)
