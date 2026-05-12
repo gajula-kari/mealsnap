@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Meal } from '../types'
 
 const TAG_DOT: Record<string, string> = {
@@ -15,11 +15,21 @@ interface MealCardProps {
 export default function MealCard({ meal, onTap, onDelete }: MealCardProps) {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [lightbox, setLightbox] = useState(false)
 
   const timeLabel = new Date(meal.occurredAt).toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
   })
+
+  useEffect(() => {
+    if (!lightbox) return
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setLightbox(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [lightbox])
 
   async function handleDelete() {
     setDeleting(true)
@@ -35,8 +45,11 @@ export default function MealCard({ meal, onTap, onDelete }: MealCardProps) {
     <article className="mb-3 break-inside-avoid overflow-hidden rounded-3xl bg-white shadow-md transition-shadow hover:shadow-lg">
       {/* Image */}
       <div
-        className={`relative aspect-[3/4] w-full overflow-hidden bg-slate-100 ${onTap ? 'cursor-pointer' : ''}`}
-        onClick={onTap}
+        className={`relative aspect-[3/4] w-full overflow-hidden bg-slate-100 ${onTap || meal.imageUrl ? 'cursor-pointer' : ''}`}
+        onClick={() => {
+          if (onTap) onTap()
+          else if (meal.imageUrl) setLightbox(true)
+        }}
       >
         {meal.imageUrl ? (
           <img
@@ -130,6 +143,24 @@ export default function MealCard({ meal, onTap, onDelete }: MealCardProps) {
           {meal.amountSpent != null && (
             <p className="text-sm font-medium text-slate-700">₹{meal.amountSpent}</p>
           )}
+        </div>
+      )}
+
+      {/* Lightbox */}
+      {lightbox && meal.imageUrl && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Meal image"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setLightbox(false)}
+        >
+          <img
+            src={meal.imageUrl}
+            alt={`${meal.tag} meal`}
+            className="max-h-[90vh] max-w-full rounded-2xl object-contain shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
         </div>
       )}
     </article>
