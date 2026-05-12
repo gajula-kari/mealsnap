@@ -49,6 +49,9 @@ export default function Home() {
   const navigate = useNavigate()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [monthlyGoal, setMonthlyGoal] = useState<number | null>(null)
+  const [selectedDate, setSelectedDate] = useState<string | null>(() =>
+    sessionStorage.getItem('lastSelectedDate')
+  )
 
   useEffect(() => {
     fetchSettings()
@@ -178,8 +181,10 @@ export default function Home() {
         <div className="grid grid-cols-7 gap-1.5">
           {days.map((day) => {
             const date = new Date(year, month, day)
+            const dateStr = formatLocalDate(date)
             const isFuture = date > today
             const isToday = date.toDateString() === today.toDateString()
+            const isSelected = dateStr === selectedDate
             const colorClass = isFuture
               ? 'bg-slate-100 text-slate-300'
               : getMealColorClass(meals, date, redDaySet)
@@ -188,10 +193,15 @@ export default function Home() {
                 key={day}
                 type="button"
                 disabled={isFuture}
-                onClick={() => navigate(`/day/${formatLocalDate(date)}`)}
+                onClick={() => {
+                  sessionStorage.setItem('lastSelectedDate', dateStr)
+                  setSelectedDate(dateStr)
+                  navigate(`/day/${dateStr}`)
+                }}
                 className={`${colorClass} aspect-square rounded-xl text-xs font-semibold transition
                   ${isFuture ? 'cursor-not-allowed opacity-40' : 'hover:opacity-80'}
-                  ${isToday ? 'ring-2 ring-slate-400 ring-offset-1' : ''}
+                  ${isToday ? 'ring-1 ring-slate-300' : ''}
+                  ${isSelected ? 'ring-2 ring-slate-600 ring-offset-1' : ''}
                 `}
               >
                 {day}
