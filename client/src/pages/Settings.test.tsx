@@ -148,7 +148,7 @@ describe('saving', () => {
     await userEvent.click(screen.getByRole('button', { name: '5' }))
     await userEvent.click(screen.getByRole('button', { name: 'Save' }))
 
-    expect(screen.getByRole('button', { name: 'Saving…' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Saving' })).toBeInTheDocument()
     resolve({ monthlyIndulgentLimit: 5, previousGoal: null, goalUpdatedAt: Date.now() })
   })
 })

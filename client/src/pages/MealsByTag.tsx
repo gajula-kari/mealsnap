@@ -1,6 +1,7 @@
 import { useParams, Navigate } from 'react-router-dom'
 import { useMealContext } from '../hooks/useMealContext'
 import MealCard from '../components/MealCard'
+import Spinner from '../components/Spinner'
 import type { MealTag } from '../types'
 
 const VALID_TAGS: MealTag[] = ['CLEAN', 'INDULGENT']
@@ -12,7 +13,7 @@ const TAG_LABEL: Record<MealTag, string> = {
 
 export default function MealsByTag() {
   const { tag } = useParams<{ tag: string }>()
-  const { meals } = useMealContext()
+  const { meals, loading } = useMealContext()
 
   const normalised = tag?.toUpperCase() as MealTag
   if (!VALID_TAGS.includes(normalised)) return <Navigate to="/" replace />
@@ -27,7 +28,16 @@ export default function MealsByTag() {
   })
 
   return (
-    <div className="space-y-4">
+    <div className="relative space-y-4">
+      {loading && (
+        <div
+          role="status"
+          aria-label="Loading"
+          className="absolute inset-0 z-10 flex items-center justify-center bg-slate-50/60"
+        >
+          <Spinner />
+        </div>
+      )}
       <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
         {TAG_LABEL[normalised]} meals · {today.toLocaleString('default', { month: 'long' })}
       </p>
