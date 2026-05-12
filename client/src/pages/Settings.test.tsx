@@ -91,6 +91,14 @@ describe('quick-pick chips', () => {
     expect(screen.getByRole('spinbutton')).toHaveValue(7)
   })
 
+  it('typing a custom number directly into the input updates the value', async () => {
+    renderSettings()
+    const input = screen.getByRole('spinbutton')
+    await userEvent.clear(input)
+    await userEvent.type(input, '12')
+    expect(input).toHaveValue(12)
+  })
+
   it('the selected chip gets a dark background class', async () => {
     renderSettings()
     const chip = screen.getByRole('button', { name: '10' })

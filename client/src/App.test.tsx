@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MealProvider } from './context/MealProvider'
 import type { ReactNode } from 'react'
 
@@ -9,12 +10,14 @@ vi.mock('react-router-dom', async (importOriginal) => {
     BrowserRouter: ({ children }: { children: ReactNode }) => (
       <actual.MemoryRouter initialEntries={[initialPath]}>{children}</actual.MemoryRouter>
     ),
+    useNavigate: vi.fn(() => vi.fn()),
   }
 })
 
 let initialPath = '/'
 
 import App from './App'
+import { useNavigate } from 'react-router-dom'
 
 beforeEach(() => {
   initialPath = '/'
@@ -54,5 +57,28 @@ describe('Header on sub-pages', () => {
 
     expect(screen.getAllByRole('button', { name: 'Back' }).length).toBeGreaterThanOrEqual(1)
     expect(screen.getByText('Aaharya')).toBeInTheDocument()
+  })
+
+  it('back button on /settings navigates to / with replace', async () => {
+    const navigate = vi.fn()
+    vi.mocked(useNavigate).mockReturnValue(navigate)
+    initialPath = '/settings'
+    renderApp()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Back' }))
+
+    expect(navigate).toHaveBeenCalledWith('/', { replace: true })
+  })
+
+  it('back button on /day/:date calls navigate(-1)', async () => {
+    const navigate = vi.fn()
+    vi.mocked(useNavigate).mockReturnValue(navigate)
+    initialPath = '/day/2024-01-01'
+    renderApp()
+
+    const backButtons = screen.getAllByRole('button', { name: 'Back' })
+    await userEvent.click(backButtons[0])
+
+    expect(navigate).toHaveBeenCalledWith(-1)
   })
 })

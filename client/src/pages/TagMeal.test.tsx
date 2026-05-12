@@ -275,4 +275,55 @@ describe('TagMeal with image', () => {
 
     expect(navigate).toHaveBeenCalledWith('/', { replace: true })
   })
+
+  it('Cancel button navigates to dateFromState day when coming from a specific day', async () => {
+    const navigate = vi.fn()
+    vi.mocked(useNavigate).mockReturnValue(navigate)
+    vi.mocked(useLocation).mockReturnValue({
+      state: { image: imageFile(), date: '2024-06-15' },
+      pathname: '/tag',
+      search: '',
+      hash: '',
+      key: 'default',
+    })
+
+    render(
+      <MemoryRouter>
+        <TagMeal />
+      </MemoryRouter>
+    )
+
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+
+    expect(navigate).toHaveBeenCalledWith('/day/2024-06-15', { replace: true })
+  })
+
+  it('shows "Unknown error" when addMeal throws a non-Error value', async () => {
+    vi.mocked(useMealContext).mockReturnValue({
+      meals: [],
+      loading: false,
+      error: null,
+      addMeal: vi.fn().mockRejectedValue('plain string error'),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
+    })
+    vi.mocked(useLocation).mockReturnValue({
+      state: { image: imageFile() },
+      pathname: '/tag',
+      search: '',
+      hash: '',
+      key: 'default',
+    })
+
+    render(
+      <MemoryRouter>
+        <TagMeal />
+      </MemoryRouter>
+    )
+    await screen.findByAltText('Selected meal')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+    expect(await screen.findByText('Unknown error')).toBeInTheDocument()
+  })
 })

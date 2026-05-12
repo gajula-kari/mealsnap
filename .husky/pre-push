@@ -1,0 +1,23 @@
+#!/bin/sh
+set -e
+ROOT=$(git rev-parse --show-toplevel)
+
+echo "→ client: lint"
+cd "$ROOT/client"
+npm run lint
+
+echo "→ client: prettier"
+npx prettier --check src
+
+echo "→ client: tests + coverage"
+npx vitest run --coverage
+
+echo "→ server: lint"
+cd "$ROOT/server"
+npm run lint
+
+echo "→ server: prettier"
+npx prettier --check .
+
+echo "→ server: tests"
+npm test
