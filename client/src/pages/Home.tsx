@@ -148,8 +148,20 @@ export default function Home() {
             {monthName} {year}
           </h2>
           <div className="flex gap-2 text-[10px]">
-            <span className="rounded-xl bg-emerald-100 px-2 py-1 text-emerald-700">CLEAN</span>
-            <span className="rounded-xl bg-amber-100 px-2 py-1 text-amber-700">INDULGENT</span>
+            <button
+              type="button"
+              onClick={() => navigate('/meals/clean')}
+              className="rounded-xl bg-emerald-100 px-2 py-1 text-emerald-700 transition hover:bg-emerald-200"
+            >
+              CLEAN
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/meals/indulgent')}
+              className="rounded-xl bg-amber-100 px-2 py-1 text-amber-700 transition hover:bg-amber-200"
+            >
+              INDULGENT
+            </button>
             {monthlyGoal != null && (
               <span className="rounded-xl bg-rose-100 px-2 py-1 text-rose-700">OVER</span>
             )}
