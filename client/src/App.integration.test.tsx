@@ -35,7 +35,7 @@ function renderApp() {
 }
 
 describe('App integration', () => {
-  it('shows a spinner while loading then displays the streak once data arrives', async () => {
+  it('shows a spinner while loading then renders the calendar once data arrives', async () => {
     const today = new Date()
     today.setHours(12, 0, 0, 0)
 
@@ -44,14 +44,15 @@ describe('App integration', () => {
     renderApp()
 
     expect(screen.getByRole('status', { name: 'Loading' })).toBeInTheDocument()
-    expect(await screen.findByText('1 day')).toBeInTheDocument()
+    expect(await screen.findByText('Clean days')).toBeInTheDocument()
   })
 
-  it('shows "0 days" when the server returns an empty meals list', async () => {
+  it('renders the stats section when the server returns an empty meals list', async () => {
     mockFetch([])
     renderApp()
 
-    expect(await screen.findByText('0 days')).toBeInTheDocument()
+    expect(await screen.findByText('Clean days')).toBeInTheDocument()
+    expect(screen.queryByText(/🌱/)).not.toBeInTheDocument()
   })
 
   it('shows the server error message when fetch fails', async () => {
@@ -69,7 +70,7 @@ describe('App integration', () => {
 
     renderApp()
 
-    expect(await screen.findByText('1 day')).toBeInTheDocument()
+    expect(await screen.findByText('Clean days')).toBeInTheDocument()
     expect(fetch).toHaveBeenCalledWith('/meals', expect.anything())
   })
 })
@@ -79,7 +80,7 @@ describe('Header', () => {
     mockFetch([])
     renderApp()
 
-    await screen.findByText('0 days')
+    await screen.findByText('Clean days')
     await userEvent.click(screen.getByRole('button', { name: 'Settings' }))
 
     expect(await screen.findByRole('button', { name: 'Aaharya' })).toBeInTheDocument()

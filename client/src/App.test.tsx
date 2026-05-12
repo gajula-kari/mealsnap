@@ -42,6 +42,36 @@ function renderApp() {
   )
 }
 
+describe('Header streak', () => {
+  function mealsForDays(count: number) {
+    const today = new Date()
+    today.setHours(12, 0, 0, 0)
+    return Array.from({ length: count }, (_, i) => {
+      const d = new Date(today)
+      d.setDate(today.getDate() - i)
+      return { _id: `meal-${i}`, tag: 'CLEAN', occurredAt: d.getTime() }
+    })
+  }
+
+  it('hides streak indicator when streak < 3', async () => {
+    renderApp()
+    expect(await screen.findByText('Clean days')).toBeInTheDocument()
+    expect(screen.queryByText(/🌱/)).not.toBeInTheDocument()
+  })
+
+  it('shows 🌱 3 in header when streak reaches 3', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue({ meals: mealsForDays(3) }),
+      })
+    )
+    renderApp()
+    expect(await screen.findByText('🌱 3')).toBeInTheDocument()
+  })
+})
+
 describe('Header on sub-pages', () => {
   it('shows "Aaharya" button and no back arrow on /settings', () => {
     initialPath = '/settings'

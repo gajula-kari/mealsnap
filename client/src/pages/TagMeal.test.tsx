@@ -1,9 +1,10 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import TagMeal from './TagMeal'
 
 vi.mock('../hooks/useMealContext')
+vi.mock('exifr', () => ({ default: { parse: vi.fn().mockResolvedValue(null) } }))
 vi.mock('react-router-dom', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react-router-dom')>()
   return {
@@ -15,6 +16,7 @@ vi.mock('react-router-dom', async (importOriginal) => {
 
 import { useMealContext } from '../hooks/useMealContext'
 import { useLocation, useNavigate } from 'react-router-dom'
+import exifr from 'exifr'
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -321,5 +323,122 @@ describe('TagMeal with image', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Save' }))
 
     expect(await screen.findByText('Unknown error')).toBeInTheDocument()
+  })
+
+  describe('time controls', () => {
+    function loc(state: object) {
+      return { state, pathname: '/tag', search: '', hash: '', key: 'default' }
+    }
+
+    it('auto-fills time and shows "tap to edit" for camera source', async () => {
+      vi.mocked(useLocation).mockReturnValue(loc({ image: imageFile(), source: 'camera' }))
+      render(
+        <MemoryRouter>
+          <TagMeal />
+        </MemoryRouter>
+      )
+      await screen.findByAltText('Meal')
+      expect(screen.getByText(/tap to edit/)).toBeInTheDocument()
+    })
+
+    it('shows "+ Add time (optional)" for gallery source when EXIF is absent', async () => {
+      vi.mocked(useLocation).mockReturnValue(loc({ image: imageFile(), source: 'gallery' }))
+      render(
+        <MemoryRouter>
+          <TagMeal />
+        </MemoryRouter>
+      )
+      await screen.findByAltText('Meal')
+      expect(await screen.findByText('+ Add time (optional)')).toBeInTheDocument()
+    })
+
+    it('auto-fills time from EXIF and shows "tap to edit" for gallery with metadata', async () => {
+      vi.mocked(exifr.parse).mockResolvedValueOnce({
+        DateTimeOriginal: new Date(2024, 0, 15, 14, 30),
+      })
+      vi.mocked(useLocation).mockReturnValue(loc({ image: imageFile(), source: 'gallery' }))
+      render(
+        <MemoryRouter>
+          <TagMeal />
+        </MemoryRouter>
+      )
+      expect(await screen.findByText(/tap to edit/)).toBeInTheDocument()
+    })
+
+    it('reveals time input when "tap to edit" chip is clicked', async () => {
+      vi.mocked(useLocation).mockReturnValue(loc({ image: imageFile(), source: 'camera' }))
+      render(
+        <MemoryRouter>
+          <TagMeal />
+        </MemoryRouter>
+      )
+      await screen.findByAltText('Meal')
+      await userEvent.click(screen.getByText(/tap to edit/))
+      expect(document.querySelector('input[type="time"]')).toBeInTheDocument()
+    })
+
+    it('reveals time input when "+ Add time (optional)" is clicked', async () => {
+      vi.mocked(useLocation).mockReturnValue(loc({ image: imageFile(), source: 'gallery' }))
+      render(
+        <MemoryRouter>
+          <TagMeal />
+        </MemoryRouter>
+      )
+      await screen.findByText('+ Add time (optional)')
+      await userEvent.click(screen.getByText('+ Add time (optional)'))
+      expect(document.querySelector('input[type="time"]')).toBeInTheDocument()
+    })
+
+    it('dismisses picker and shows time chip after a time is selected', async () => {
+      vi.mocked(useLocation).mockReturnValue(loc({ image: imageFile(), source: 'gallery' }))
+      render(
+        <MemoryRouter>
+          <TagMeal />
+        </MemoryRouter>
+      )
+      await screen.findByText('+ Add time (optional)')
+      await userEvent.click(screen.getByText('+ Add time (optional)'))
+      const timeInput = document.querySelector('input[type="time"]') as HTMLInputElement
+      fireEvent.change(timeInput, { target: { value: '14:30' } })
+      expect(document.querySelector('input[type="time"]')).not.toBeInTheDocument()
+      expect(screen.queryByText('+ Add time (optional)')).not.toBeInTheDocument()
+    })
+
+    it('closing the picker via blur hides the time input', async () => {
+      vi.mocked(useLocation).mockReturnValue(loc({ image: imageFile(), source: 'gallery' }))
+      render(
+        <MemoryRouter>
+          <TagMeal />
+        </MemoryRouter>
+      )
+      await screen.findByText('+ Add time (optional)')
+      await userEvent.click(screen.getByText('+ Add time (optional)'))
+      const timeInput = document.querySelector('input[type="time"]') as HTMLInputElement
+      fireEvent.blur(timeInput)
+      expect(document.querySelector('input[type="time"]')).not.toBeInTheDocument()
+    })
+
+    it('does not show time controls when editing an existing meal', async () => {
+      vi.mocked(useLocation).mockReturnValue(
+        loc({
+          meal: {
+            id: 'e1',
+            tag: 'CLEAN',
+            imageUrl: 'http://example.com/photo.jpg',
+            note: null,
+            amountSpent: null,
+            occurredAt: new Date(2024, 0, 15, 12).getTime(),
+          },
+        })
+      )
+      render(
+        <MemoryRouter>
+          <TagMeal />
+        </MemoryRouter>
+      )
+      await screen.findByAltText('Meal')
+      expect(screen.queryByText('+ Add time (optional)')).not.toBeInTheDocument()
+      expect(screen.queryByText(/tap to edit/)).not.toBeInTheDocument()
+    })
   })
 })
