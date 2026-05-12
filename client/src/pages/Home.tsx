@@ -1,7 +1,7 @@
-import { useRef, useState, useEffect } from 'react'
+import { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMealContext } from '../hooks/useMealContext'
-import { fetchSettings } from '../services/settingsApi'
+import { useSettingsContext } from '../hooks/useSettingsContext'
 import Spinner from '../components/Spinner'
 import type { Meal, MealTag } from '../types'
 
@@ -27,17 +27,10 @@ function getMealColorClass(meals: Meal[], date: Date, redDaySet: Set<string>): s
 
 export default function Home() {
   const { meals, loading, error } = useMealContext()
+  const { settings } = useSettingsContext()
   const navigate = useNavigate()
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [monthlyGoal, setMonthlyGoal] = useState<number | null>(null)
-
-  useEffect(() => {
-    fetchSettings()
-      .then((s) => {
-        if (s?.monthlyIndulgentLimit != null) setMonthlyGoal(s.monthlyIndulgentLimit)
-      })
-      .catch(() => {})
-  }, [])
+  const monthlyGoal = settings?.monthlyIndulgentLimit ?? null
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]

@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MealProvider } from './context/MealProvider'
+import { SettingsProvider } from './context/SettingsProvider'
 import App from './App'
 
 beforeEach(() => {
@@ -29,7 +30,9 @@ function mockFetchError(message: string) {
 function renderApp() {
   return render(
     <MealProvider>
-      <App />
+      <SettingsProvider>
+        <App />
+      </SettingsProvider>
     </MealProvider>
   )
 }

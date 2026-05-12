@@ -3,13 +3,13 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import Settings from './Settings'
 
-vi.mock('../services/settingsApi')
+vi.mock('../hooks/useSettingsContext')
 vi.mock('react-router-dom', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react-router-dom')>()
   return { ...actual, useNavigate: vi.fn(() => vi.fn()) }
 })
 
-import { fetchSettings, saveSettings } from '../services/settingsApi'
+import { useSettingsContext } from '../hooks/useSettingsContext'
 import { useNavigate } from 'react-router-dom'
 
 function renderSettings() {
@@ -20,13 +20,19 @@ function renderSettings() {
   )
 }
 
+const mockSaveSettings = vi.fn()
+
 beforeEach(() => {
   vi.clearAllMocks()
-  vi.mocked(fetchSettings).mockResolvedValue(null)
-  vi.mocked(saveSettings).mockResolvedValue({
+  mockSaveSettings.mockResolvedValue({
     monthlyIndulgentLimit: 7,
     previousGoal: null,
     goalUpdatedAt: Date.now(),
+  })
+  vi.mocked(useSettingsContext).mockReturnValue({
+    settings: null,
+    settingsLoading: false,
+    saveSettings: mockSaveSettings,
   })
 })
 
@@ -54,30 +60,30 @@ describe('Settings rendering', () => {
 
 describe('Settings with existing data', () => {
   it('pre-fills the input with the current goal', async () => {
-    vi.mocked(fetchSettings).mockResolvedValue({
-      monthlyIndulgentLimit: 10,
-      previousGoal: null,
-      goalUpdatedAt: null,
+    vi.mocked(useSettingsContext).mockReturnValue({
+      settings: { monthlyIndulgentLimit: 10, previousGoal: null, goalUpdatedAt: null },
+      settingsLoading: false,
+      saveSettings: mockSaveSettings,
     })
     renderSettings()
     expect(await screen.findByDisplayValue('10')).toBeInTheDocument()
   })
 
   it('shows previous goal when one exists', async () => {
-    vi.mocked(fetchSettings).mockResolvedValue({
-      monthlyIndulgentLimit: 10,
-      previousGoal: 5,
-      goalUpdatedAt: 1700000000000,
+    vi.mocked(useSettingsContext).mockReturnValue({
+      settings: { monthlyIndulgentLimit: 10, previousGoal: 5, goalUpdatedAt: 1700000000000 },
+      settingsLoading: false,
+      saveSettings: mockSaveSettings,
     })
     renderSettings()
     expect(await screen.findByText('Previous goal: 5 days')).toBeInTheDocument()
   })
 
   it('shows last updated date when goalUpdatedAt exists', async () => {
-    vi.mocked(fetchSettings).mockResolvedValue({
-      monthlyIndulgentLimit: 10,
-      previousGoal: null,
-      goalUpdatedAt: 1700000000000,
+    vi.mocked(useSettingsContext).mockReturnValue({
+      settings: { monthlyIndulgentLimit: 10, previousGoal: null, goalUpdatedAt: 1700000000000 },
+      settingsLoading: false,
+      saveSettings: mockSaveSettings,
     })
     renderSettings()
     expect(await screen.findByText(/Last updated:/)).toBeInTheDocument()
@@ -116,7 +122,7 @@ describe('saving', () => {
     await userEvent.click(screen.getByRole('button', { name: '7' }))
     await userEvent.click(screen.getByRole('button', { name: 'Save' }))
 
-    expect(saveSettings).toHaveBeenCalledWith(7)
+    expect(mockSaveSettings).toHaveBeenCalledWith(7)
     expect(navigate).toHaveBeenCalledWith('/', { replace: true })
   })
 
@@ -127,7 +133,7 @@ describe('saving', () => {
   })
 
   it('shows an error message when saveSettings throws', async () => {
-    vi.mocked(saveSettings).mockRejectedValue(new Error('Network error'))
+    mockSaveSettings.mockRejectedValue(new Error('Network error'))
     renderSettings()
 
     await userEvent.click(screen.getByRole('button', { name: '5' }))
@@ -142,7 +148,7 @@ describe('saving', () => {
       previousGoal: null
       goalUpdatedAt: number
     }) => void
-    vi.mocked(saveSettings).mockReturnValue(new Promise((r) => (resolve = r)))
+    mockSaveSettings.mockReturnValue(new Promise((r) => (resolve = r)))
     renderSettings()
 
     await userEvent.click(screen.getByRole('button', { name: '5' }))
