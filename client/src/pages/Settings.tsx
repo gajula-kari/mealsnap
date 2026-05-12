@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSettingsContext } from '../hooks/useSettingsContext'
 import Spinner from '../components/Spinner'
@@ -17,15 +17,11 @@ function formatDate(ts: number | null | undefined): string | null {
 export default function Settings() {
   const navigate = useNavigate()
   const { settings, saveSettings } = useSettingsContext()
-  const [goal, setGoal] = useState('')
+  const [goal, setGoal] = useState(() =>
+    settings?.monthlyIndulgentLimit != null ? String(settings.monthlyIndulgentLimit) : ''
+  )
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (settings?.monthlyIndulgentLimit != null) {
-      setGoal(String(settings.monthlyIndulgentLimit))
-    }
-  }, [settings])
 
   const previousGoal = settings?.previousGoal
   const goalUpdatedAt = settings?.goalUpdatedAt
