@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMealContext } from '../hooks/useMealContext'
 import { fetchSettings } from '../services/settingsApi'
+import Spinner from '../components/Spinner'
 import type { Meal, MealTag } from '../types'
 
 function formatLocalDate(date: Date): string {
@@ -108,11 +109,20 @@ export default function Home() {
   const overGoal = monthlyGoal != null && indulgentDays > monthlyGoal
 
   return (
-    <div className="space-y-4 pb-24">
+    <div className="relative space-y-4 pb-24">
+      {loading && (
+        <div
+          role="status"
+          aria-label="Loading"
+          className="absolute inset-0 z-10 flex items-center justify-center bg-slate-50/60"
+        >
+          <Spinner />
+        </div>
+      )}
       <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
         <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Streak</p>
         <p className="mt-1 text-3xl font-semibold text-slate-900">
-          {loading ? '—' : `${streak} day${streak === 1 ? '' : 's'}`}
+          {`${streak} day${streak === 1 ? '' : 's'}`}
         </p>
         {error && <p className="mt-2 text-sm text-rose-500">{error}</p>}
       </section>
@@ -123,14 +133,14 @@ export default function Home() {
         <p className="mb-3 text-xs uppercase tracking-[0.3em] text-slate-500">{monthName}</p>
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <p className="text-2xl font-semibold text-emerald-600">{loading ? '—' : cleanDays}</p>
+            <p className="text-2xl font-semibold text-emerald-600">{cleanDays}</p>
             <p className="mt-0.5 text-xs text-slate-500">Clean days</p>
           </div>
           <div>
             <p
               className={`text-2xl font-semibold ${overGoal ? 'text-rose-600' : 'text-slate-900'}`}
             >
-              {loading ? '—' : indulgentDays}
+              {indulgentDays}
             </p>
             <p className="mt-0.5 text-xs text-slate-500">
               Indulgent days

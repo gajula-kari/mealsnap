@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useMealContext } from '../hooks/useMealContext'
+import Spinner from '../components/Spinner'
 import type { MealTag } from '../types'
 
 interface TagMealLocationState {
@@ -101,8 +102,8 @@ export default function TagMeal() {
           {preview ? (
             <img src={preview} alt="Selected meal" className="h-72 w-full object-cover" />
           ) : (
-            <div className="flex h-72 items-center justify-center text-slate-500">
-              Loading preview…
+            <div className="flex h-72 items-center justify-center">
+              <Spinner />
             </div>
           )}
         </div>
@@ -137,7 +138,13 @@ export default function TagMeal() {
           onClick={handleSave}
           className="w-full rounded-3xl bg-slate-900 px-4 py-4 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-50"
         >
-          {saving ? 'Saving…' : 'Save'}
+          {saving ? (
+            <span className="flex items-center justify-center gap-2">
+              <Spinner size="sm" /> Saving
+            </span>
+          ) : (
+            'Save'
+          )}
         </button>
 
         <button

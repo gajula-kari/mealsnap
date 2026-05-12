@@ -47,7 +47,7 @@ beforeEach(() => {
 })
 
 describe('loading and error states', () => {
-  it('shows "—" while meals are loading', () => {
+  it('shows a loading spinner while meals are loading', () => {
     vi.mocked(useMealContext).mockReturnValue({
       meals: [],
       loading: true,
@@ -58,7 +58,7 @@ describe('loading and error states', () => {
     })
     renderHome()
 
-    expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByRole('status', { name: 'Loading' })).toBeInTheDocument()
   })
 
   it('shows the error message when loading fails', () => {

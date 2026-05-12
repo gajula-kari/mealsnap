@@ -2,10 +2,11 @@ import { useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useMealContext } from '../hooks/useMealContext'
 import MealCard from '../components/MealCard'
+import Spinner from '../components/Spinner'
 
 export default function DayDetail() {
   const { date } = useParams<{ date: string }>()
-  const { meals, updateMeal, deleteMeal } = useMealContext()
+  const { meals, loading, updateMeal, deleteMeal } = useMealContext()
   const navigate = useNavigate()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -28,7 +29,16 @@ export default function DayDetail() {
   })
 
   return (
-    <div className="space-y-4 pb-24">
+    <div className="relative space-y-4 pb-24">
+      {loading && (
+        <div
+          role="status"
+          aria-label="Loading"
+          className="absolute inset-0 z-10 flex items-center justify-center bg-slate-50/60"
+        >
+          <Spinner />
+        </div>
+      )}
       <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex items-center justify-between gap-4">
           <div>

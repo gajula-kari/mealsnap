@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { fetchSettings, saveSettings } from '../services/settingsApi'
+import Spinner from '../components/Spinner'
 
 const QUICK_OPTIONS = [5, 7, 10, 15]
 
@@ -103,7 +104,13 @@ export default function Settings() {
           disabled={saving}
           className="mt-5 w-full rounded-2xl bg-slate-900 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-50"
         >
-          {saving ? 'Saving…' : 'Save'}
+          {saving ? (
+            <span className="flex items-center justify-center gap-2">
+              <Spinner size="sm" /> Saving
+            </span>
+          ) : (
+            'Save'
+          )}
         </button>
       </section>
     </div>

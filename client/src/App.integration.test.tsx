@@ -35,7 +35,7 @@ function renderApp() {
 }
 
 describe('App integration', () => {
-  it('shows "—" while loading then displays the streak once data arrives', async () => {
+  it('shows a spinner while loading then displays the streak once data arrives', async () => {
     const today = new Date()
     today.setHours(12, 0, 0, 0)
 
@@ -43,7 +43,7 @@ describe('App integration', () => {
 
     renderApp()
 
-    expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByRole('status', { name: 'Loading' })).toBeInTheDocument()
     expect(await screen.findByText('1 day')).toBeInTheDocument()
   })
 
