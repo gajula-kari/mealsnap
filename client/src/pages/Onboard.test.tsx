@@ -112,6 +112,13 @@ describe('Get Started', () => {
     await waitFor(() => expect(localStorage.getItem('aaharya_onboarded')).toBe('true'))
   })
 
+  it('enables Get Started when a custom value is typed', async () => {
+    renderOnboard()
+    await advanceToStep(3)
+    await userEvent.type(screen.getByPlaceholderText('Custom number'), '8')
+    expect(screen.getByRole('button', { name: 'Get Started' })).toBeEnabled()
+  })
+
   it('calls onComplete after a successful save', async () => {
     const onComplete = vi.fn()
     renderOnboard(onComplete)

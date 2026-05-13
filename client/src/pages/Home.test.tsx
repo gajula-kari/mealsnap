@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import Home from './Home'
@@ -35,6 +35,7 @@ beforeEach(() => {
   vi.mocked(useInstallContext).mockReturnValue({
     canInstall: false,
     dismissed: false,
+    readyToShow: false,
     install: vi.fn(),
     dismiss: vi.fn(),
   })
@@ -407,6 +408,7 @@ describe('install banner', () => {
     vi.mocked(useInstallContext).mockReturnValue({
       canInstall: true,
       dismissed: false,
+      readyToShow: true,
       install: vi.fn(),
       dismiss: vi.fn(),
     })
@@ -420,6 +422,7 @@ describe('install banner', () => {
     vi.mocked(useInstallContext).mockReturnValue({
       canInstall: true,
       dismissed: false,
+      readyToShow: true,
       install,
       dismiss: vi.fn(),
     })
@@ -434,12 +437,32 @@ describe('install banner', () => {
     vi.mocked(useInstallContext).mockReturnValue({
       canInstall: true,
       dismissed: false,
+      readyToShow: true,
       install: vi.fn(),
       dismiss,
     })
     renderHome()
     await userEvent.click(screen.getByRole('button', { name: 'Close' }))
     expect(dismiss).toHaveBeenCalled()
+  })
+
+  it('fires the drop-in animation after the splash delay and cleans up on unmount', () => {
+    localStorage.removeItem('aaharya_install_banner_animated')
+    withMeals()
+    vi.useFakeTimers()
+    vi.mocked(useInstallContext).mockReturnValue({
+      canInstall: true,
+      dismissed: false,
+      readyToShow: true,
+      install: vi.fn(),
+      dismiss: vi.fn(),
+    })
+    const { unmount } = renderHome()
+    act(() => {
+      vi.advanceTimersByTime(2600)
+    })
+    unmount()
+    vi.useRealTimers()
   })
 })
 

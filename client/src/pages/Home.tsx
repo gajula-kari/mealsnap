@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMealContext } from '../hooks/useMealContext'
 import { useSettingsContext } from '../hooks/useSettingsContext'
@@ -6,11 +6,33 @@ import { useInstallContext } from '../hooks/useInstallContext'
 import Spinner from '../components/Spinner'
 import type { Meal, MealTag } from '../types'
 
+const BANNER_ANIMATED_KEY = 'aaharya_install_banner_animated'
+
 function InstallBanner() {
-  const { canInstall, dismissed, install, dismiss } = useInstallContext()
-  if (!canInstall || dismissed) return null
+  const { canInstall, dismissed, install, dismiss, readyToShow } = useInstallContext()
+  const [shouldAnimate] = useState(() => !localStorage.getItem(BANNER_ANIMATED_KEY))
+  const [isOffset, setIsOffset] = useState(shouldAnimate)
+
+  const visible = canInstall && !dismissed && readyToShow
+
+  useEffect(() => {
+    if (!visible || !shouldAnimate) return
+    localStorage.setItem(BANNER_ANIMATED_KEY, 'true')
+    // Delay until after the splash screen finishes (~2s: 1.5s pause + 0.5s fade)
+    const timer = setTimeout(() => setIsOffset(false), 2500)
+    return () => clearTimeout(timer)
+  }, [visible, shouldAnimate])
+
+  if (!visible) return null
   return (
-    <div className="flex items-center justify-between rounded-2xl bg-slate-900 px-4 py-3">
+    <div
+      className="flex items-center justify-between rounded-2xl bg-slate-900 px-4 py-3"
+      style={{
+        transform: isOffset ? 'translateY(-150%)' : 'translateY(0)',
+        opacity: isOffset ? 0 : 1,
+        ...(shouldAnimate && { transition: 'transform 0.5s ease-out, opacity 0.5s ease-out' }),
+      }}
+    >
       <div>
         <p className="text-sm font-medium text-white">Install App</p>
         <p className="text-xs text-slate-400">Add Aaharya to your home screen</p>
