@@ -2,6 +2,7 @@ import express, { type Request, type Response } from 'express'
 import cors from 'cors'
 import mealsRouter from './routes/meals'
 import settingsRouter from './routes/settings'
+import eventsRouter from './routes/events'
 
 const app = express()
 
@@ -12,5 +13,6 @@ app.get('/health', (_req: Request, res: Response) => res.json({ status: 'ok' }))
 
 app.use('/meals', mealsRouter)
 app.use('/settings', settingsRouter)
+app.use('/events', eventsRouter)
 
 export default app
