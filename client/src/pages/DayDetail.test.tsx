@@ -133,6 +133,34 @@ describe('DayDetail', () => {
     expect(screen.queryByText(/· past/)).not.toBeInTheDocument()
   })
 
+  it('navigates to /tag with source gallery when gallery file selected on today', async () => {
+    const today = new Date()
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+    const navigate = vi.fn()
+    vi.mocked(useNavigate).mockReturnValue(navigate)
+    vi.mocked(useParams).mockReturnValue({ date: todayStr })
+    vi.mocked(useMealContext).mockReturnValue({
+      meals: [],
+      loading: false,
+      error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
+    })
+    renderDayDetail()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Choose from gallery' }))
+
+    const file = new File(['img'], 'meal.jpg', { type: 'image/jpeg' })
+    const galleryInput = document.querySelectorAll('input[type="file"]')[1] as HTMLInputElement
+    await userEvent.upload(galleryInput, file)
+
+    expect(navigate).toHaveBeenCalledWith('/tag', {
+      replace: true,
+      state: { image: file, date: todayStr, source: 'gallery' },
+    })
+  })
+
   it('navigates to /tag with source camera when file selected on today', async () => {
     const today = new Date()
     const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
