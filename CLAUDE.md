@@ -86,7 +86,7 @@ CLOUDINARY_API_SECRET=<your api secret>
 
 (optional body as bullet points)
 ```
-Types only: `feat` · `fix` · `refactor` · `style` · `chore` · `docs`. One concern per commit.
+Types only: `feat` · `fix` · `refactor` · `style` · `chore` · `docs` · `test`. One concern per commit.
 
 **Before every push:**
 1. `git pull origin main`
