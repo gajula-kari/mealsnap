@@ -85,7 +85,7 @@ export default function DayDetail() {
         ref={fileInputRef}
         type="file"
         accept="image/*"
-        // {...(isToday ? { capture: 'environment' } : {})}
+        {...(isToday ? { capture: 'environment' } : {})}
         onChange={handleFileChange}
         className="hidden"
       />
