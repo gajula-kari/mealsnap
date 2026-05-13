@@ -1,4 +1,4 @@
-import { useState, useEffect, type ReactNode } from 'react'
+import { useState, useEffect, useRef, type ReactNode } from 'react'
 import { InstallContext } from './InstallContext'
 import { logEvent } from '../services/eventsApi'
 
@@ -40,8 +40,9 @@ export function InstallProvider({ children }: { children: ReactNode }) {
       !!(navigator as { standalone?: boolean }).standalone
   )
 
+  const wasStandaloneOnMount = useRef(isInstalled)
   useEffect(() => {
-    if (isInstalled) logEvent('standalone_visit')
+    if (wasStandaloneOnMount.current) logEvent('standalone_visit')
   }, [])
 
   useEffect(() => {
