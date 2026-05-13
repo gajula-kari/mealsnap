@@ -81,16 +81,18 @@ CLOUDINARY_API_SECRET=<your api secret>
 
 ## Commit and push rules
 
-**Before every commit:**
-1. Check whether the changes match the current branch name.
-   - If they match → commit on the current branch.
-   - If they don't match → create a new branch from current HEAD first, then commit there:
+**When starting new work** (user asks for a new feature, fix, or task):
+1. Check the current branch name against what's being asked.
+   - If it matches → proceed on this branch.
+   - If it doesn't match → ask the user: "Current branch is `<name>`. Continue here or create a new branch for this work?"
+   - **Never rename an existing branch** — create a new one from current HEAD if needed:
    ```bash
    git checkout -b <name-that-matches-the-work>
    git push origin -u <name-that-matches-the-work>
    ```
-   **Never rename an existing branch** — it has commits tied to its original purpose.
-2. Explain what changed and why, propose the commit message, wait for approval.
+2. Once the branch is decided, all commits for that task go on the same branch — do not re-check per commit.
+
+**Before every commit** — explain what changed and why, propose the commit message, wait for approval.
 
 **Commit format:**
 ```
