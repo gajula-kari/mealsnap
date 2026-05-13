@@ -444,7 +444,7 @@ describe('install banner', () => {
 })
 
 describe('FAB file input', () => {
-  it('navigates to /tag with the selected file when a file is chosen', async () => {
+  it('navigates to /tag with source camera when a file is chosen via camera', async () => {
     const navigate = vi.fn()
     vi.mocked(useNavigate).mockReturnValue(navigate)
     vi.mocked(useMealContext).mockReturnValue({
@@ -458,12 +458,37 @@ describe('FAB file input', () => {
     renderHome()
 
     const file = new File(['img'], 'meal.jpg', { type: 'image/jpeg' })
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement
-    await userEvent.upload(input, file)
+    const cameraInput = document.querySelector('input[type="file"]') as HTMLInputElement
+    await userEvent.upload(cameraInput, file)
 
     expect(navigate).toHaveBeenCalledWith('/tag', {
       replace: true,
       state: { image: file, source: 'camera' },
+    })
+  })
+
+  it('navigates to /tag with source gallery when a file is chosen via gallery', async () => {
+    const navigate = vi.fn()
+    vi.mocked(useNavigate).mockReturnValue(navigate)
+    vi.mocked(useMealContext).mockReturnValue({
+      meals: [],
+      loading: false,
+      error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
+    })
+    renderHome()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Choose from gallery' }))
+
+    const file = new File(['img'], 'meal.jpg', { type: 'image/jpeg' })
+    const galleryInput = document.querySelectorAll('input[type="file"]')[1] as HTMLInputElement
+    await userEvent.upload(galleryInput, file)
+
+    expect(navigate).toHaveBeenCalledWith('/tag', {
+      replace: true,
+      state: { image: file, source: 'gallery' },
     })
   })
 })
