@@ -4,12 +4,15 @@ import './index.css'
 import App from './App'
 import { MealProvider } from './context/MealProvider'
 import { SettingsProvider } from './context/SettingsProvider'
+import { InstallProvider } from './context/InstallProvider'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <MealProvider>
       <SettingsProvider>
-        <App />
+        <InstallProvider>
+          <App />
+        </InstallProvider>
       </SettingsProvider>
     </MealProvider>
   </StrictMode>
