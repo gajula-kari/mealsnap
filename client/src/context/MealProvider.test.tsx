@@ -185,12 +185,12 @@ describe('MealProvider', () => {
     ])
 
     renderProvider()
-    await waitFor(() => expect(screen.queryByText('loading')).not.toBeInTheDocument())
-
-    const cached = JSON.parse(localStorage.getItem('aaharya_meals') ?? '[]')
-    expect(cached).toEqual([
-      { id: 'id-1', tag: 'INDULGENT', amountSpent: null, note: null, occurredAt: 0 },
-    ])
+    await waitFor(() => {
+      const cached = JSON.parse(localStorage.getItem('aaharya_meals') ?? '[]')
+      expect(cached).toEqual([
+        { id: 'id-1', tag: 'INDULGENT', amountSpent: null, note: null, occurredAt: 0 },
+      ])
+    })
   })
 
   it('calls api.ping on mount to wake the server', () => {

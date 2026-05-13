@@ -54,9 +54,10 @@ CLOUDINARY_API_SECRET=<your api secret>
 
 ### Client
 
-- **Router**: `BrowserRouter` in `App.tsx`. Routes: `/`, `/tag`, `/day/:date`, `/settings`
+- **Router**: `BrowserRouter` in `App.tsx`. Routes: `/`, `/tag`, `/day/:date`, `/settings`, `/meals/:tag`, `/onboard`
 - `/tag` and `/settings` are transient — navigated to with `{ replace: true }` so they never accumulate in browser history. Both have a `<Navigate to="/" replace />` guard for direct URL access.
-- **State**: `MealProvider` (React Context) fetches meals on mount, caches to localStorage (images excluded). All pages consume via `useMealContext()`.
+- `/onboard` is a first-run onboarding screen rendered outside `<Layout>` (no header). It is gated by `localStorage.getItem('aaharya_onboarded')` — absent on first open, set to `'true'` after the user completes onboarding. Returning users never see it.
+- **State**: `MealProvider` and `SettingsProvider` (React Context) both wrap the app in `main.tsx`. `MealProvider` fetches meals on mount, caches to localStorage (images excluded). `SettingsProvider` fetches settings on mount and exposes `saveSettings`. All pages consume via `useMealContext()` / `useSettingsContext()`.
 - **Services**: `mealApi.ts` and `settingsApi.ts` — thin wrappers over `fetch` that attach the `x-user-id` device header.
 - **Image flow**: captured via `<input type="file" capture="environment">`, passed as a `File` object via React Router location state to `/tag`, converted to base64 for storage.
 
@@ -85,7 +86,7 @@ CLOUDINARY_API_SECRET=<your api secret>
 
 (optional body as bullet points)
 ```
-Types only: `feat` · `fix` · `refactor` · `style` · `chore` · `docs`. One concern per commit.
+Types only: `feat` · `fix` · `refactor` · `style` · `chore` · `docs` · `test`. One concern per commit.
 
 **Before every push:**
 1. `git pull origin main`

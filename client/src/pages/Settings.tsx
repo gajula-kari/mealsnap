@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { fetchSettings, saveSettings } from '../services/settingsApi'
+import { useSettingsContext } from '../hooks/useSettingsContext'
 import Spinner from '../components/Spinner'
 
 const QUICK_OPTIONS = [5, 7, 10, 15]
@@ -16,23 +16,15 @@ function formatDate(ts: number | null | undefined): string | null {
 
 export default function Settings() {
   const navigate = useNavigate()
-  const [goal, setGoal] = useState('')
-  const [previousGoal, setPreviousGoal] = useState<number | null | undefined>(null)
-  const [goalUpdatedAt, setGoalUpdatedAt] = useState<number | null | undefined>(null)
+  const { settings, saveSettings } = useSettingsContext()
+  const [goal, setGoal] = useState(() =>
+    settings?.monthlyIndulgentLimit != null ? String(settings.monthlyIndulgentLimit) : ''
+  )
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetchSettings()
-      .then((s) => {
-        if (s) {
-          setGoal(s.monthlyIndulgentLimit != null ? String(s.monthlyIndulgentLimit) : '')
-          setPreviousGoal(s.previousGoal)
-          setGoalUpdatedAt(s.goalUpdatedAt)
-        }
-      })
-      .catch(() => {})
-  }, [])
+  const previousGoal = settings?.previousGoal
+  const goalUpdatedAt = settings?.goalUpdatedAt
 
   async function handleSave() {
     const parsed = parseInt(goal, 10)
@@ -43,9 +35,7 @@ export default function Settings() {
     setSaving(true)
     setError(null)
     try {
-      const updated = await saveSettings(parsed)
-      setPreviousGoal(updated.previousGoal)
-      setGoalUpdatedAt(updated.goalUpdatedAt)
+      await saveSettings(parsed)
       navigate('/', { replace: true })
     } catch {
       setError('Failed to save. Try again.')

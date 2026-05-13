@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react'
+import { useState, useEffect, useRef, type ReactNode, type CSSProperties } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { useMealContext } from './hooks/useMealContext'
 import { calculateStreak } from './utils/streak'
@@ -7,6 +7,7 @@ import TagMeal from './pages/TagMeal'
 import DayDetail from './pages/DayDetail'
 import Settings from './pages/Settings'
 import MealsByTag from './pages/MealsByTag'
+import Onboard from './pages/Onboard'
 import ErrorBoundary from './components/ErrorBoundary'
 
 function Header() {
@@ -25,7 +26,10 @@ function Header() {
             onClick={() => navigate('/', { replace: true })}
             className="cursor-pointer text-left"
           >
-            <div className="text-lg font-semibold text-slate-900 transition hover:text-slate-600">
+            <div
+              data-splash-target
+              className="text-lg font-semibold text-slate-900 transition hover:text-slate-600"
+            >
               Aaharya
             </div>
             <p className="text-xs text-slate-400 tracking-wide">Indulge with intention.</p>
@@ -57,6 +61,7 @@ function Header() {
         </div>
       ) : (
         <button
+          data-splash-target
           type="button"
           onClick={() => navigate('/', { replace: true })}
           className="cursor-pointer text-lg font-semibold text-slate-900 transition hover:text-slate-600"
@@ -81,19 +86,91 @@ function Layout({ children }: { children: ReactNode }) {
   )
 }
 
+function SplashScreen({ onDone }: { onDone: () => void }) {
+  const textRef = useRef<HTMLDivElement>(null)
+  const [exiting, setExiting] = useState(false)
+  const [exitStyle, setExitStyle] = useState<CSSProperties>({})
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const target = document.querySelector('[data-splash-target]')
+      const src = textRef.current
+      if (src) {
+        const srcRect = src.getBoundingClientRect()
+        const style: CSSProperties = { opacity: 0 }
+        if (target) {
+          const tgtRect = target.getBoundingClientRect()
+          const tx = tgtRect.left + tgtRect.width / 2 - (srcRect.left + srcRect.width / 2)
+          const ty = tgtRect.top + tgtRect.height / 2 - (srcRect.top + srcRect.height / 2)
+          style.transform = `translate(${tx}px, ${ty}px)`
+        } else {
+          style.transform = 'translateY(-45vh)'
+        }
+        setExitStyle(style)
+      }
+      setExiting(true)
+    }, 1500)
+    return () => clearTimeout(timer)
+  }, [])
+
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none fixed inset-0 z-[100] bg-slate-50"
+      style={exiting ? { transition: 'opacity 0.5s ease', opacity: 0 } : undefined}
+    >
+      <div
+        ref={textRef}
+        className="flex h-full flex-col items-center justify-center"
+        style={
+          exiting
+            ? { transition: 'transform 0.5s ease, opacity 0.5s ease', ...exitStyle }
+            : undefined
+        }
+        onTransitionEnd={(e) => {
+          if (e.propertyName === 'opacity') onDone()
+        }}
+      >
+        <p className="text-lg font-semibold text-slate-900">Aaharya</p>
+        <p className="text-xs tracking-wide text-slate-400">Indulge with intention.</p>
+      </div>
+    </div>
+  )
+}
+
+function AppContent() {
+  const [isOnboarded, setIsOnboarded] = useState(() => !!localStorage.getItem('aaharya_onboarded'))
+  const [splashDone, setSplashDone] = useState(false)
+
+  return (
+    <>
+      {!splashDone && <SplashScreen onDone={() => setSplashDone(true)} />}
+
+      {!isOnboarded ? (
+        <Routes>
+          <Route path="/onboard" element={<Onboard onComplete={() => setIsOnboarded(true)} />} />
+          <Route path="*" element={<Navigate to="/onboard" replace />} />
+        </Routes>
+      ) : (
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/tag" element={<TagMeal />} />
+            <Route path="/day/:date" element={<DayDetail />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/meals/:tag" element={<MealsByTag />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Layout>
+      )}
+    </>
+  )
+}
+
 export default function App() {
   return (
     <BrowserRouter>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/tag" element={<TagMeal />} />
-          <Route path="/day/:date" element={<DayDetail />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/meals/:tag" element={<MealsByTag />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Layout>
+      <AppContent />
     </BrowserRouter>
   )
 }

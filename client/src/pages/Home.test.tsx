@@ -5,14 +5,14 @@ import Home from './Home'
 import type { Meal } from '../types'
 
 vi.mock('../hooks/useMealContext')
-vi.mock('../services/settingsApi')
+vi.mock('../hooks/useSettingsContext')
 vi.mock('react-router-dom', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react-router-dom')>()
   return { ...actual, useNavigate: vi.fn(() => vi.fn()) }
 })
 
 import { useMealContext } from '../hooks/useMealContext'
-import { fetchSettings } from '../services/settingsApi'
+import { useSettingsContext } from '../hooks/useSettingsContext'
 import { useNavigate } from 'react-router-dom'
 
 function renderHome() {
@@ -25,7 +25,11 @@ function renderHome() {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  vi.mocked(fetchSettings).mockResolvedValue(null)
+  vi.mocked(useSettingsContext).mockReturnValue({
+    settings: null,
+    settingsLoading: false,
+    saveSettings: vi.fn(),
+  })
 })
 
 describe('loading and error states', () => {
@@ -140,7 +144,11 @@ describe('calendar grid', () => {
   })
 
   it('applies rose class when the outside day falls beyond the goal cutoff', async () => {
-    vi.mocked(fetchSettings).mockResolvedValue({ monthlyIndulgentLimit: 0 })
+    vi.mocked(useSettingsContext).mockReturnValue({
+      settings: { monthlyIndulgentLimit: 0 },
+      settingsLoading: false,
+      saveSettings: vi.fn(),
+    })
     vi.mocked(useMealContext).mockReturnValue({
       meals: [mealToday('INDULGENT')],
       loading: false,
@@ -268,7 +276,11 @@ describe('stats card', () => {
   })
 
   it('shows "You\'ve reached your limit" when exactly at limit', async () => {
-    vi.mocked(fetchSettings).mockResolvedValue({ monthlyIndulgentLimit: 2 })
+    vi.mocked(useSettingsContext).mockReturnValue({
+      settings: { monthlyIndulgentLimit: 2 },
+      settingsLoading: false,
+      saveSettings: vi.fn(),
+    })
     vi.mocked(useMealContext).mockReturnValue({
       meals: [mealThisMonth('INDULGENT', 0), mealThisMonth('INDULGENT', 1)],
       loading: false,
@@ -283,7 +295,11 @@ describe('stats card', () => {
   })
 
   it('shows "You\'ve gone over your limit" when over by 1', async () => {
-    vi.mocked(fetchSettings).mockResolvedValue({ monthlyIndulgentLimit: 1 })
+    vi.mocked(useSettingsContext).mockReturnValue({
+      settings: { monthlyIndulgentLimit: 1 },
+      settingsLoading: false,
+      saveSettings: vi.fn(),
+    })
     vi.mocked(useMealContext).mockReturnValue({
       meals: [mealThisMonth('INDULGENT', 0), mealThisMonth('INDULGENT', 1)],
       loading: false,
@@ -298,7 +314,11 @@ describe('stats card', () => {
   })
 
   it('shows "You\'re N days over your limit" when over by more than 1', async () => {
-    vi.mocked(fetchSettings).mockResolvedValue({ monthlyIndulgentLimit: 1 })
+    vi.mocked(useSettingsContext).mockReturnValue({
+      settings: { monthlyIndulgentLimit: 1 },
+      settingsLoading: false,
+      saveSettings: vi.fn(),
+    })
     vi.mocked(useMealContext).mockReturnValue({
       meals: [
         mealThisMonth('INDULGENT', 0),
@@ -318,7 +338,11 @@ describe('stats card', () => {
   })
 
   it('does not show a limit message when indulgent total is within the limit', async () => {
-    vi.mocked(fetchSettings).mockResolvedValue({ monthlyIndulgentLimit: 5 })
+    vi.mocked(useSettingsContext).mockReturnValue({
+      settings: { monthlyIndulgentLimit: 5 },
+      settingsLoading: false,
+      saveSettings: vi.fn(),
+    })
     vi.mocked(useMealContext).mockReturnValue({
       meals: [mealThisMonth('INDULGENT', 0)],
       loading: false,
@@ -334,7 +358,6 @@ describe('stats card', () => {
   })
 
   it('does not show a limit message when no limit is set', () => {
-    vi.mocked(fetchSettings).mockResolvedValue(null)
     vi.mocked(useMealContext).mockReturnValue({
       meals: [
         mealThisMonth('INDULGENT', 0),

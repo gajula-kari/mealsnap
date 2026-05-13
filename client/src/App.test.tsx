@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MealProvider } from './context/MealProvider'
+import { SettingsProvider } from './context/SettingsProvider'
 import type { ReactNode } from 'react'
 
 vi.mock('react-router-dom', async (importOriginal) => {
@@ -21,6 +22,7 @@ import { useNavigate } from 'react-router-dom'
 
 beforeEach(() => {
   initialPath = '/'
+  localStorage.setItem('aaharya_onboarded', 'true')
   vi.stubGlobal(
     'fetch',
     vi.fn().mockResolvedValue({
@@ -37,7 +39,9 @@ afterEach(() => {
 function renderApp() {
   return render(
     <MealProvider>
-      <App />
+      <SettingsProvider>
+        <App />
+      </SettingsProvider>
     </MealProvider>
   )
 }
