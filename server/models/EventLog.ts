@@ -1,0 +1,25 @@
+import { Schema, model } from 'mongoose'
+
+export const INSTALL_EVENTS = ['install_clicked', 'app_installed', 'uninstall_detected'] as const
+export type InstallEvent = (typeof INSTALL_EVENTS)[number]
+
+export interface IEventLog {
+  userId: string
+  event: InstallEvent
+  occurredAt: number
+}
+
+const eventLogSchema = new Schema<IEventLog>(
+  {
+    userId: { type: String, required: true },
+    event: {
+      type: String,
+      enum: ['install_clicked', 'app_installed', 'uninstall_detected'],
+      required: true,
+    },
+    occurredAt: { type: Number, required: true },
+  },
+  { timestamps: true }
+)
+
+export default model<IEventLog>('EventLog', eventLogSchema)

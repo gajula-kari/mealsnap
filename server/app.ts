@@ -2,15 +2,21 @@ import express, { type Request, type Response } from 'express'
 import cors from 'cors'
 import mealsRouter from './routes/meals'
 import settingsRouter from './routes/settings'
+import eventsRouter from './routes/events'
 
 const app = express()
 
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }))
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL || ['http://localhost:5173', 'http://localhost:4173'],
+  })
+)
 app.use(express.json())
 
 app.get('/health', (_req: Request, res: Response) => res.json({ status: 'ok' }))
 
 app.use('/meals', mealsRouter)
 app.use('/settings', settingsRouter)
+app.use('/events', eventsRouter)
 
 export default app

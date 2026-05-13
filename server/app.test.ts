@@ -7,6 +7,9 @@ import Meal from './models/Meal'
 jest.mock('./models/UserSettings')
 import UserSettings from './models/UserSettings'
 
+jest.mock('./models/EventLog')
+import EventLog from './models/EventLog'
+
 beforeEach(() => {
   jest.clearAllMocks()
 })
@@ -223,6 +226,57 @@ describe('PATCH /settings', () => {
 
   it('returns 400 when x-user-id header is missing', async () => {
     const res = await request(app).patch('/settings').send({ monthlyIndulgentLimit: 7 }).expect(400)
+
+    expect(res.body).toEqual({ error: 'x-user-id header is required' })
+  })
+})
+
+describe('POST /events', () => {
+  it('returns 201 when a valid event is logged', async () => {
+    jest.mocked(EventLog.create).mockResolvedValue({} as any)
+
+    const res = await request(app)
+      .post('/events')
+      .set('x-user-id', 'user-test')
+      .send({ event: 'install_clicked' })
+      .expect(201)
+
+    expect(res.body).toEqual({ ok: true })
+    expect(EventLog.create).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: 'user-test', event: 'install_clicked' })
+    )
+  })
+
+  it('accepts all valid event types', async () => {
+    jest.mocked(EventLog.create).mockResolvedValue({} as any)
+
+    for (const event of ['install_clicked', 'app_installed', 'uninstall_detected']) {
+      await request(app).post('/events').set('x-user-id', 'user-test').send({ event }).expect(201)
+    }
+  })
+
+  it('returns 400 when event is invalid', async () => {
+    const res = await request(app)
+      .post('/events')
+      .set('x-user-id', 'user-test')
+      .send({ event: 'unknown_event' })
+      .expect(400)
+
+    expect(res.body).toEqual({ error: 'invalid event' })
+  })
+
+  it('returns 400 when event is missing', async () => {
+    const res = await request(app)
+      .post('/events')
+      .set('x-user-id', 'user-test')
+      .send({})
+      .expect(400)
+
+    expect(res.body).toEqual({ error: 'invalid event' })
+  })
+
+  it('returns 400 when x-user-id header is missing', async () => {
+    const res = await request(app).post('/events').send({ event: 'install_clicked' }).expect(400)
 
     expect(res.body).toEqual({ error: 'x-user-id header is required' })
   })
