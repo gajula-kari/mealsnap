@@ -6,6 +6,7 @@ import type { Meal } from '../types'
 
 vi.mock('../hooks/useMealContext')
 vi.mock('../hooks/useSettingsContext')
+vi.mock('../hooks/useInstallContext')
 vi.mock('react-router-dom', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react-router-dom')>()
   return { ...actual, useNavigate: vi.fn(() => vi.fn()) }
@@ -14,6 +15,7 @@ vi.mock('react-router-dom', async (importOriginal) => {
 import { useMealContext } from '../hooks/useMealContext'
 import { useSettingsContext } from '../hooks/useSettingsContext'
 import { useNavigate } from 'react-router-dom'
+import { useInstallContext } from '../hooks/useInstallContext'
 
 function renderHome() {
   return render(
@@ -29,6 +31,12 @@ beforeEach(() => {
     settings: null,
     settingsLoading: false,
     saveSettings: vi.fn(),
+  })
+  vi.mocked(useInstallContext).mockReturnValue({
+    canInstall: false,
+    dismissed: false,
+    install: vi.fn(),
+    dismiss: vi.fn(),
   })
 })
 
@@ -373,6 +381,65 @@ describe('stats card', () => {
     renderHome()
 
     expect(screen.queryByText(/reached your limit|over your limit/)).not.toBeInTheDocument()
+  })
+})
+
+describe('install banner', () => {
+  function withMeals() {
+    vi.mocked(useMealContext).mockReturnValue({
+      meals: [],
+      loading: false,
+      error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
+    })
+  }
+
+  it('does not show the banner when canInstall is false', () => {
+    withMeals()
+    renderHome()
+    expect(screen.queryByText('Install App')).not.toBeInTheDocument()
+  })
+
+  it('shows the banner when canInstall is true and not dismissed', () => {
+    withMeals()
+    vi.mocked(useInstallContext).mockReturnValue({
+      canInstall: true,
+      dismissed: false,
+      install: vi.fn(),
+      dismiss: vi.fn(),
+    })
+    renderHome()
+    expect(screen.getByText('Install App')).toBeInTheDocument()
+  })
+
+  it('calls install when the Install button is clicked', async () => {
+    withMeals()
+    const install = vi.fn()
+    vi.mocked(useInstallContext).mockReturnValue({
+      canInstall: true,
+      dismissed: false,
+      install,
+      dismiss: vi.fn(),
+    })
+    renderHome()
+    await userEvent.click(screen.getByRole('button', { name: 'Install' }))
+    expect(install).toHaveBeenCalled()
+  })
+
+  it('calls dismiss when the close button is clicked', async () => {
+    withMeals()
+    const dismiss = vi.fn()
+    vi.mocked(useInstallContext).mockReturnValue({
+      canInstall: true,
+      dismissed: false,
+      install: vi.fn(),
+      dismiss,
+    })
+    renderHome()
+    await userEvent.click(screen.getByRole('button', { name: 'Close' }))
+    expect(dismiss).toHaveBeenCalled()
   })
 })
 
