@@ -1,5 +1,6 @@
 import { useState, useEffect, type ReactNode } from 'react'
 import { InstallContext } from './InstallContext'
+import { logEvent } from '../services/eventsApi'
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>
@@ -10,6 +11,7 @@ const DISMISSED_KEY = 'aaharya_install_dismissed'
 const VISIT_COUNT_KEY = 'aaharya_visit_count'
 const SESSION_KEY = 'aaharya_session_counted'
 const VISIT_THRESHOLD = 3
+const WAS_INSTALLED_KEY = 'aaharya_was_installed'
 
 export function InstallProvider({ children }: { children: ReactNode }) {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
@@ -41,14 +43,22 @@ export function InstallProvider({ children }: { children: ReactNode }) {
       if (e.matches) setIsInstalled(true)
     }
     mq.addEventListener('change', mqHandler)
+    const installedHandler = () => {
+      localStorage.setItem(WAS_INSTALLED_KEY, 'true')
+      logEvent('app_installed')
+      setIsInstalled(true)
+    }
+    window.addEventListener('appinstalled', installedHandler)
     return () => {
       window.removeEventListener('beforeinstallprompt', handler)
       mq.removeEventListener('change', mqHandler)
+      window.removeEventListener('appinstalled', installedHandler)
     }
   }, [isInstalled])
 
   async function install() {
     if (!deferredPrompt) return
+    logEvent('install_clicked')
     deferredPrompt.prompt()
     await deferredPrompt.userChoice
     setDeferredPrompt(null)
