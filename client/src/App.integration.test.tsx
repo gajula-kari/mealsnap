@@ -79,6 +79,21 @@ describe('App integration', () => {
   })
 })
 
+describe('Onboarding', () => {
+  it('completes onboarding flow and shows the home screen', async () => {
+    localStorage.clear()
+    mockFetch([])
+    renderApp()
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Next' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Next' }))
+    await userEvent.click(screen.getByRole('button', { name: '5' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Get Started' }))
+
+    expect(await screen.findByText('Clean days')).toBeInTheDocument()
+  })
+})
+
 describe('Header', () => {
   it('shows "Aaharya" button and no back arrow after navigating to /settings', async () => {
     mockFetch([])
