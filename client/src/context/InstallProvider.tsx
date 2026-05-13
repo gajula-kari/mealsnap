@@ -10,8 +10,17 @@ interface BeforeInstallPromptEvent extends Event {
 const DISMISSED_KEY = 'aaharya_install_dismissed'
 const VISIT_COUNT_KEY = 'aaharya_visit_count'
 const SESSION_KEY = 'aaharya_session_counted'
+const BANNER_ANIMATED_KEY = 'aaharya_install_banner_animated'
 const VISIT_THRESHOLD = 3
 const WAS_INSTALLED_KEY = 'aaharya_was_installed'
+
+function resetInstallFlow() {
+  localStorage.removeItem(DISMISSED_KEY)
+  localStorage.removeItem(VISIT_COUNT_KEY)
+  localStorage.removeItem(BANNER_ANIMATED_KEY)
+  sessionStorage.removeItem(SESSION_KEY)
+  localStorage.removeItem(WAS_INSTALLED_KEY)
+}
 
 export function InstallProvider({ children }: { children: ReactNode }) {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
@@ -35,6 +44,11 @@ export function InstallProvider({ children }: { children: ReactNode }) {
     if (isInstalled) return
     const handler = (e: Event) => {
       e.preventDefault()
+      if (localStorage.getItem(WAS_INSTALLED_KEY) === 'true') {
+        logEvent('uninstall_detected')
+        resetInstallFlow()
+        setDismissed(false)
+      }
       setDeferredPrompt(e as BeforeInstallPromptEvent)
     }
     window.addEventListener('beforeinstallprompt', handler)
