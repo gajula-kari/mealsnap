@@ -2,8 +2,52 @@ import { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMealContext } from '../hooks/useMealContext'
 import { useSettingsContext } from '../hooks/useSettingsContext'
+import { useInstallContext } from '../hooks/useInstallContext'
 import Spinner from '../components/Spinner'
 import type { Meal, MealTag } from '../types'
+
+function InstallBanner() {
+  const { canInstall, dismissed, install, dismiss } = useInstallContext()
+  if (!canInstall || dismissed) return null
+  return (
+    <div className="flex items-center justify-between rounded-2xl bg-slate-900 px-4 py-3">
+      <div>
+        <p className="text-sm font-medium text-white">Install App</p>
+        <p className="text-xs text-slate-400">Add Aaharya to your home screen</p>
+      </div>
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={install}
+          className="rounded-xl bg-white px-3 py-1.5 text-xs font-semibold text-slate-900 transition hover:bg-slate-100"
+        >
+          Install
+        </button>
+        <button
+          type="button"
+          onClick={dismiss}
+          aria-label="Close"
+          className="text-slate-500 transition hover:text-white"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  )
+}
 
 function formatLocalDate(date: Date): string {
   const y = date.getFullYear()
@@ -88,6 +132,7 @@ export default function Home() {
 
   return (
     <div className="relative space-y-4 pb-24">
+      <InstallBanner />
       {loading && (
         <div
           role="status"
