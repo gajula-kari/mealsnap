@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Purple background -->
+  <rect width="512" height="512" fill="#7c3aed"/>
+  <!-- Bowl fill -->
+  <path d="M 110 285 Q 256 412 402 285 Z" fill="white"/>
+  <!-- Rim -->
+  <rect x="98" y="264" width="316" height="30" rx="15" fill="white"/>
+  <!-- Steam left (S-curve) -->
+  <path d="M 178 254 C 194 228 158 208 178 182 C 198 156 162 136 178 110" stroke="white" stroke-width="20" stroke-linecap="round" fill="none"/>
+  <!-- Steam center (S-curve) -->
+  <path d="M 256 244 C 272 218 236 198 256 172 C 276 146 240 126 256 100" stroke="white" stroke-width="20" stroke-linecap="round" fill="none"/>
+  <!-- Steam right (S-curve) -->
+  <path d="M 334 254 C 350 228 314 208 334 182 C 354 156 318 136 334 110" stroke="white" stroke-width="20" stroke-linecap="round" fill="none"/>
+</svg>

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSettingsContext } from '../hooks/useSettingsContext'
+import { useInstallContext } from '../hooks/useInstallContext'
 import Spinner from '../components/Spinner'
 
 const QUICK_OPTIONS = [5, 7, 10, 15]
@@ -17,6 +18,7 @@ function formatDate(ts: number | null | undefined): string | null {
 export default function Settings() {
   const navigate = useNavigate()
   const { settings, saveSettings } = useSettingsContext()
+  const { canInstall, dismissed, install } = useInstallContext()
   const [goal, setGoal] = useState(() =>
     settings?.monthlyIndulgentLimit != null ? String(settings.monthlyIndulgentLimit) : ''
   )
@@ -103,6 +105,21 @@ export default function Settings() {
           )}
         </button>
       </section>
+      {canInstall && dismissed && (
+        <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="text-lg font-semibold text-slate-900">Install App</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Add Aaharya to your home screen for quick access
+          </p>
+          <button
+            type="button"
+            onClick={install}
+            className="mt-4 w-full rounded-2xl bg-slate-900 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
+          >
+            Install App
+          </button>
+        </section>
+      )}
     </div>
   )
 }

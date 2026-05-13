@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom'
 import Settings from './Settings'
 
 vi.mock('../hooks/useSettingsContext')
+vi.mock('../hooks/useInstallContext')
 vi.mock('react-router-dom', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react-router-dom')>()
   return { ...actual, useNavigate: vi.fn(() => vi.fn()) }
@@ -11,6 +12,7 @@ vi.mock('react-router-dom', async (importOriginal) => {
 
 import { useSettingsContext } from '../hooks/useSettingsContext'
 import { useNavigate } from 'react-router-dom'
+import { useInstallContext } from '../hooks/useInstallContext'
 
 function renderSettings() {
   return render(
@@ -24,6 +26,12 @@ const mockSaveSettings = vi.fn()
 
 beforeEach(() => {
   vi.clearAllMocks()
+  vi.mocked(useInstallContext).mockReturnValue({
+    canInstall: false,
+    dismissed: false,
+    install: vi.fn(),
+    dismiss: vi.fn(),
+  })
   mockSaveSettings.mockResolvedValue({
     monthlyIndulgentLimit: 7,
     previousGoal: null,
@@ -33,6 +41,48 @@ beforeEach(() => {
     settings: null,
     settingsLoading: false,
     saveSettings: mockSaveSettings,
+  })
+})
+
+describe('install section', () => {
+  it('does not show the install section when canInstall is false', () => {
+    renderSettings()
+    expect(screen.queryByRole('button', { name: 'Install App' })).not.toBeInTheDocument()
+  })
+
+  it('does not show the install section when banner was not yet dismissed', () => {
+    vi.mocked(useInstallContext).mockReturnValue({
+      canInstall: true,
+      dismissed: false,
+      install: vi.fn(),
+      dismiss: vi.fn(),
+    })
+    renderSettings()
+    expect(screen.queryByRole('button', { name: 'Install App' })).not.toBeInTheDocument()
+  })
+
+  it('shows the install section when canInstall and dismissed', () => {
+    vi.mocked(useInstallContext).mockReturnValue({
+      canInstall: true,
+      dismissed: true,
+      install: vi.fn(),
+      dismiss: vi.fn(),
+    })
+    renderSettings()
+    expect(screen.getByRole('button', { name: 'Install App' })).toBeInTheDocument()
+  })
+
+  it('calls install when Install App button is clicked', async () => {
+    const install = vi.fn()
+    vi.mocked(useInstallContext).mockReturnValue({
+      canInstall: true,
+      dismissed: true,
+      install,
+      dismiss: vi.fn(),
+    })
+    renderSettings()
+    await userEvent.click(screen.getByRole('button', { name: 'Install App' }))
+    expect(install).toHaveBeenCalled()
   })
 })
 
