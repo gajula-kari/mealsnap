@@ -35,6 +35,7 @@ beforeEach(() => {
   vi.mocked(useInstallContext).mockReturnValue({
     canInstall: false,
     dismissed: false,
+    readyToShow: false,
     install: vi.fn(),
     dismiss: vi.fn(),
   })
@@ -407,6 +408,7 @@ describe('install banner', () => {
     vi.mocked(useInstallContext).mockReturnValue({
       canInstall: true,
       dismissed: false,
+      readyToShow: true,
       install: vi.fn(),
       dismiss: vi.fn(),
     })
@@ -420,6 +422,7 @@ describe('install banner', () => {
     vi.mocked(useInstallContext).mockReturnValue({
       canInstall: true,
       dismissed: false,
+      readyToShow: true,
       install,
       dismiss: vi.fn(),
     })
@@ -434,6 +437,7 @@ describe('install banner', () => {
     vi.mocked(useInstallContext).mockReturnValue({
       canInstall: true,
       dismissed: false,
+      readyToShow: true,
       install: vi.fn(),
       dismiss,
     })
