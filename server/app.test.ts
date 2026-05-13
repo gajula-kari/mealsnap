@@ -250,7 +250,7 @@ describe('POST /events', () => {
   it('accepts all valid event types', async () => {
     jest.mocked(EventLog.create).mockResolvedValue({} as any)
 
-    for (const event of ['install_clicked', 'app_installed', 'uninstall_detected']) {
+    for (const event of ['install_clicked', 'app_installed', 'standalone_visit']) {
       await request(app).post('/events').set('x-user-id', 'user-test').send({ event }).expect(201)
     }
   })

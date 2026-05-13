@@ -1,6 +1,6 @@
 import { Schema, model } from 'mongoose'
 
-export const INSTALL_EVENTS = ['install_clicked', 'app_installed', 'uninstall_detected'] as const
+export const INSTALL_EVENTS = ['install_clicked', 'app_installed', 'standalone_visit'] as const
 export type InstallEvent = (typeof INSTALL_EVENTS)[number]
 
 export interface IEventLog {

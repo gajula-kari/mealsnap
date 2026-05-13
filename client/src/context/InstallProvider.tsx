@@ -41,11 +41,14 @@ export function InstallProvider({ children }: { children: ReactNode }) {
   )
 
   useEffect(() => {
+    if (isInstalled) logEvent('standalone_visit')
+  }, [])
+
+  useEffect(() => {
     if (isInstalled) return
     const handler = (e: Event) => {
       e.preventDefault()
       if (localStorage.getItem(WAS_INSTALLED_KEY) === 'true') {
-        logEvent('uninstall_detected')
         resetInstallFlow()
         setDismissed(false)
       }

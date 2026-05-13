@@ -1,6 +1,6 @@
 import { getDeviceId } from '../utils/deviceId'
 
-export type InstallEvent = 'install_clicked' | 'app_installed' | 'uninstall_detected'
+export type InstallEvent = 'install_clicked' | 'app_installed' | 'standalone_visit'
 
 const ROOT = import.meta.env.VITE_API_URL ?? ''
 
