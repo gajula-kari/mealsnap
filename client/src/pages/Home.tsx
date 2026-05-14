@@ -10,10 +10,11 @@ const BANNER_ANIMATED_KEY = 'aaharya_install_banner_animated'
 
 function InstallBanner() {
   const { canInstall, dismissed, install, dismiss } = useInstallContext()
+  const { meals } = useMealContext()
   const [shouldAnimate] = useState(() => !localStorage.getItem(BANNER_ANIMATED_KEY))
   const [isOffset, setIsOffset] = useState(shouldAnimate)
 
-  const visible = canInstall && !dismissed
+  const visible = canInstall && meals.length >= 3 && !dismissed
 
   useEffect(() => {
     if (!visible || !shouldAnimate) return

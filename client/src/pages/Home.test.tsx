@@ -386,9 +386,16 @@ describe('stats card', () => {
 })
 
 describe('install banner', () => {
-  function withMeals() {
+  function withMeals(count = 3) {
     vi.mocked(useMealContext).mockReturnValue({
-      meals: [],
+      meals: Array.from({ length: count }, (_, i) => ({
+        id: String(i),
+        tag: 'CLEAN' as const,
+        imageUrl: null,
+        amountSpent: null,
+        note: null,
+        occurredAt: Date.now(),
+      })),
       loading: false,
       error: null,
       addMeal: vi.fn(),
@@ -399,6 +406,19 @@ describe('install banner', () => {
 
   it('does not show the banner when canInstall is false', () => {
     withMeals()
+    renderHome()
+    expect(screen.queryByText('Install App')).not.toBeInTheDocument()
+  })
+
+  it('does not show the banner when fewer than 3 meals are logged', () => {
+    withMeals(2)
+    vi.mocked(useInstallContext).mockReturnValue({
+      canInstall: true,
+      dismissed: false,
+      dismissedAt: null,
+      install: vi.fn(),
+      dismiss: vi.fn(),
+    })
     renderHome()
     expect(screen.queryByText('Install App')).not.toBeInTheDocument()
   })
