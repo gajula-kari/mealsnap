@@ -21,6 +21,7 @@ export default defineConfig({
         description: 'Track your meals. Indulge with intention.',
         theme_color: '#f8fafc',
         background_color: '#f8fafc',
+        id: '/',
         display: 'standalone',
         start_url: '/',
         icons: [
@@ -28,13 +29,13 @@ export default defineConfig({
             src: 'web-app-manifest-192x192.png',
             sizes: '192x192',
             type: 'image/png',
-            purpose: 'maskable',
+            purpose: 'any maskable',
           },
           {
             src: 'web-app-manifest-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'maskable',
+            purpose: 'any maskable',
           },
         ],
       },
