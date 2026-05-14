@@ -8,12 +8,26 @@ import type { Meal, MealTag } from '../types'
 
 const BANNER_ANIMATED_KEY = 'aaharya_install_banner_animated'
 
-function InstallBanner() {
-  const { canInstall, dismissed, install, dismiss, readyToShow } = useInstallContext()
-  const [shouldAnimate] = useState(() => !localStorage.getItem(BANNER_ANIMATED_KEY))
-  const [isOffset, setIsOffset] = useState(shouldAnimate)
+const RESHOW_AFTER_DAYS = 15
 
-  const visible = canInstall && !dismissed && readyToShow
+function InstallBanner() {
+  const { canInstall, dismissed, dismissedAt, install, dismiss } = useInstallContext()
+  const { meals } = useMealContext()
+  const [mountTime] = useState(() => Date.now())
+
+  const daysSinceDismiss = dismissedAt ? (mountTime - dismissedAt) / 86400000 : Infinity
+  const isActiveUser = meals.some((m) => mountTime - m.occurredAt < RESHOW_AFTER_DAYS * 86400000)
+  const reshowDue = dismissed && daysSinceDismiss >= RESHOW_AFTER_DAYS && isActiveUser
+  const visible = canInstall && meals.length >= 3 && (!dismissed || reshowDue)
+
+  const [shouldAnimate] = useState(() => {
+    if (reshowDue) {
+      localStorage.removeItem(BANNER_ANIMATED_KEY)
+      return true
+    }
+    return !localStorage.getItem(BANNER_ANIMATED_KEY)
+  })
+  const [isOffset, setIsOffset] = useState(shouldAnimate)
 
   useEffect(() => {
     if (!visible || !shouldAnimate) return
@@ -26,7 +40,7 @@ function InstallBanner() {
   if (!visible) return null
   return (
     <div
-      className="flex items-center justify-between rounded-2xl bg-slate-900 px-4 py-3"
+      className="absolute inset-x-0 top-0 z-10 flex items-center justify-between rounded-2xl bg-slate-900 px-4 py-3 shadow-lg"
       style={{
         transform: isOffset ? 'translateY(-150%)' : 'translateY(0)',
         opacity: isOffset ? 0 : 1,

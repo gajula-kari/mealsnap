@@ -35,7 +35,7 @@ beforeEach(() => {
   vi.mocked(useInstallContext).mockReturnValue({
     canInstall: false,
     dismissed: false,
-    readyToShow: false,
+    dismissedAt: null,
     install: vi.fn(),
     dismiss: vi.fn(),
   })
@@ -386,9 +386,16 @@ describe('stats card', () => {
 })
 
 describe('install banner', () => {
-  function withMeals() {
+  function withMeals(count = 3) {
     vi.mocked(useMealContext).mockReturnValue({
-      meals: [],
+      meals: Array.from({ length: count }, (_, i) => ({
+        id: String(i),
+        tag: 'CLEAN' as const,
+        imageUrl: null,
+        amountSpent: null,
+        note: null,
+        occurredAt: Date.now(),
+      })),
       loading: false,
       error: null,
       addMeal: vi.fn(),
@@ -403,12 +410,25 @@ describe('install banner', () => {
     expect(screen.queryByText('Install App')).not.toBeInTheDocument()
   })
 
+  it('does not show the banner when fewer than 3 meals are logged', () => {
+    withMeals(2)
+    vi.mocked(useInstallContext).mockReturnValue({
+      canInstall: true,
+      dismissed: false,
+      dismissedAt: null,
+      install: vi.fn(),
+      dismiss: vi.fn(),
+    })
+    renderHome()
+    expect(screen.queryByText('Install App')).not.toBeInTheDocument()
+  })
+
   it('shows the banner when canInstall is true and not dismissed', () => {
     withMeals()
     vi.mocked(useInstallContext).mockReturnValue({
       canInstall: true,
       dismissed: false,
-      readyToShow: true,
+      dismissedAt: null,
       install: vi.fn(),
       dismiss: vi.fn(),
     })
@@ -422,7 +442,7 @@ describe('install banner', () => {
     vi.mocked(useInstallContext).mockReturnValue({
       canInstall: true,
       dismissed: false,
-      readyToShow: true,
+      dismissedAt: null,
       install,
       dismiss: vi.fn(),
     })
@@ -437,7 +457,7 @@ describe('install banner', () => {
     vi.mocked(useInstallContext).mockReturnValue({
       canInstall: true,
       dismissed: false,
-      readyToShow: true,
+      dismissedAt: null,
       install: vi.fn(),
       dismiss,
     })
@@ -453,7 +473,7 @@ describe('install banner', () => {
     vi.mocked(useInstallContext).mockReturnValue({
       canInstall: true,
       dismissed: false,
-      readyToShow: true,
+      dismissedAt: null,
       install: vi.fn(),
       dismiss: vi.fn(),
     })
@@ -463,6 +483,62 @@ describe('install banner', () => {
     })
     unmount()
     vi.useRealTimers()
+  })
+
+  it('re-shows banner after 15 days if user has logged a recent meal', () => {
+    const sixteenDaysAgo = Date.now() - 16 * 86400000
+    withMeals()
+    vi.mocked(useInstallContext).mockReturnValue({
+      canInstall: true,
+      dismissed: true,
+      dismissedAt: sixteenDaysAgo,
+      install: vi.fn(),
+      dismiss: vi.fn(),
+    })
+    renderHome()
+    expect(screen.getByText('Install App')).toBeInTheDocument()
+  })
+
+  it('does not re-show banner if user has no meals in the last 15 days', () => {
+    const sixteenDaysAgo = Date.now() - 16 * 86400000
+    vi.mocked(useMealContext).mockReturnValue({
+      meals: Array.from({ length: 3 }, (_, i) => ({
+        id: String(i),
+        tag: 'CLEAN' as const,
+        imageUrl: null,
+        amountSpent: null,
+        note: null,
+        occurredAt: Date.now() - 20 * 86400000,
+      })),
+      loading: false,
+      error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
+    })
+    vi.mocked(useInstallContext).mockReturnValue({
+      canInstall: true,
+      dismissed: true,
+      dismissedAt: sixteenDaysAgo,
+      install: vi.fn(),
+      dismiss: vi.fn(),
+    })
+    renderHome()
+    expect(screen.queryByText('Install App')).not.toBeInTheDocument()
+  })
+
+  it('does not re-show banner if fewer than 15 days have passed since dismissal', () => {
+    const tenDaysAgo = Date.now() - 10 * 86400000
+    withMeals()
+    vi.mocked(useInstallContext).mockReturnValue({
+      canInstall: true,
+      dismissed: true,
+      dismissedAt: tenDaysAgo,
+      install: vi.fn(),
+      dismiss: vi.fn(),
+    })
+    renderHome()
+    expect(screen.queryByText('Install App')).not.toBeInTheDocument()
   })
 })
 
