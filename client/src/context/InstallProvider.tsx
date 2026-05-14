@@ -19,7 +19,19 @@ function resetInstallFlow() {
 
 export function InstallProvider({ children }: { children: ReactNode }) {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
-  const [dismissed, setDismissed] = useState(() => !!localStorage.getItem(DISMISSED_KEY))
+  const [dismissedAt, setDismissedAt] = useState<number | null>(() => {
+    const val = localStorage.getItem(DISMISSED_KEY)
+    if (!val) return null
+    const ts = parseInt(val, 10)
+    if (isNaN(ts)) {
+      // Migrate legacy 'true' value — treat as dismissed just now so re-show waits 15 days
+      const now = Date.now()
+      localStorage.setItem(DISMISSED_KEY, String(now))
+      return now
+    }
+    return ts
+  })
+  const dismissed = dismissedAt !== null
   const [isInstalled, setIsInstalled] = useState(
     () =>
       window.matchMedia('(display-mode: standalone)').matches ||
@@ -37,7 +49,7 @@ export function InstallProvider({ children }: { children: ReactNode }) {
       e.preventDefault()
       if (localStorage.getItem(WAS_INSTALLED_KEY) === 'true') {
         resetInstallFlow()
-        setDismissed(false)
+        setDismissedAt(null)
       }
       setDeferredPrompt(e as BeforeInstallPromptEvent)
     }
@@ -69,8 +81,9 @@ export function InstallProvider({ children }: { children: ReactNode }) {
   }
 
   function dismiss() {
-    localStorage.setItem(DISMISSED_KEY, 'true')
-    setDismissed(true)
+    const now = Date.now()
+    localStorage.setItem(DISMISSED_KEY, String(now))
+    setDismissedAt(now)
   }
 
   return (
@@ -78,6 +91,7 @@ export function InstallProvider({ children }: { children: ReactNode }) {
       value={{
         canInstall: !!deferredPrompt && !isInstalled,
         dismissed,
+        dismissedAt,
         install,
         dismiss,
       }}

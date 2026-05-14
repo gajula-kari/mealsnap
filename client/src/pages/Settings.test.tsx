@@ -29,7 +29,7 @@ beforeEach(() => {
   vi.mocked(useInstallContext).mockReturnValue({
     canInstall: false,
     dismissed: false,
-    readyToShow: false,
+    dismissedAt: null,
     install: vi.fn(),
     dismiss: vi.fn(),
   })
@@ -55,7 +55,7 @@ describe('install section', () => {
     vi.mocked(useInstallContext).mockReturnValue({
       canInstall: true,
       dismissed: false,
-
+      dismissedAt: null,
       install: vi.fn(),
       dismiss: vi.fn(),
     })
@@ -67,7 +67,7 @@ describe('install section', () => {
     vi.mocked(useInstallContext).mockReturnValue({
       canInstall: true,
       dismissed: true,
-
+      dismissedAt: Date.now(),
       install: vi.fn(),
       dismiss: vi.fn(),
     })
@@ -80,7 +80,7 @@ describe('install section', () => {
     vi.mocked(useInstallContext).mockReturnValue({
       canInstall: true,
       dismissed: true,
-
+      dismissedAt: Date.now(),
       install,
       dismiss: vi.fn(),
     })
