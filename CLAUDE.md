@@ -23,6 +23,7 @@ cd client
 npm run dev          # Vite dev server → http://localhost:5173
 npm run build        # tsc + vite build
 npm run preview      # serve production build → http://localhost:4173
+npm run tunnel       # ngrok HTTPS tunnel → for testing PWA install on Android (requires preview running)
 npm run typecheck    # type check only
 npm run lint         # ESLint
 npm test             # Vitest watch
