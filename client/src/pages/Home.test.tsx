@@ -484,6 +484,62 @@ describe('install banner', () => {
     unmount()
     vi.useRealTimers()
   })
+
+  it('re-shows banner after 15 days if user has logged a recent meal', () => {
+    const sixteenDaysAgo = Date.now() - 16 * 86400000
+    withMeals()
+    vi.mocked(useInstallContext).mockReturnValue({
+      canInstall: true,
+      dismissed: true,
+      dismissedAt: sixteenDaysAgo,
+      install: vi.fn(),
+      dismiss: vi.fn(),
+    })
+    renderHome()
+    expect(screen.getByText('Install App')).toBeInTheDocument()
+  })
+
+  it('does not re-show banner if user has no meals in the last 15 days', () => {
+    const sixteenDaysAgo = Date.now() - 16 * 86400000
+    vi.mocked(useMealContext).mockReturnValue({
+      meals: Array.from({ length: 3 }, (_, i) => ({
+        id: String(i),
+        tag: 'CLEAN' as const,
+        imageUrl: null,
+        amountSpent: null,
+        note: null,
+        occurredAt: Date.now() - 20 * 86400000,
+      })),
+      loading: false,
+      error: null,
+      addMeal: vi.fn(),
+      updateMeal: vi.fn(),
+      deleteMeal: vi.fn(),
+    })
+    vi.mocked(useInstallContext).mockReturnValue({
+      canInstall: true,
+      dismissed: true,
+      dismissedAt: sixteenDaysAgo,
+      install: vi.fn(),
+      dismiss: vi.fn(),
+    })
+    renderHome()
+    expect(screen.queryByText('Install App')).not.toBeInTheDocument()
+  })
+
+  it('does not re-show banner if fewer than 15 days have passed since dismissal', () => {
+    const tenDaysAgo = Date.now() - 10 * 86400000
+    withMeals()
+    vi.mocked(useInstallContext).mockReturnValue({
+      canInstall: true,
+      dismissed: true,
+      dismissedAt: tenDaysAgo,
+      install: vi.fn(),
+      dismiss: vi.fn(),
+    })
+    renderHome()
+    expect(screen.queryByText('Install App')).not.toBeInTheDocument()
+  })
 })
 
 describe('FAB file input', () => {

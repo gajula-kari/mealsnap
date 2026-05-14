@@ -8,13 +8,27 @@ import type { Meal, MealTag } from '../types'
 
 const BANNER_ANIMATED_KEY = 'aaharya_install_banner_animated'
 
+const RESHOW_AFTER_DAYS = 15
+
 function InstallBanner() {
-  const { canInstall, dismissed, install, dismiss } = useInstallContext()
+  const { canInstall, dismissed, dismissedAt, install, dismiss } = useInstallContext()
   const { meals } = useMealContext()
-  const [shouldAnimate] = useState(() => !localStorage.getItem(BANNER_ANIMATED_KEY))
+  const [shouldAnimate, setShouldAnimate] = useState(
+    () => !localStorage.getItem(BANNER_ANIMATED_KEY)
+  )
   const [isOffset, setIsOffset] = useState(shouldAnimate)
 
-  const visible = canInstall && meals.length >= 3 && !dismissed
+  const daysSinceDismiss = dismissedAt ? (Date.now() - dismissedAt) / 86400000 : Infinity
+  const isActiveUser = meals.some((m) => Date.now() - m.occurredAt < RESHOW_AFTER_DAYS * 86400000)
+  const reshowDue = dismissed && daysSinceDismiss >= RESHOW_AFTER_DAYS && isActiveUser
+  const visible = canInstall && meals.length >= 3 && (!dismissed || reshowDue)
+
+  useEffect(() => {
+    if (!reshowDue) return
+    localStorage.removeItem(BANNER_ANIMATED_KEY)
+    setShouldAnimate(true)
+    setIsOffset(true)
+  }, [reshowDue])
 
   useEffect(() => {
     if (!visible || !shouldAnimate) return
