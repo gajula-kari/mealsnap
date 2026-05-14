@@ -27,7 +27,7 @@ function InstallBanner() {
   if (!visible) return null
   return (
     <div
-      className="flex items-center justify-between rounded-2xl bg-slate-900 px-4 py-3"
+      className="absolute inset-x-0 top-0 z-10 flex items-center justify-between rounded-2xl bg-slate-900 px-4 py-3 shadow-lg"
       style={{
         transform: isOffset ? 'translateY(-150%)' : 'translateY(0)',
         opacity: isOffset ? 0 : 1,
