@@ -81,7 +81,7 @@ describe('Header on sub-pages', () => {
     initialPath = '/settings'
     renderApp()
 
-    expect(screen.getByRole('button', { name: 'Aaharya' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Aaharya/ })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Back' })).not.toBeInTheDocument()
   })
 
@@ -89,7 +89,7 @@ describe('Header on sub-pages', () => {
     initialPath = '/day/2024-01-01'
     renderApp()
 
-    expect(screen.getByRole('button', { name: 'Aaharya' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Aaharya/ })).toBeInTheDocument()
   })
 
   it('"Aaharya" button navigates to / with replace', async () => {
@@ -98,7 +98,7 @@ describe('Header on sub-pages', () => {
     initialPath = '/settings'
     renderApp()
 
-    await userEvent.click(screen.getByRole('button', { name: 'Aaharya' }))
+    await userEvent.click(screen.getByRole('button', { name: /Aaharya/ }))
 
     expect(navigate).toHaveBeenCalledWith('/', { replace: true })
   })
