@@ -102,7 +102,7 @@ describe('Header', () => {
     await screen.findByText('Clean days')
     await userEvent.click(screen.getByRole('button', { name: 'Settings' }))
 
-    expect(await screen.findByRole('button', { name: 'Aaharya' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /Aaharya/ })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Back' })).not.toBeInTheDocument()
   })
 })

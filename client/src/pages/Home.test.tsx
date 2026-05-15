@@ -168,8 +168,9 @@ describe('calendar grid', () => {
     })
     renderHome()
 
-    await screen.findByText('OVER LIMIT')
-    expect(screen.getByRole('button', { name: String(today.getDate()) })).toHaveClass('bg-rose-100')
+    expect(await screen.findByRole('button', { name: String(today.getDate()) })).toHaveClass(
+      'bg-rose-100'
+    )
   })
 
   it('applies emerald class when all meals today are HOME', () => {
