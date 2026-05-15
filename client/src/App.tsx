@@ -19,56 +19,45 @@ function Header() {
 
   return (
     <header className="mb-4 rounded-3xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
-      {isHome ? (
-        <div className="flex items-center justify-between">
-          <button
-            type="button"
-            onClick={() => navigate('/', { replace: true })}
-            className="cursor-pointer text-left"
-          >
-            <div
-              data-splash-target
-              className="text-lg font-semibold text-slate-900 transition hover:text-slate-600"
-            >
-              Aaharya
-            </div>
-            <p className="text-xs text-slate-400 tracking-wide">Indulge with intention.</p>
-          </button>
-          <div className="flex items-center gap-1">
-            {streak >= 3 && <span className="mr-1 text-[11px] text-slate-400">🌱 {streak}</span>}
-            <button
-              type="button"
-              onClick={() => navigate('/settings', { replace: true })}
-              className="rounded-2xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-              aria-label="Settings"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="12" cy="12" r="3" />
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      ) : (
+      <div className="flex items-center justify-between">
         <button
-          data-splash-target
           type="button"
           onClick={() => navigate('/', { replace: true })}
-          className="cursor-pointer text-lg font-semibold text-slate-900 transition hover:text-slate-600"
+          className="cursor-pointer text-left"
         >
-          Aaharya
+          <div
+            data-splash-target
+            className="text-lg font-semibold text-slate-900 transition hover:text-slate-600"
+          >
+            Aaharya
+          </div>
+          <p className="text-xs text-slate-400 tracking-wide">Indulge with intention.</p>
         </button>
-      )}
+        <div className="flex items-center gap-1">
+          {streak >= 3 && <span className="mr-1 text-[11px] text-slate-400">🌱 {streak}</span>}
+          <button
+            type="button"
+            onClick={() => navigate('/settings', { replace: true })}
+            className="rounded-2xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+            aria-label="Settings"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+          </button>
+        </div>
+      </div>
     </header>
   )
 }
@@ -86,66 +75,11 @@ function Layout({ children }: { children: ReactNode }) {
   )
 }
 
-function SplashScreen({ onDone }: { onDone: () => void }) {
-  const textRef = useRef<HTMLDivElement>(null)
-  const [exiting, setExiting] = useState(false)
-  const [exitStyle, setExitStyle] = useState<CSSProperties>({})
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const target = document.querySelector('[data-splash-target]')
-      const src = textRef.current
-      if (src) {
-        const srcRect = src.getBoundingClientRect()
-        const style: CSSProperties = { opacity: 0 }
-        if (target) {
-          const tgtRect = target.getBoundingClientRect()
-          const tx = tgtRect.left + tgtRect.width / 2 - (srcRect.left + srcRect.width / 2)
-          const ty = tgtRect.top + tgtRect.height / 2 - (srcRect.top + srcRect.height / 2)
-          style.transform = `translate(${tx}px, ${ty}px)`
-        } else {
-          style.transform = 'translateY(-45vh)'
-        }
-        setExitStyle(style)
-      }
-      setExiting(true)
-    }, 1500)
-    return () => clearTimeout(timer)
-  }, [])
-
-  return (
-    <div
-      aria-hidden="true"
-      className="pointer-events-none fixed inset-0 z-[100] bg-slate-50"
-      style={exiting ? { transition: 'opacity 0.5s ease', opacity: 0 } : undefined}
-    >
-      <div
-        ref={textRef}
-        className="flex h-full flex-col items-center justify-center"
-        style={
-          exiting
-            ? { transition: 'transform 0.5s ease, opacity 0.5s ease', ...exitStyle }
-            : undefined
-        }
-        onTransitionEnd={(e) => {
-          if (e.propertyName === 'opacity') onDone()
-        }}
-      >
-        <p className="text-lg font-semibold text-slate-900">Aaharya</p>
-        <p className="text-xs tracking-wide text-slate-400">Indulge with intention.</p>
-      </div>
-    </div>
-  )
-}
-
 function AppContent() {
   const [isOnboarded, setIsOnboarded] = useState(() => !!localStorage.getItem('aaharya_onboarded'))
-  const [splashDone, setSplashDone] = useState(false)
 
   return (
     <>
-      {!splashDone && <SplashScreen onDone={() => setSplashDone(true)} />}
-
       {!isOnboarded ? (
         <Routes>
           <Route path="/onboard" element={<Onboard onComplete={() => setIsOnboarded(true)} />} />
