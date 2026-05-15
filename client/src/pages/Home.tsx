@@ -235,9 +235,6 @@ export default function Home() {
             >
               INDULGENT
             </button>
-            {monthlyGoal != null && (
-              <span className="rounded-xl bg-rose-100 px-2 py-1 text-rose-700">OVER LIMIT</span>
-            )}
           </div>
         </div>
 
